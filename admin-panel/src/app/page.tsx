@@ -21,24 +21,19 @@ export default function AdminRootPage() {
       fontFamily: 'system-ui, sans-serif'
     }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{
+        <div className="spinner" style={{
           width: '50px',
           height: '50px',
           border: '4px solid rgba(255,255,255,0.1)',
           borderTopColor: '#00F2FE',
           borderRadius: '50%',
           margin: '0 auto 20px auto',
-          animation: 'spin 1s linear infinite'
         }}></div>
         <p style={{ fontWeight: 600, letterSpacing: '0.05em' }}>
           LOADING MEDIMART ADMINISTRATION SYSTEM...
         </p>
       </div>
-      <style jsx global>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+      {/* CSS is now globally defined in globals.css, or inline */}
     </div>
   );
 }
