@@ -67,8 +67,7 @@ export default function ProductDetailPage() {
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-lg)',
           overflow: 'hidden',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1.2fr'
+          display: 'grid'
         }} className="product-detail-grid">
           
           {/* Left Column: Image skeleton */}
@@ -161,8 +160,7 @@ export default function ProductDetailPage() {
         borderRadius: 'var(--radius-lg)',
         boxShadow: 'var(--shadow-md)',
         overflow: 'hidden',
-        display: 'grid',
-        gridTemplateColumns: '1fr 1.2fr'
+        display: 'grid'
       }} className="product-detail-grid">
         
         {/* Left Column: Image wrapper */}
