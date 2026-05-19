@@ -209,13 +209,20 @@ function ConfirmationContent() {
         }}></div>
 
         <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ color: 'var(--primary)', display: 'inline-flex', marginBottom: '20px' }}>
-            <CheckCircle2 size={72} strokeWidth={1.5} />
+          {/* Animated Draw-in Success Tick */}
+          <div className="animated-checkmark-wrapper">
+            <svg className="checkmark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+              <circle className="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+              <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
           </div>
 
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--foreground)', marginBottom: '12px', lineHeight: 1.25 }}>
-            Order Placed Successfully!
+          <h1 style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--foreground)', marginBottom: '4px', lineHeight: 1.25 }}>
+            Thank You! / شکریہ
           </h1>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '12px' }}>
+            Order Placed Successfully!
+          </h2>
           <p className="urdu-text" style={{ color: 'var(--primary)', fontSize: '1.25rem', marginBottom: '20px', fontWeight: 700 }}>
             آرڈر کامیابی سے موصول ہو گیا ہے!
           </p>

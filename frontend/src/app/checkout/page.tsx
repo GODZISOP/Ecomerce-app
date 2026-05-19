@@ -194,13 +194,7 @@ export default function CheckoutPage() {
         
         {/* Left Side: Delivery Details Form */}
         <div className="responsive-tab-main">
-          <div style={{
-            background: 'var(--card-bg)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '40px',
-            boxShadow: 'var(--shadow-sm)'
-          }}>
+          <div className="responsive-card">
             <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '8px' }}>
               Delivery Information / پتہ اور معلومات
             </h2>
@@ -349,15 +343,7 @@ export default function CheckoutPage() {
 
         {/* Right Side: Quick order summary breakdown */}
         <div className="responsive-tab-sidebar">
-          <div style={{
-            background: 'var(--card-bg)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '30px',
-            boxShadow: 'var(--shadow-sm)',
-            position: 'sticky',
-            top: '110px'
-          }}>
+          <div className="responsive-card summary-card">
             <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ClipboardList size={18} color="var(--primary)" /> Basket Summary ({cart.length})
             </h3>
@@ -415,6 +401,42 @@ export default function CheckoutPage() {
         </div>
 
       </div>
+
+      {/* Fullscreen premium glassmorphic loader overlay */}
+      {isSubmitting && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          zIndex: 99999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '24px'
+        }}>
+          <div className="spinner" style={{
+            width: '60px',
+            height: '60px',
+            border: '4px solid var(--border-color)',
+            borderTopColor: 'var(--primary)',
+            borderRadius: '50%',
+          }} />
+          <div style={{ textAlign: 'center' }}>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--foreground)', marginBottom: '8px' }}>
+              Placing Your Order / آرڈر پروسیس ہو رہا ہے
+            </h3>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              Baraye meherbani intezar karein. Please do not refresh or close this page.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

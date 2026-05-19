@@ -297,12 +297,13 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Quantity and Checkout action */}
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div className="product-buy-actions">
             
             {/* Qty count selector */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               border: '1px solid var(--border-color)',
               borderRadius: 'var(--radius-sm)',
               background: 'var(--background)',

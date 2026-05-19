@@ -131,10 +131,10 @@ export default function CartPage() {
                     )}
                   </div>
 
-                  {/* Qty count selector */}
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     border: '1px solid var(--border-color)',
                     borderRadius: 'var(--radius-sm)',
                     background: 'var(--background)',
@@ -280,7 +280,60 @@ export default function CartPage() {
 
       {/* Cart item table layout style custom overrides */}
       <style jsx global>{`
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
+          .tab-container {
+            flex-direction: column !important;
+            gap: 20px !important;
+          }
+          .cart-summary {
+            position: relative !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin-top: 20px;
+          }
+          .cart-item-row {
+            display: grid !important;
+            grid-template-columns: 80px 1fr 40px !important;
+            grid-template-rows: auto auto auto !important;
+            padding: 16px !important;
+            gap: 12px !important;
+            align-items: center !important;
+          }
+          .cart-item-row > div:nth-child(1) {
+            grid-column: 1 !important;
+            grid-row: 1 / span 3 !important;
+            align-self: center !important;
+          }
+          .cart-item-row > div:nth-child(2) {
+            grid-column: 2 !important;
+            grid-row: 1 !important;
+            justify-self: start !important;
+          }
+          .cart-item-row > div:nth-child(3) {
+            grid-column: 2 !important;
+            grid-row: 2 !important;
+            justify-self: start !important;
+            align-self: center !important;
+            margin-top: 6px !important;
+            margin-bottom: 4px !important;
+          }
+          .cart-item-row > div:nth-child(4) {
+            grid-column: 2 !important;
+            grid-row: 3 !important;
+            justify-self: start !important;
+            text-align: left !important;
+            align-self: center !important;
+            margin-top: 4px !important;
+          }
+          .cart-item-row > button:nth-child(5) {
+            grid-column: 3 !important;
+            grid-row: 1 / span 3 !important;
+            justify-self: center !important;
+            align-self: center !important;
+          }
+        }
+        
+        @media (max-width: 900px) and (min-width: 769px) {
           .tab-container {
             flex-direction: column !important;
           }

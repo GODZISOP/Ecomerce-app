@@ -738,7 +738,7 @@ export default function PremiumAdminPanel() {
           </div>
 
           {/* Visual vector CSS-based analytic graphs */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '30px', flexWrap: 'wrap' }}>
+          <div className="admin-dashboard-graphs">
             
             {/* Sales Volume chart */}
             <div style={{
@@ -1389,13 +1389,7 @@ export default function PremiumAdminPanel() {
 
       {/* 4. THE ULTIMATE PRESCRIPTION DOCUMENT FILE WORKSPACE (File-like Admin Panel) */}
       {activeTab === 'prescriptions' && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '320px 1fr',
-          gap: '30px',
-          height: '620px',
-          alignItems: 'stretch'
-        }}>
+        <div className="admin-prescription-workspace">
           {/* Left panel: List orders requiring prescriptions */}
           <div style={{
             background: 'var(--card-bg)',
@@ -1549,12 +1543,7 @@ export default function PremiumAdminPanel() {
               </div>
 
               {/* Workspace Main Workspace Split */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1.2fr 1fr',
-                height: '100%',
-                overflow: 'hidden'
-              }}>
+              <div className="admin-prescription-detail-split">
                 {/* Visual Prescription Attachment Viewer */}
                 <div style={{
                   background: '#090e14',
