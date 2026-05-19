@@ -291,7 +291,7 @@ export default function HomePage() {
             <p className="section-subtitle" style={{ fontSize: '1rem' }}>Sada aur aasan marhalay</p>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', textAlign: 'center' }}>
+          <div className="steps-grid">
             <div>
               <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', fontSize: '1.5rem', fontWeight: 800 }}>1</div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>Select Medicines / دوا چنیں</h3>

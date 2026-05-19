@@ -13,14 +13,7 @@ export default function Footer() {
     }}>
       <div className="container">
         {/* Trust Badges Bar */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '24px',
-          paddingBottom: '40px',
-          borderBottom: '1px solid var(--border-color)',
-          marginBottom: '40px'
-        }}>
+        <div className="footer-trust-grid">
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ 
               background: 'var(--primary-bg)', 
@@ -68,14 +61,7 @@ export default function Footer() {
         </div>
 
         {/* Footer Details */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1.2fr 1fr 1fr',
-          gap: '40px',
-          paddingBottom: '40px',
-          borderBottom: '1px solid var(--border-color)',
-          marginBottom: '30px'
-        }}>
+        <div className="footer-details-grid">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
               <Activity size={24} color="var(--primary)" />
@@ -124,15 +110,18 @@ export default function Footer() {
         </div>
 
         {/* Copy Bar */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-          fontSize: '0.8rem',
-          color: 'var(--text-muted)'
-        }}>
+        <div 
+          className="footer-copy-bar"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+            fontSize: '0.8rem',
+            color: 'var(--text-muted)'
+          }}
+        >
           <span>© {new Date().getFullYear()} MediMart Pakistan. All rights reserved.</span>
           <span className="urdu-text" style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>
             ہماری ترجیح، آپ کی صحت اور آسانی۔

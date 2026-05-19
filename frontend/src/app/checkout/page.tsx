@@ -190,10 +190,10 @@ export default function CheckoutPage() {
       </button>
 
       {/* Main split grid */}
-      <div className="tab-container" style={{ display: 'flex', gap: '40px' }}>
+      <div className="responsive-tab-layout">
         
         {/* Left Side: Delivery Details Form */}
-        <div style={{ flex: 1.3 }}>
+        <div className="responsive-tab-main">
           <div style={{
             background: 'var(--card-bg)',
             border: '1px solid var(--border-color)',
@@ -348,7 +348,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Right Side: Quick order summary breakdown */}
-        <div style={{ flex: 0.8 }}>
+        <div className="responsive-tab-sidebar">
           <div style={{
             background: 'var(--card-bg)',
             border: '1px solid var(--border-color)',
