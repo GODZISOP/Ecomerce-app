@@ -115,28 +115,32 @@ export default function CheckoutPage() {
       }
 
       // Trigger email notifications (Admin alert & Customer confirmation)
-      fetch('/api/notify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'new_order',
-          order: {
-            tracking_code: trackingCode,
-            customer_name: name.trim(),
-            phone: phone.replace(/[\s-]/g, ''),
-            email: email.trim(),
-            address: address.trim(),
-            city: city,
-            items: orderItems,
-            subtotal: cartSubtotal,
-            shipping_fee: shippingFee,
-            grand_total: grandTotal,
-            status: 'Pending'
-          }
-        })
-      }).catch(err => console.error('Failed to send notification email:', err));
+      try {
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'new_order',
+            order: {
+              tracking_code: trackingCode,
+              customer_name: name.trim(),
+              phone: phone.replace(/[\s-]/g, ''),
+              email: email.trim(),
+              address: address.trim(),
+              city: city,
+              items: orderItems,
+              subtotal: cartSubtotal,
+              shipping_fee: shippingFee,
+              grand_total: grandTotal,
+              status: 'Pending'
+            }
+          })
+        });
+      } catch (err) {
+        console.error('Failed to send notification email:', err);
+      }
 
       // 4. Order created successfully! Clear checkout session state and cart
       clearCart();
