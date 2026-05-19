@@ -23,13 +23,22 @@ export default function CheckoutPage() {
   // Validation / Loading States
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    if (isSuccess) return;
+
     // If cart is empty, redirect back to cart
     if (cart.length === 0 && !isSubmitting) {
       router.push('/cart');
     }
-  }, [cart, router, isSubmitting]);
+  }, [cart, router, isSubmitting, isMounted, isSuccess]);
 
   const validateForm = () => {
     if (name.trim().length < 3) {
@@ -143,6 +152,7 @@ export default function CheckoutPage() {
       }
 
       // 4. Order created successfully! Clear checkout session state and cart
+      setIsSuccess(true);
       clearCart();
 
       // 5. Redirect to confirmation page with tracking code
@@ -163,7 +173,16 @@ export default function CheckoutPage() {
     'Hyderabad', 'Sargodha', 'Bahawalpur', 'Sukkur', 'Larkana'
   ];
 
-  if (cart.length === 0 && !isSubmitting) {
+  if (!isMounted) {
+    return (
+      <div className="container" style={{ padding: '100px 24px', textAlign: 'center' }}>
+        <div className="spinner" style={{ width: '40px', height: '40px', border: '3px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', margin: '0 auto' }}></div>
+        <p style={{ marginTop: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>Securing checkout session / لوڈ ہو رہا ہے...</p>
+      </div>
+    );
+  }
+
+  if (cart.length === 0 && !isSubmitting && !isSuccess) {
     return null;
   }
 
