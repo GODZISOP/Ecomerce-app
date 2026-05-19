@@ -40,6 +40,10 @@ export async function POST(req: Request) {
       status
     } = order;
 
+    // Dynamically detect URLs using request origin, fallback to Vercel URLs
+    const requestOrigin = req.headers.get('origin') || 'https://ecom12345.vercel.app';
+    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://ecomerce-app-s357.vercel.app';
+
     // Build lists of medicines formatted for plain text and HTML
     const itemsListHtml = items.map((item: any) => `
       <tr>
@@ -105,7 +109,7 @@ export async function POST(req: Request) {
             </div>
 
             <div style="margin-top: 30px; text-align: center;">
-              <a href="http://localhost:3000/admin" style="background: #0d9488; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+              <a href="${adminUrl}/admin" style="background: #0d9488; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 Manage Order in Admin Panel
               </a>
             </div>
@@ -148,7 +152,7 @@ export async function POST(req: Request) {
             </p>
             
             <div style="text-align: center; margin-top: 12px;">
-              <a href="http://localhost:3000/tracking?code=${tracking_code}" style="background: #0d9488; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 0.9rem;">
+              <a href="${requestOrigin}/tracking?code=${tracking_code}" style="background: #0d9488; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 0.9rem;">
                 Track Live Order Status
               </a>
             </div>
@@ -174,7 +178,7 @@ export async function POST(req: Request) {
             from: `"MediMart Pakistan" <${smtpConfig.auth.user}>`,
             to: email.trim(),
             subject: customerSubject,
-            text: `Assalam-o-Alaikum ${customer_name},\n\nAap ka order ${tracking_code} confirm ho chuka hai aur prepare ho raha hai. Live details yahan track karein: http://localhost:3000/tracking?code=${tracking_code}\n\nDelivery Address: ${address}, ${city}\nTotal Bill: Rs. ${grand_total}`,
+            text: `Assalam-o-Alaikum ${customer_name},\n\nAap ka order ${tracking_code} confirm ho chuka hai aur prepare ho raha hai. Live details yahan track karein: ${requestOrigin}/tracking?code=${tracking_code}\n\nDelivery Address: ${address}, ${city}\nTotal Bill: Rs. ${grand_total}`,
             html: customerHtml,
           });
           console.log(`[SMTP] Sent order confirmation email to customer at: ${email.trim()}`);
@@ -308,7 +312,7 @@ export async function POST(req: Request) {
             </p>
             
             <div style="text-align: center; margin-top: 12px;">
-              <a href="http://localhost:3000/tracking?code=${tracking_code}" style="background: #0d9488; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 0.9rem;">
+              <a href="${requestOrigin}/tracking?code=${tracking_code}" style="background: #0d9488; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 0.9rem;">
                 Track Live Order Status
               </a>
             </div>
