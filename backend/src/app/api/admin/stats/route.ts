@@ -1,5 +1,27 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import fs from 'fs/promises';
+import path from 'path';
+
+const menuFilePath = path.join(process.cwd(), 'src', 'lib', 'menu.json');
+const ordersFilePath = path.join(process.cwd(), 'src', 'lib', 'orders.json');
+
+async function readMenu() {
+  try {
+    const data = await fs.readFile(menuFilePath, 'utf8');
+    return JSON.parse(data);
+  } catch (e) {
+    return [];
+  }
+}
+
+async function readOrders() {
+  try {
+    const data = await fs.readFile(ordersFilePath, 'utf8');
+    return JSON.parse(data);
+  } catch (e) {
+    return [];
+  }
+}
 
 export async function GET(req: Request) {
   try {
@@ -8,43 +30,32 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
     }
     
-    // Fetch all orders to compute aggregate statistics
-    const { data: orders, error: ordersError } = await supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (ordersError) throw ordersError;
-    
-    const { data: medicines, error: medicinesError } = await supabase
-      .from('medicines')
-      .select('id, name, category, price_pkr, stock');
-      
-    if (medicinesError) throw medicinesError;
+    const orders = await readOrders();
+    const medicines = await readMenu();
     
     const safeOrders = orders || [];
     const safeMedicines = medicines || [];
     
     // Basic Counters
     const totalOrders = safeOrders.length;
-    const pendingOrders = safeOrders.filter(o => o.status === 'Pending').length;
-    const dispatchedOrders = safeOrders.filter(o => o.status === 'Dispatched').length;
-    const deliveredOrders = safeOrders.filter(o => o.status === 'Delivered').length;
-    const cancelledOrders = safeOrders.filter(o => o.status === 'Cancelled').length;
+    const pendingOrders = safeOrders.filter((o: any) => o.status === 'Pending').length;
+    const dispatchedOrders = safeOrders.filter((o: any) => o.status === 'Dispatched').length;
+    const deliveredOrders = safeOrders.filter((o: any) => o.status === 'Delivered').length;
+    const cancelledOrders = safeOrders.filter((o: any) => o.status === 'Cancelled').length;
     
     // Total Delivered Revenue
     const totalRevenue = safeOrders
-      .filter(o => o.status === 'Delivered')
-      .reduce((sum, o) => sum + (o.grand_total || 0), 0);
+      .filter((o: any) => o.status === 'Delivered')
+      .reduce((sum: number, o: any) => sum + (o.grand_total || 0), 0);
       
     // Rx Pending Orders
     const rxPendingOrders = safeOrders
-      .filter(o => o.status === 'Pending' && o.items && Array.isArray(o.items) && o.items.some((i: any) => i.requires_prescription))
+      .filter((o: any) => o.status === 'Pending' && o.items && Array.isArray(o.items) && o.items.some((i: any) => i.requires_prescription))
       .length;
       
     // City breakdown
     const cityBreakdown: Record<string, number> = {};
-    safeOrders.forEach(o => {
+    safeOrders.forEach((o: any) => {
       if (o.city) {
         cityBreakdown[o.city] = (cityBreakdown[o.city] || 0) + 1;
       }
@@ -54,16 +65,16 @@ export async function GET(req: Request) {
     const categorySales: Record<string, number> = {};
     const medicineCategoryMap: Record<string, string> = {};
     
-    safeMedicines.forEach(m => {
+    safeMedicines.forEach((m: any) => {
       medicineCategoryMap[m.name.toLowerCase()] = m.category;
     });
     
     safeOrders
-      .filter(o => o.status === 'Delivered')
-      .forEach(o => {
+      .filter((o: any) => o.status === 'Delivered')
+      .forEach((o: any) => {
         if (o.items && Array.isArray(o.items)) {
           o.items.forEach((item: any) => {
-            const cat = item.category || medicineCategoryMap[item.name.toLowerCase()] || 'General';
+            const cat = item.category || medicineCategoryMap[item.name.toLowerCase()] || 'Pizza';
             const value = (item.price_pkr || 0) * (item.quantity || 1);
             categorySales[cat] = (categorySales[cat] || 0) + value;
           });
@@ -81,7 +92,7 @@ export async function GET(req: Request) {
       dailyVolumes[dateStr] = { count: 0, revenue: 0 };
     }
     
-    safeOrders.forEach(o => {
+    safeOrders.forEach((o: any) => {
       const date = new Date(o.created_at);
       const dateStr = date.toLocaleDateString('en-PK', { month: 'short', day: 'numeric' });
       if (dailyVolumes[dateStr]) {
@@ -93,9 +104,9 @@ export async function GET(req: Request) {
     });
     
     // Total medicines inventory value
-    const totalInventoryValue = safeMedicines.reduce((sum, m) => sum + ((m.price_pkr || 0) * (m.stock || 0)), 0);
-    const totalInventoryCount = safeMedicines.reduce((sum, m) => sum + (m.stock || 0), 0);
-    const lowStockMedicines = safeMedicines.filter(m => (m.stock || 0) < 15).length;
+    const totalInventoryValue = safeMedicines.reduce((sum: number, m: any) => sum + ((m.price_pkr || 0) * (m.stock || 0)), 0);
+    const totalInventoryCount = safeMedicines.reduce((sum: number, m: any) => sum + (m.stock || 0), 0);
+    const lowStockMedicines = safeMedicines.filter((m: any) => (m.stock || 0) < 15).length;
     
     return NextResponse.json({
       success: true,

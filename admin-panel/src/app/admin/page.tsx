@@ -63,6 +63,7 @@ export default function PremiumAdminPanel() {
   const [passcode, setPasscode] = useState('');
   const [authError, setAuthError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Tab State
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'medicines' | 'prescriptions' | 'settings'>('dashboard');
@@ -130,6 +131,7 @@ export default function PremiumAdminPanel() {
     if (token === 'medimart_session_token_2026_verified') {
       setIsAuthenticated(true);
     }
+    setMounted(true);
   }, []);
 
   // Fetch core data once authenticated
@@ -152,30 +154,11 @@ export default function PremiumAdminPanel() {
   async function fetchOrders() {
     setIsLoadingOrders(true);
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Filter out old medical orders (ensure all items in the order belong to the pizza menu)
-      const pizzaOrders = (data || []).filter((order: Order) => {
-        if (!order.items || order.items.length === 0) return false;
-        
-        return order.items.every((item: OrderItem) => {
-          const normName = item.name.toLowerCase().replace(/\s+/g, '');
-          return [
-            "veggieloverpizza", "cheeselover", "afghanifeast", "chickensupreme", "chksupreme", 
-            "chickenfajitasupreme", "bbqtikkapizza", "cheesesticks", "pizzafries", "clubsandwich", 
-            "mexicanchickensandwich", "kababchaskapizza", "zingerburger", "creamypizza", 
-            "cheesenpepronipizza", "cheesenpepperonipizza", "chickenbbqwings", "beefburger", 
-            "creamyfajitapizza", "creamytikkapizza", "chickencheesecreamypasta"
-          ].includes(normName);
-        });
-      });
-
-      setOrders(pizzaOrders);
+      const response = await fetch('/api/orders');
+      const data = await response.json();
+      if (data.success) {
+        setOrders(data.orders || []);
+      }
     } catch (e) {
       console.error('Error fetching orders:', e);
     } finally {
@@ -210,39 +193,23 @@ export default function PremiumAdminPanel() {
   }
 
   async function fetchAnalyticsStats() {
-    // Client-side mock analytics reflecting pizza sales to completely hide old medical dashboard records
-    setStats({
-      totalOrders: 12,
-      pendingOrders: 2,
-      dispatchedOrders: 3,
-      deliveredOrders: 7,
-      cancelledOrders: 0,
-      totalRevenue: 14850,
-      rxPendingOrders: 0,
-      totalInventoryValue: 24500,
-      totalInventoryCount: 20,
-      lowStockMedicines: 2
-    });
-    setCategorySales([
-      { name: 'Pizza', value: 65 },
-      { name: 'Burger', value: 20 },
-      { name: 'Sides', value: 10 },
-      { name: 'Sandwich', value: 5 }
-    ]);
-    setCityBreakdown([
-      { name: 'Lahore', value: 6 },
-      { name: 'Karachi', value: 4 },
-      { name: 'Islamabad', value: 2 }
-    ]);
-    setDailyVolumes([
-      { date: '2026-06-19', count: 1, revenue: 1150 },
-      { date: '2026-06-20', count: 2, revenue: 2400 },
-      { date: '2026-06-21', count: 1, revenue: 990 },
-      { date: '2026-06-22', count: 3, revenue: 3800 },
-      { date: '2026-06-23', count: 2, revenue: 2500 },
-      { date: '2026-06-24', count: 2, revenue: 2800 },
-      { date: '2026-06-25', count: 1, revenue: 1210 }
-    ]);
+    try {
+      const token = localStorage.getItem('medimart_admin_session');
+      const response = await fetch('/api/admin/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setStats(data.stats.counters);
+        setCategorySales(data.stats.categorySales);
+        setCityBreakdown(data.stats.cityBreakdown);
+        setDailyVolumes(data.stats.dailyVolumes);
+      }
+    } catch (e) {
+      console.error('Error pulling analytics:', e);
+    }
   }
 
   // Handle Authentication submit
@@ -290,12 +257,14 @@ export default function PremiumAdminPanel() {
   const handleOrderStatusChange = async (orderId: string, nextStatus: 'Pending' | 'Dispatched' | 'Delivered' | 'Cancelled') => {
     setUpdatingOrderId(orderId);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: nextStatus })
-        .eq('id', orderId);
+      const response = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, status: nextStatus })
+      });
+      const data = await response.json();
 
-      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
 
       // Update state locally
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
@@ -477,6 +446,10 @@ export default function PremiumAdminPanel() {
 
   // Extract unique categories for catalog dropdown
   const medicineCategories = ['All', ...Array.from(new Set(medicines.map(m => m.category)))];
+
+  if (!mounted) {
+    return <div style={{ minHeight: '100vh', background: 'var(--background)' }} />;
+  }
 
   // Secure Authentication screen
   if (!isAuthenticated) {

@@ -68,21 +68,22 @@ function TrackingContent() {
     const term = codeOrPhone.trim().toUpperCase();
 
     try {
-      let query = supabase.from('orders').select('*');
+      const response = await fetch('/api/orders');
+      const apiData = await response.json();
+      if (!apiData.success) throw new Error(apiData.error || 'Server error');
 
+      const data = apiData.orders || [];
+
+      let filtered = [];
       if (term.startsWith('FP-') || term.startsWith('MM-')) {
-        query = query.eq('tracking_code', term);
+        filtered = data.filter((o: any) => o.tracking_code === term);
       } else {
         const cleanPhone = term.replace(/[\s-+]/g, '');
-        query = query.eq('phone', cleanPhone);
+        filtered = data.filter((o: any) => o.phone.replace(/[\s-+]/g, '') === cleanPhone);
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const sorted = data.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      if (filtered && filtered.length > 0) {
+        const sorted = filtered.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         setOrder(sorted[0]);
       } else {
         setErrorMsg(t('We could not find any order with this code or phone number.', 'ہمیں اس کوڈ یا موبائل نمبر کے ساتھ کوئی آرڈر نہیں ملا۔'));

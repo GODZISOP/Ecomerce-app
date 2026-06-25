@@ -49,14 +49,13 @@ function ConfirmationContent() {
       }
 
       try {
-        const { data } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('tracking_code', code)
-          .single();
-
-        if (data) {
-          setOrder(data);
+        const response = await fetch('/api/orders');
+        const apiData = await response.json();
+        if (apiData.success && apiData.orders) {
+          const matched = apiData.orders.find((o: any) => o.tracking_code === code);
+          if (matched) {
+            setOrder(matched);
+          }
         }
       } catch (e) {
         console.error('Error loading order summary:', e);

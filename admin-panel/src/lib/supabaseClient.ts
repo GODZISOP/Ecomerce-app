@@ -345,6 +345,16 @@ class MockQueryBuilder {
   }
 
   async then(onfulfilled?: (value: any) => any) {
+    try {
+      const response = await fetch('/api/admin/medicines');
+      const apiData = await response.json();
+      if (apiData.success && apiData.medicines) {
+        this.data = apiData.medicines;
+      }
+    } catch (e) {
+      console.error('Error fetching mock medicines from local API:', e);
+    }
+
     const result = { data: this.isSingle ? (this.data[0] || null) : this.data, error: null };
     if (onfulfilled) {
       return onfulfilled(result);

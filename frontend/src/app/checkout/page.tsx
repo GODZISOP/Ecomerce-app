@@ -97,29 +97,29 @@ export default function CheckoutPage() {
         requires_prescription: false
       }));
 
-      // 3. Write to Supabase orders table
-      const { error } = await supabase
-        .from('orders')
-        .insert([
-          {
-            customer_name: name.trim(),
-            phone: phone.replace(/[\s-]/g, ''),
-            email: email.trim(),
-            address: address.trim(),
-            city: city,
-            items: orderItems,
-            subtotal: cartSubtotal,
-            shipping_fee: shippingFee,
-            grand_total: grandTotal,
-            total_amount: grandTotal,
-            status: 'Pending',
-            tracking_code: trackingCode
-          }
-        ])
-        .select();
-
-      if (error) {
-        throw error;
+      // 3. Write to local backend orders API
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_name: name.trim(),
+          phone: phone.replace(/[\s-]/g, ''),
+          email: email.trim(),
+          address: address.trim(),
+          city: city,
+          items: orderItems,
+          subtotal: cartSubtotal,
+          shipping_fee: shippingFee,
+          grand_total: grandTotal,
+          total_amount: grandTotal,
+          status: 'Pending',
+          tracking_code: trackingCode
+        })
+      });
+      
+      const resData = await response.json();
+      if (!resData.success) {
+        throw new Error(resData.error || 'Failed to place order');
       }
 
       // Trigger email notifications
