@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Activity, ShieldCheck, HeartPulse, Clock, Sparkles } from 'lucide-react';
+import { Pizza, ShieldCheck, Flame, Clock, Sparkles } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -28,11 +28,11 @@ export default function Footer() {
               padding: '12px', 
               borderRadius: 'var(--radius-md)' 
             }}>
-              <ShieldCheck size={24} />
+              <Flame size={24} />
             </div>
             <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>100% Authentic Medicines</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>100% Asli Dawaeen | براہ راست مینوفیکچررز سے</p>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>100% Hot & Fresh</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Hot and Fresh | Straight from the Oven</p>
             </div>
           </div>
           
@@ -43,11 +43,11 @@ export default function Footer() {
               padding: '12px', 
               borderRadius: 'var(--radius-md)' 
             }}>
-              <HeartPulse size={24} />
+              <Pizza size={24} />
             </div>
             <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Registered Pharmacists</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Muanas Pharmacists | مستند فارماسسٹس کی نگرانی</p>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Expert Pizza Chefs</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Unique Taste | Supervised by Expert Chefs</p>
             </div>
           </div>
 
@@ -61,8 +61,8 @@ export default function Footer() {
               <Clock size={24} />
             </div>
             <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Cash on Delivery (COD)</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Paisa Wasooli par Adaigi | پورے پاکستان میں دستیاب</p>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>30 Mins Free Delivery</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>30 Minute Delivery | DHA, Gulberg, and F7</p>
             </div>
           </div>
         </div>
@@ -78,47 +78,47 @@ export default function Footer() {
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-              <Activity size={24} color="var(--primary)" />
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--foreground)' }}>
-                MediMart <span style={{ color: 'var(--secondary)' }}>Pakistan</span>
+              <Pizza size={24} color="var(--primary)" />
+              <span style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--foreground)' }}>
+                Fatpizza <span style={{ color: 'var(--secondary)' }}>Admin</span>
               </span>
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.6 }}>
-              MediMart Pakistan is a premier digital healthcare pharmacy dedicated to providing authentic medicines, healthcare items, and expert guidance directly to homes across Pakistan. COD is available in all major cities.
+              Fatpizza Administration system for managing menu items, tracking active hot and fresh delivery orders, updating store settings, and viewing kitchen analytics.
             </p>
             <p style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>
-              Helpline: +92 300 1234567 • info@medimart.pk
+              Helpline: +92 300 1234567 • admin@fatpizza.pk
             </p>
           </div>
 
           <div>
-            <h5 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '20px' }}>Popular Categories / اقسام</h5>
+            <h5 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '20px' }}>Popular Categories</h5>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              <li>Painkillers / درد کش ادویات</li>
-              <li>Antibiotics / اینٹی بائیوٹکس</li>
-              <li>Diabetes / شوگر کی دوا</li>
-              <li>Blood Pressure / بلڈ پریشر</li>
-              <li>Vitamins / وٹامنز</li>
+              <li>Pizzas</li>
+              <li>Burgers</li>
+              <li>Sandwiches</li>
+              <li>Sides</li>
+              <li>Desserts</li>
             </ul>
           </div>
 
           <div>
-            <h5 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '20px' }}>Security & Legality</h5>
+            <h5 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '20px' }}>Quality & Guarantee</h5>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: 1.6 }}>
-              Some medicines require a valid doctor prescription. Please keep a digital copy of your prescription ready before delivery.
+              All our ingredients are 100% halal and fresh. Our kitchens are sanitized twice daily and cooked at high temperatures for maximum safety.
             </p>
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(239, 68, 68, 0.08)',
-              color: 'var(--status-cancelled)',
+              background: 'rgba(16, 185, 129, 0.08)',
+              color: 'var(--status-delivered)',
               fontSize: '0.75rem',
               fontWeight: 700,
               padding: '6px 12px',
               borderRadius: 'var(--radius-sm)'
             }}>
-              ⚠️ Prescription Required for Rx labeled drugs
+              ✨ 100% Quality & Freshness Guarantee
             </div>
           </div>
         </div>
@@ -133,9 +133,9 @@ export default function Footer() {
           fontSize: '0.8rem',
           color: 'var(--text-muted)'
         }}>
-          <span>© {new Date().getFullYear()} MediMart Pakistan. All rights reserved.</span>
-          <span className="urdu-text" style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>
-            ہماری ترجیح، آپ کی صحت اور آسانی۔
+          <span>© {new Date().getFullYear()} Fatpizza. All rights reserved.</span>
+          <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>
+            Fresh and Hot, Every Time.
           </span>
         </div>
       </div>

@@ -90,22 +90,6 @@ export default function Header() {
                   <span>{t('Track Order', 'آرڈر ٹریک کریں')}</span>
                 </Link>
               </li>
-              <li>
-                <Link 
-                  href="/admin" 
-                  className={`nav-link ${isLinkActive('/admin') ? 'active' : ''}`} 
-                  style={{ 
-                    color: isLinkActive('/admin') ? '#000000' : 'white', 
-                    background: isLinkActive('/admin') ? 'white' : 'transparent',
-                    fontWeight: 750,
-                    textDecoration: 'none',
-                    padding: '8px 18px',
-                    borderRadius: 'var(--radius-pill)'
-                  }}
-                >
-                  <span>{t('Admin Panel', 'ایڈمن پینل')}</span>
-                </Link>
-              </li>
             </ul>
           </nav>
 
@@ -221,17 +205,6 @@ export default function Header() {
                     style={{ color: 'white' }}
                   >
                     <span>{t('Track Order', 'آرڈر ٹریک کریں')}</span>
-                    <ChevronRight size={16} />
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    href="/admin" 
-                    className={`mobile-drawer-link ${isLinkActive('/admin') ? 'active' : ''}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    style={{ color: 'white' }}
-                  >
-                    <span>{t('Admin Panel', 'ایڈمن پینل')}</span>
                     <ChevronRight size={16} />
                   </Link>
                 </li>

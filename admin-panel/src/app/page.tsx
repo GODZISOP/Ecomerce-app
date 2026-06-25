@@ -30,7 +30,7 @@ export default function AdminRootPage() {
           margin: '0 auto 20px auto',
         }}></div>
         <p style={{ fontWeight: 600, letterSpacing: '0.05em' }}>
-          LOADING MEDIMART ADMINISTRATION SYSTEM...
+          LOADING FATPIZZA ADMINISTRATION SYSTEM...
         </p>
       </div>
       {/* CSS is now globally defined in globals.css, or inline */}

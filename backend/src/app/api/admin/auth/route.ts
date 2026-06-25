@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     const { passcode } = await req.json();
     
     // Check passcode against environment variable or fallback to secure default
-    const expectedPasscode = process.env.ADMIN_PASSCODE || 'MediMartAdmin2026';
+    const expectedPasscode = process.env.ADMIN_PASSCODE || 'fatpizza.com';
     
     if (passcode === expectedPasscode) {
       return NextResponse.json({ success: true, token: 'medimart_session_token_2026_verified' });
