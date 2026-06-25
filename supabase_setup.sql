@@ -1,7 +1,11 @@
--- Run this in your Supabase SQL Editor at https://supabase.com/dashboard
--- Go to: Project > SQL Editor > New Query > paste this > Run
+-- Run this in Supabase SQL Editor to fix the id column type issue
+-- https://supabase.com/dashboard/project/zipqopowyrcsnpgjcdoi/sql/new
 
-CREATE TABLE IF NOT EXISTS orders (
+-- Step 1: Drop existing table (if it exists)
+DROP TABLE IF EXISTS orders;
+
+-- Step 2: Recreate with TEXT id (no UUID)
+CREATE TABLE orders (
   id TEXT PRIMARY KEY DEFAULT 'ord-' || substr(md5(random()::text), 1, 9),
   tracking_code TEXT UNIQUE,
   customer_name TEXT NOT NULL,
@@ -18,8 +22,8 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Disable Row Level Security so backend can read/write freely
+-- Step 3: Disable Row Level Security
 ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
 
--- Allow all operations from service role (backend)
+-- Step 4: Grant full access
 GRANT ALL ON orders TO anon, authenticated, service_role;

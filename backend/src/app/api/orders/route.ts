@@ -36,9 +36,10 @@ export async function POST(req: Request) {
   try {
     const order = await req.json();
 
+    // Remove custom id so Supabase auto-generates a valid UUID
+    const { id: _unused, ...orderWithoutId } = order;
     const newOrder = {
-      ...order,
-      id: order.id || 'ord-' + Math.random().toString(36).substr(2, 9),
+      ...orderWithoutId,
       created_at: order.created_at || new Date().toISOString(),
       status: order.status || 'Pending',
     };
