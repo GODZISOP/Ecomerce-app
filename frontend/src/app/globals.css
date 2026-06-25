@@ -1,23 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,700&display=swap');
 
 :root {
-  /* HSL Colors */
-  --primary-hue: 162;
-  --primary-sat: 82%;
-  --primary-lightness: 35%;
+  /* HSL Colors - Vibrant Orange-Red Theme */
+  --primary-hue: 20;
+  --primary-sat: 95%;
+  --primary-lightness: 50%;
   
-  --primary: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lightness)); /* Clean medical teal/green */
-  --primary-hover: hsl(var(--primary-hue), var(--primary-sat), calc(var(--primary-lightness) - 6%));
-  --primary-bg: hsl(var(--primary-hue), var(--primary-sat), 96%);
+  --primary: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lightness)); /* Fatpizza Orange */
+  --primary-hover: hsl(var(--primary-hue), var(--primary-sat), calc(var(--primary-lightness) - 8%));
+  --primary-bg: hsl(var(--primary-hue), var(--primary-sat), 94%);
   
-  --secondary: hsl(150, 76%, 42%); /* Vibrant grass green */
-  --accent: hsl(28, 100%, 53%); /* Prescription warning / Amber alert */
+  --secondary: #e65c00; /* Rich orange */
+  --accent: #2e1a12; /* Dark charcoal/brown */
   
-  --background: #f8faf9;
+  --background: #f4f1ea; /* Soft retro cream background */
   --card-bg: #ffffff;
-  --foreground: #1c2a38;
-  --border-color: #e5ede9;
-  --text-muted: #6b8296;
+  --foreground: #1e1b18; /* Dark charcoal text */
+  --border-color: #e2ded5;
+  --text-muted: #6e675f;
   
   /* Status Colors */
   --status-pending: #f59e0b;
@@ -26,31 +26,31 @@
   --status-cancelled: #ef4444;
   
   /* Fonts */
-  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  --font-urdu: 'Noto Nastaliq Urdu', 'Georgia', serif;
+  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Playfair Display', 'Georgia', serif;
   
   /* Design Tokens */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 24px;
+  --radius-sm: 4px;
+  --radius-md: 10px;
+  --radius-lg: 20px;
   --radius-pill: 9999px;
   
-  --shadow-sm: 0 2px 8px rgba(13, 148, 136, 0.04);
-  --shadow-md: 0 8px 30px rgba(13, 148, 136, 0.06);
-  --shadow-lg: 0 16px 40px rgba(13, 148, 136, 0.1);
-  --shadow-glass: 0 8px 32px 0 rgba(13, 148, 136, 0.08);
+  --shadow-sm: 0 4px 0px rgba(46, 26, 18, 0.08);
+  --shadow-md: 0 6px 0px rgba(46, 26, 18, 0.12);
+  --shadow-lg: 0 10px 0px rgba(46, 26, 18, 0.16);
+  --shadow-glass: 0 8px 32px 0 rgba(46, 26, 18, 0.08);
   
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-fast: all 0.15s ease;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.12s ease;
 }
 
 [data-theme='dark'] {
-  --background: #090e14;
-  --card-bg: #121922;
-  --foreground: #f3f6f8;
-  --border-color: #1e2938;
-  --text-muted: #8b9eb0;
-  --primary-bg: rgba(13, 148, 136, 0.1);
+  --background: #181512;
+  --card-bg: #221e1a;
+  --foreground: #f4f1ea;
+  --border-color: #322d28;
+  --text-muted: #a3988e;
+  --primary-bg: rgba(230, 92, 0, 0.15);
 }
 
 /* Reset and Global Styles */
@@ -70,6 +70,8 @@ body {
   flex-direction: column;
   overflow-x: hidden;
   line-height: 1.6;
+  background-image: radial-gradient(var(--border-color) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
 }
 
 /* Custom Scrollbar */
@@ -80,32 +82,50 @@ body {
   background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary-hue), 30%, 80%);
+  background: var(--border-color);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
 }
 
-/* Typography and Urdu Support */
-.urdu-text {
-  font-family: var(--font-urdu);
-  font-size: 1.1rem;
-  line-height: 2;
+/* Sticker/Tape Styling as seen in image */
+.tape-sticker {
+  position: relative;
+}
+.tape-sticker::after {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 60px;
+  height: 20px;
+  background: rgba(226, 218, 195, 0.85);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-left: 2px dashed rgba(0,0,0,0.08);
+  border-right: 2px dashed rgba(0,0,0,0.08);
+  z-index: 10;
 }
 
-.mixed-label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.tape-sticker-left {
+  position: relative;
+}
+.tape-sticker-left::after {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 10%;
+  transform: rotate(-15deg);
+  width: 60px;
+  height: 20px;
+  background: rgba(226, 218, 195, 0.85);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-left: 2px dashed rgba(0,0,0,0.08);
+  border-right: 2px dashed rgba(0,0,0,0.08);
+  z-index: 10;
 }
 
-.mixed-label span:last-child {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
 
 /* Layout Grid Container */
 .container {
@@ -1686,4 +1706,26 @@ body {
   100% {
     box-shadow: inset 0px 0px 0px 40px var(--primary);
   }
+}
+
+/* ==========================================================================
+   Global Language Visibility Controls (English / Urdu / Bilingual)
+   ========================================================================== */
+
+[data-lang='english'] .lang-ur,
+[data-lang='english'] .lang-sep {
+  display: none !important;
+}
+
+[data-lang='urdu'] .lang-en,
+[data-lang='urdu'] .lang-sep {
+  display: none !important;
+}
+
+/* Ensure proper layout text alignment for RTL languages standing alone */
+[data-lang='urdu'] .logo,
+[data-lang='urdu'] .mixed-label,
+[data-lang='urdu'] .nav-link,
+[data-lang='urdu'] .mobile-drawer-link {
+  text-align: right !important;
 }

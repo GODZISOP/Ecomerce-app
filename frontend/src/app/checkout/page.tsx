@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, Truck, ArrowLeft, ClipboardList, Activity } from 'lucide-react';
+import { ShieldCheck, Truck, ArrowLeft, ClipboardList } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -34,7 +34,6 @@ export default function CheckoutPage() {
     if (!isMounted) return;
     if (isSuccess) return;
 
-    // If cart is empty, redirect back to cart
     if (cart.length === 0 && !isSubmitting) {
       router.push('/cart');
     }
@@ -42,28 +41,26 @@ export default function CheckoutPage() {
 
   const validateForm = () => {
     if (name.trim().length < 3) {
-      return 'Baraye meherbani apna mukammal naam darj karein (At least 3 characters). / نام مکمل درج کریں۔';
+      return 'Please enter your full name (At least 3 characters). / نام درج کریں۔';
     }
     
-    // Pakistani Phone regex: starts with 03 or +923, total 11 or 12 digits
     const cleanedPhone = phone.replace(/[\s-]/g, '');
     const phoneRegex = /^(03\d{9}|\+923\d{9})$/;
     if (!phoneRegex.test(cleanedPhone)) {
-      return 'Munasib Pakistani phone number darj karein (e.g. 03001234567). / موبائل نمبر درست درج کریں۔';
+      return 'Please enter a valid Pakistani mobile number (e.g. 03001234567). / موبائل نمبر درست درج کریں۔';
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      return 'Munasib email address darj karein (e.g. ali@gmail.com) taake tracking code mil sake. / ای میل درست درج کریں۔';
+      return 'Please enter a valid email address (e.g. customer@example.com). / ای میل درست درج کریں۔';
     }
 
     if (address.trim().length < 10) {
-      return 'Mukammal pata (Address) darj karein taake delivery me masla na ho (At least 10 characters). / مکمل پتہ درج کریں۔';
+      return 'Please enter your complete street address for accurate delivery. / پتہ درج کریں۔';
     }
 
     if (!city) {
-      return 'City muntakhib karein. / شہر منتخب کریں۔';
+      return 'Please select a delivery city. / شہر منتخب کریں۔';
     }
 
     return null;
@@ -83,11 +80,11 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // 1. Generate unique 6-digit uppercase alphanumeric tracking code
+      // 1. Generate unique FP- prefix tracking code
       const randStr = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const trackingCode = `MM-${randStr}`;
+      const trackingCode = `FP-${randStr}`;
 
-      // 2. Prepare items JSON array
+      // 2. Prepare items
       const orderItems = cart.map(item => ({
         id: item.id,
         name: item.name,
@@ -95,11 +92,11 @@ export default function CheckoutPage() {
         dosage: item.dosage,
         price_pkr: item.price_pkr,
         quantity: item.quantity,
-        requires_prescription: item.requires_prescription
+        requires_prescription: false
       }));
 
       // 3. Write to Supabase orders table
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('orders')
         .insert([
           {
@@ -123,7 +120,7 @@ export default function CheckoutPage() {
         throw error;
       }
 
-      // Trigger email notifications (Admin alert & Customer confirmation)
+      // Trigger email notifications
       try {
         await fetch('/api/notify', {
           method: 'POST',
@@ -151,16 +148,13 @@ export default function CheckoutPage() {
         console.error('Failed to send notification email:', err);
       }
 
-      // 4. Order created successfully! Clear checkout session state and cart
       setIsSuccess(true);
       clearCart();
-
-      // 5. Redirect to confirmation page with tracking code
       router.push(`/confirmation?code=${trackingCode}`);
 
     } catch (e: any) {
       console.error('Error placing order:', e);
-      setErrorMsg(e.message || 'Order place karte waqt error pesh aya. Dobara koshish karein.');
+      setErrorMsg(e.message || 'Error processing your order. Please try again.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsSubmitting(false);
@@ -197,7 +191,7 @@ export default function CheckoutPage() {
           border: 'none',
           color: 'var(--text-muted)',
           fontSize: '0.9rem',
-          fontWeight: 600,
+          fontWeight: 800,
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
@@ -209,12 +203,12 @@ export default function CheckoutPage() {
       </button>
 
       {/* Main split grid */}
-      <div className="responsive-tab-layout">
+      <div className="responsive-tab-layout" style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr', gap: '40px' }}>
         
         {/* Left Side: Delivery Details Form */}
         <div className="responsive-tab-main">
-          <div className="responsive-card">
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '8px' }}>
+          <div className="responsive-card" style={{ background: 'white', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '40px' }}>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
               Delivery Information / پتہ اور معلومات
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '30px' }}>
@@ -237,13 +231,12 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
               {/* Full Name */}
-              <div className="form-group">
-                <label className="form-label">
-                  <span>Full Name / خریدار کا نام <span style={{ color: 'red' }}>*</span></span>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>As on CNIC</span>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                  Full Name / خریدار کا نام <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input 
                   type="text" 
@@ -253,14 +246,14 @@ export default function CheckoutPage() {
                   onChange={(e) => setName(e.target.value)}
                   disabled={isSubmitting}
                   required
+                  style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                 />
               </div>
 
               {/* Phone Number */}
-              <div className="form-group">
-                <label className="form-label">
-                  <span>Phone Number / موبائل نمبر <span style={{ color: 'red' }}>*</span></span>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>For Call Verification</span>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                  Phone Number / موبائل نمبر <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input 
                   type="tel" 
@@ -270,14 +263,14 @@ export default function CheckoutPage() {
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={isSubmitting}
                   required
+                  style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                 />
               </div>
 
               {/* Email Address */}
-              <div className="form-group">
-                <label className="form-label">
-                  <span>Email Address / ای میل <span style={{ color: 'red' }}>*</span></span>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>To Receive Tracking Info</span>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                  Email Address / ای میل <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input 
                   type="email" 
@@ -287,20 +280,20 @@ export default function CheckoutPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
                   required
+                  style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                 />
               </div>
 
               {/* Shipping Address */}
-              <div className="form-group">
-                <label className="form-label">
-                  <span>Complete Address / گھر کا پتہ <span style={{ color: 'red' }}>*</span></span>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>Street, House #, Block/Sector</span>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                  Complete Address / گھر کا پتہ <span style={{ color: 'red' }}>*</span>
                 </label>
                 <textarea 
                   className="form-input"
                   rows={4}
                   placeholder="e.g. House # 42-B, Street 5, Phase 6, DHA"
-                  style={{ resize: 'none', fontFamily: 'inherit' }}
+                  style={{ resize: 'none', fontFamily: 'inherit', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   disabled={isSubmitting}
@@ -309,16 +302,16 @@ export default function CheckoutPage() {
               </div>
 
               {/* City Selector */}
-              <div className="form-group">
-                <label className="form-label">
-                  <span>City / شہر <span style={{ color: 'red' }}>*</span></span>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                  City / شہر <span style={{ color: 'red' }}>*</span>
                 </label>
                 <select 
                   className="form-input" 
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   disabled={isSubmitting}
-                  style={{ appearance: 'none', cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                 >
                   {cities.map((ct, idx) => (
                     <option key={idx} value={ct}>{ct}</option>
@@ -326,7 +319,7 @@ export default function CheckoutPage() {
                 </select>
               </div>
 
-              {/* COD Disclaimer Banner */}
+              {/* COD Disclaimer */}
               <div style={{
                 background: 'var(--background)',
                 border: '1px solid var(--border-color)',
@@ -335,85 +328,83 @@ export default function CheckoutPage() {
                 display: 'flex',
                 gap: '16px',
                 alignItems: 'flex-start',
-                marginBottom: '32px'
+                marginBottom: '12px',
+                marginTop: '12px'
               }}>
                 <Truck size={24} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
-                  <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '4px' }}>Cash on Delivery Only (کیش آن ڈلیوری)</h4>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '4px' }}>Cash on Delivery Only (کیش آن ڈلیوری)</h4>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    Pay safely at your doorstep once your package is successfully delivered. We do not require any online bank account transfers.
+                    Pay safely at your doorstep once your food is delivered hot and fresh. No advance banking details needed.
                   </p>
                 </div>
               </div>
 
-              {/* Place Order submit */}
               <button 
                 type="submit" 
                 className="btn-primary"
                 disabled={isSubmitting}
-                style={{ width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1.05rem' }}
+                style={{ width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1.05rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800, borderRadius: 'var(--radius-sm)' }}
               >
-                {isSubmitting ? 'Processing Order / آرڈر جا رہا ہے...' : 'Place Cash on Delivery Order / آرڈر کنفرم کریں'}
+                {isSubmitting ? 'Processing Order...' : 'Confirm Order / آرڈر کنفرم کریں'}
               </button>
 
             </form>
           </div>
         </div>
 
-        {/* Right Side: Quick order summary breakdown */}
+        {/* Right Side: Basket summary */}
         <div className="responsive-tab-sidebar">
-          <div className="responsive-card summary-card">
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="responsive-card summary-card" style={{ background: 'white', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '30px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ClipboardList size={18} color="var(--primary)" /> Basket Summary ({cart.length})
             </h3>
 
-            {/* List items briefly */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px', maxHeight: '240px', overflowY: 'auto', paddingRight: '4px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px', maxHeight: '240px', overflowY: 'auto' }}>
               {cart.map((item) => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
-                  <div style={{ maxWidth: '70%' }}>
-                    <span style={{ fontWeight: 700 }}>{item.name}</span>
+                  <div style={{ maxWidth: '75%' }}>
+                    <span style={{ fontWeight: 800 }}>{item.name}</span>
                     <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>x{item.quantity}</span>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{item.dosage}</div>
                   </div>
-                  <span style={{ fontWeight: 700 }}>Rs. {item.price_pkr * item.quantity}</span>
+                  <span style={{ fontWeight: 800 }}>Rs. {item.price_pkr * item.quantity}</span>
                 </div>
               ))}
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', marginBottom: '20px' }} />
 
-            {/* Billing figures */}
+            {/* Billing details */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.9rem', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Basket Subtotal:</span>
-                <span style={{ fontWeight: 600 }}>Rs. {cartSubtotal}</span>
+                <span style={{ fontWeight: 700 }}>Rs. {cartSubtotal}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Shipping Fee:</span>
-                <span style={{ fontWeight: 600 }}>Rs. {shippingFee}</span>
+                <span style={{ color: 'var(--text-muted)' }}>Delivery Fee:</span>
+                <span style={{ fontWeight: 700 }}>Rs. {shippingFee}</span>
               </div>
               <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '6px 0' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.15rem' }}>
-                <span style={{ fontWeight: 800 }}>Total Order Value:</span>
-                <span style={{ fontWeight: 800, color: 'var(--primary)' }}>Rs. {grandTotal}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem' }}>
+                <span style={{ fontWeight: 900 }}>Total Order Value:</span>
+                <span style={{ fontWeight: 900, color: 'var(--primary)' }}>Rs. {grandTotal}</span>
               </div>
             </div>
 
-            {/* Trust badge */}
             <div style={{
               background: 'var(--primary-bg)',
               color: 'var(--primary)',
               borderRadius: 'var(--radius-sm)',
               padding: '10px 12px',
-              fontSize: '0.72rem',
-              fontWeight: 700,
+              fontSize: '0.75rem',
+              fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px'
             }}>
-              <ShieldCheck size={14} /> Registered Medical Supplier Verified
+              <ShieldCheck size={14} /> Fatpizza Kitchen Approved
             </div>
 
           </div>
@@ -421,7 +412,7 @@ export default function CheckoutPage() {
 
       </div>
 
-      {/* Fullscreen premium glassmorphic loader overlay */}
+      {/* Loader screen */}
       {isSubmitting && (
         <div style={{
           position: 'fixed',
@@ -431,7 +422,6 @@ export default function CheckoutPage() {
           height: '100vh',
           background: 'rgba(255, 255, 255, 0.85)',
           backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
           zIndex: 99999,
           display: 'flex',
           flexDirection: 'column',
@@ -439,19 +429,20 @@ export default function CheckoutPage() {
           justifyContent: 'center',
           gap: '24px'
         }}>
-          <div className="spinner" style={{
+          <div style={{
             width: '60px',
             height: '60px',
             border: '4px solid var(--border-color)',
             borderTopColor: 'var(--primary)',
             borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
           }} />
           <div style={{ textAlign: 'center' }}>
             <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--foreground)', marginBottom: '8px' }}>
               Placing Your Order / آرڈر پروسیس ہو رہا ہے
             </h3>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Baraye meherbani intezar karein. Please do not refresh or close this page.
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+              Cooking in progress. Please do not close or refresh this page.
             </p>
           </div>
         </div>

@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, SlidersHorizontal, Plus, Check, Pill, ShoppingCart, HelpCircle } from 'lucide-react';
+import { Search, SlidersHorizontal, Plus, Check, ShoppingCart, HelpCircle, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import { Medicine, useCart } from '@/context/CartContext';
+import { PizzaItem } from '@/lib/supabaseClient';
+import { useCart } from '@/context/CartContext';
 
 function ShopContent() {
   const router = useRouter();
@@ -16,16 +17,14 @@ function ShopContent() {
 
   const [search, setSearch] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [menuItems, setMenuItems] = useState<PizzaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNotification, setShowNotification] = useState<string | null>(null);
 
   const { addToCart } = useCart();
 
   const categories = [
-    'All', 'Painkiller', 'Antibiotic', 'Antacid', 'Diabetes', 'Blood Pressure', 
-    'Cholesterol', 'Respiratory', 'Cough & Cold', 'Allergy', 'Vitamins', 
-    'Skin', 'Diarrhea', 'Constipation', 'Antifungal', 'Thyroid', 'Nausea'
+    'All', 'Pizza', 'Burger', 'Sandwich', 'Pasta', 'Sides'
   ];
 
   // Update states if URL query changes
@@ -34,9 +33,9 @@ function ShopContent() {
     setSelectedCategory(searchParams.get('category') || '');
   }, [searchParams]);
 
-  // Query database based on search query (name or symptom) and category
+  // Query database based on search query and category
   useEffect(() => {
-    async function filterMedicines() {
+    async function filterItems() {
       setIsLoading(true);
       try {
         let query = supabase.from('medicines').select('*');
@@ -47,25 +46,22 @@ function ShopContent() {
 
         const searchQuery = searchParams.get('search') || '';
         if (searchQuery.trim()) {
-          // Supabase supports searching by name or symptom (generic_name, category, description)
-          // Since Supabase doesn't support complex OR easily in a single string filter without advanced syntax,
-          // we can query and filter on name, description, category, generic_name
           query = query.or(`name.ilike.%${searchQuery}%,generic_name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`);
         }
 
-        const { data, error } = await query.order('name', { ascending: true });
+        const { data } = await query.order('name', { ascending: true });
         
         if (data) {
-          setMedicines(data);
+          setMenuItems(data);
         }
       } catch (e) {
-        console.error('Error fetching medicines catalog:', e);
+        console.error('Error fetching menu catalog:', e);
       } finally {
         setIsLoading(false);
       }
     }
 
-    filterMedicines();
+    filterItems();
   }, [selectedCategory, searchParams]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,10 +86,10 @@ function ShopContent() {
     router.push(`/shop?${params.toString()}`);
   };
 
-  const handleAddToCart = (e: React.MouseEvent, med: Medicine) => {
+  const handleAddToCart = (e: React.MouseEvent, item: PizzaItem) => {
     e.stopPropagation();
-    addToCart(med, 1);
-    setShowNotification(med.name);
+    addToCart(item as any, 1);
+    setShowNotification(item.name);
     setTimeout(() => {
       setShowNotification(null);
     }, 2500);
@@ -104,11 +100,11 @@ function ShopContent() {
       
       {/* Header and statistics */}
       <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2.2rem', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '8px' }}>
-          Medicine Catalog / ادویات کا کیٹلاگ
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
+          Fatpizza Menu / مینو
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          {isLoading ? 'Searching...' : `Found ${medicines.length} medicines in our pharmacy / ${medicines.length} ادویات دستیاب ہیں`}
+          {isLoading ? 'Searching Menu...' : `Found ${menuItems.length} delicious items ready to order`}
         </p>
       </div>
 
@@ -132,7 +128,7 @@ function ShopContent() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
             <SlidersHorizontal size={18} color="var(--primary)" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Filter by Category</h3>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Categories</h3>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -149,7 +145,7 @@ function ShopContent() {
                     padding: '10px 12px',
                     borderRadius: 'var(--radius-sm)',
                     fontSize: '0.9rem',
-                    fontWeight: isActive ? 700 : 500,
+                    fontWeight: isActive ? 800 : 500,
                     color: isActive ? 'var(--primary)' : 'var(--foreground)',
                     cursor: 'pointer',
                     transition: 'var(--transition-fast)',
@@ -159,7 +155,7 @@ function ShopContent() {
                   }}
                   className="category-filter-btn"
                 >
-                  <span>{cat}</span>
+                  <span>{cat}s</span>
                   {isActive && <span style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%' }}></span>}
                 </button>
               );
@@ -171,7 +167,7 @@ function ShopContent() {
               background: 'var(--primary-bg)', 
               color: 'var(--primary)', 
               fontSize: '0.8rem',
-              fontWeight: 600,
+              fontWeight: 700,
               padding: '12px',
               borderRadius: 'var(--radius-md)',
               lineHeight: 1.5,
@@ -179,8 +175,8 @@ function ShopContent() {
               flexDirection: 'column',
               gap: '6px'
             }}>
-              <span style={{ fontWeight: 800 }}>💡 AI Assist Tip / مشورہ:</span>
-              <span>Roman Urdu ya English mein symptoms (maslan: fever, bukhar, pet dard) likh kar search karein, AI sahi dawai dhond lega!</span>
+              <span style={{ fontWeight: 900 }}>🔥 Chef Tip:</span>
+              <span>Our pizzas are baked fresh in a traditional wood-fired brick oven. Customize toppings at checkout!</span>
             </div>
           </div>
         </aside>
@@ -194,41 +190,26 @@ function ShopContent() {
               <input 
                 type="text" 
                 className="search-input" 
-                placeholder="Search by name, generic, or symptom (e.g. Omeprazole, pain, khansi)..."
+                placeholder="Search for pizza, burger, pasta, toppings (e.g., Pepperoni, Cheese, Veggie)..."
                 value={search}
                 onChange={handleSearchChange}
               />
             </div>
-            <button type="submit" className="btn-primary">
-              Filter / تلاش کریں
+            <button type="submit" className="btn-primary" style={{ borderRadius: 'var(--radius-sm)' }}>
+              Search / تلاش کریں
             </button>
           </form>
 
           {/* Catalog grid rendering */}
           {isLoading ? (
-            <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+            <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="product-card" style={{ pointerEvents: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                  <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
-                    <div className="skeleton-shimmer" style={{ width: '100%', height: '100%' }} />
-                  </div>
-                  <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div className="skeleton-shimmer" style={{ width: '35%', height: '12px' }} />
-                    <div className="skeleton-shimmer" style={{ width: '80%', height: '20px' }} />
-                    <div className="skeleton-shimmer" style={{ width: '60%', height: '14px' }} />
-                    <div className="skeleton-shimmer" style={{ width: '45%', height: '12px' }} />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' }}>
-                      <div style={{ width: '50%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <div className="skeleton-shimmer" style={{ width: '50%', height: '10px' }} />
-                        <div className="skeleton-shimmer" style={{ width: '90%', height: '16px' }} />
-                      </div>
-                      <div className="skeleton-shimmer" style={{ width: '36px', height: '36px', borderRadius: '50%' }} />
-                    </div>
-                  </div>
+                <div key={i} className="product-card" style={{ height: '300px' }}>
+                  <div className="skeleton-shimmer" style={{ width: '100%', height: '100%' }} />
                 </div>
               ))}
             </div>
-          ) : medicines.length === 0 ? (
+          ) : menuItems.length === 0 ? (
             <div style={{ 
               background: 'var(--card-bg)', 
               border: '1px solid var(--border-color)', 
@@ -238,9 +219,9 @@ function ShopContent() {
               boxShadow: 'var(--shadow-sm)'
             }}>
               <HelpCircle size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '8px' }}>No Medicines Found / کوئی دوا نہیں ملی</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>No Food Items Found</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '400px', margin: '0 auto 20px auto' }}>
-                Aap ke darj kardah lafz ke mutabiq koi dawa nahi mili. Koshish karein ke aam naam istemal karein ya hamare AI Chat se poochien.
+                We couldn't find anything matching your search. Try adjusting filters or typing another name.
               </p>
               <button 
                 onClick={() => {
@@ -255,45 +236,39 @@ function ShopContent() {
               </button>
             </div>
           ) : (
-            <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
-              {medicines.map((med) => (
+            <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+              {menuItems.map((item) => (
                 <div 
-                  key={med.id} 
-                  className="product-card" 
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => router.push(`/product/${med.id}`)}
+                  key={item.id} 
+                  className="product-card tape-sticker" 
+                  style={{ cursor: 'pointer', background: 'white' }}
+                  onClick={() => router.push(`/product/${item.id}`)}
                 >
-                  {med.requires_prescription && (
-                    <span className="badge-prescription">Rx Required</span>
-                  )}
-                  
-                  <div className="product-img-wrap" style={{ height: '180px' }}>
+                  <div className="product-img-wrap" style={{ height: '180px', padding: '0', display: 'block', position: 'relative' }}>
                     <img 
-                      src={med.image_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80'} 
-                      alt={med.name} 
-                      className="product-img"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80';
-                      }}
+                      src={item.image_url} 
+                      alt={item.name} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </div>
                   
                   <div className="product-content" style={{ padding: '16px' }}>
-                    <span className="product-category" style={{ fontSize: '0.7rem' }}>{med.category}</span>
-                    <h3 className="product-name" style={{ fontSize: '1.05rem' }}>{med.name}</h3>
-                    <span className="product-generic" style={{ fontSize: '0.8rem', marginBottom: '8px' }}>{med.generic_name}</span>
-                    <span className="product-dosage" style={{ fontSize: '0.75rem', padding: '1px 6px', marginBottom: '12px' }}>{med.dosage}</span>
+                    <span className="product-category" style={{ fontSize: '0.7rem' }}>{item.category}</span>
+                    <h3 className="product-name" style={{ fontSize: '1.1rem', fontWeight: 800 }}>{item.name}</h3>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', minHeight: '38px', lineBreak: 'anywhere' }}>
+                      {item.generic_name}
+                    </p>
+                    <span className="product-dosage" style={{ fontSize: '0.75rem', padding: '2px 8px', marginBottom: '12px' }}>{item.dosage}</span>
                     
                     <div className="product-footer">
                       <div className="product-price">
-                        <span className="price-label">Price</span>
-                        <span className="price-val" style={{ fontSize: '1.15rem' }}>Rs. {med.price_pkr}</span>
+                        <span className="price-val" style={{ fontSize: '1.2rem', fontWeight: 900 }}>Rs. {item.price_pkr}</span>
                       </div>
                       <button 
                         className="btn-icon-add" 
-                        onClick={(e) => handleAddToCart(e, med)}
+                        onClick={(e) => handleAddToCart(e, item)}
                         title="Add to Cart"
-                        style={{ width: '36px', height: '36px' }}
+                        style={{ width: '36px', height: '36px', background: 'var(--primary)', color: 'white', borderRadius: '50%' }}
                       >
                         <Plus size={18} />
                       </button>
@@ -313,16 +288,17 @@ function ShopContent() {
           bottom: '100px',
           left: '30px',
           zIndex: 9999,
-          background: 'var(--foreground)',
+          background: 'var(--accent)',
           color: 'white',
           padding: '16px 24px',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: 'var(--radius-sm)',
           boxShadow: 'var(--shadow-lg)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           fontSize: '0.9rem',
-          fontWeight: 600,
+          fontWeight: 800,
+          border: '1px solid var(--primary)',
           animation: 'slideUp 0.25s'
         }}>
           <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '50%', padding: '4px' }}>
@@ -332,7 +308,6 @@ function ShopContent() {
         </div>
       )}
 
-      {/* Media Query Responsive CSS overrides */}
       <style jsx global>{`
         @media (max-width: 900px) {
           .shop-layout {
@@ -343,20 +318,9 @@ function ShopContent() {
             top: 0 !important;
             margin-bottom: 24px;
           }
-          .category-filter-btn {
-            padding: 8px 12px !important;
-          }
         }
-        @keyframes skeleton-shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        .skeleton-shimmer {
-          background: linear-gradient(90deg, var(--border-color) 25%, var(--background) 37%, var(--border-color) 63%);
-          background-size: 400% 100%;
-          animation: skeleton-shimmer 1.4s ease infinite;
-          border-radius: 4px;
-          display: block;
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
@@ -368,7 +332,7 @@ export default function ShopPage() {
     <Suspense fallback={
       <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
         <div style={{ width: '40px', height: '40px', border: '3px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
-        <p style={{ marginTop: '16px' }}>Catalog Loading...</p>
+        <p style={{ marginTop: '16px' }}>Menu Loading...</p>
       </div>
     }>
       <ShopContent />

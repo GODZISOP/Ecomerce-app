@@ -3,14 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, ChevronRight, Activity, ArrowRight, ShieldCheck, HeartPulse, Check, Plus, ShoppingBag, Sparkles } from 'lucide-react';
+import { Search, ChevronRight, Check, Plus, Star, ShieldCheck, Heart, User, Flame } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import { Medicine, useCart } from '@/context/CartContext';
+import { PizzaItem } from '@/lib/supabaseClient';
+import { useCart } from '@/context/CartContext';
 
 export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [featuredMedicines, setFeaturedMedicines] = useState<Medicine[]>([]);
+  const [featuredItems, setFeaturedItems] = useState<PizzaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState<string | null>(null);
@@ -21,17 +22,17 @@ export default function HomePage() {
     async function fetchFeatured() {
       setIsLoading(true);
       try {
-        // Fetch a diverse set of 8 popular medicines for the home page
-        const { data, error } = await supabase
+        // Fetch pizzas, burgers, and pasta for home screen display
+        const { data } = await supabase
           .from('medicines')
           .select('*')
-          .in('id', [1, 2, 5, 9, 10, 36, 44, 53]); // Panadol, Brufen, Augmentin, Omeprazole, Gaviscon, Zyrtec, Ispaghol, Neurobion
+          .in('id', [1, 2, 4, 12, 13, 14, 15, 17, 20]); // Veggie, Cheese, Supreme, Kabab Chaska, Zinger, Creamy Pizza, Pepperoni, Beef Burger, Pasta
           
         if (data) {
-          setFeaturedMedicines(data);
+          setFeaturedItems(data);
         }
       } catch (e) {
-        console.error('Error fetching featured medicines:', e);
+        console.error('Error fetching featured menu:', e);
       } finally {
         setIsLoading(false);
       }
@@ -47,207 +48,166 @@ export default function HomePage() {
     }
   };
 
-  const handleAddToCart = (e: React.MouseEvent, med: Medicine) => {
+  const handleAddToCart = (e: React.MouseEvent, item: any) => {
     e.stopPropagation();
-    addToCart(med, 1);
-    setShowNotification(med.name);
+    // Convert PizzaItem format to local context Medicine format (they share identical key properties)
+    addToCart(item, 1);
+    setShowNotification(item.name);
     setTimeout(() => {
       setShowNotification(null);
     }, 2500);
   };
 
   const categories = [
-    { name: 'Painkiller', emoji: '💊', urdu: 'درد کش' },
-    { name: 'Antibiotic', emoji: '🦠', urdu: 'اینٹی بائیوٹک' },
-    { name: 'Antacid', emoji: '🧪', urdu: 'تیزابیت' },
-    { name: 'Diabetes', emoji: '🍬', urdu: 'شوگر' },
-    { name: 'Blood Pressure', emoji: '🩸', urdu: 'بلڈ پریشر' },
-    { name: 'Cholesterol', emoji: '🥓', urdu: 'کولیسٹرول' },
-    { name: 'Respiratory', emoji: '🫁', urdu: 'دمہ' },
-    { name: 'Cough & Cold', emoji: '🤧', urdu: 'کھانسی' },
-    { name: 'Allergy', emoji: '🌸', urdu: 'الرجی' },
-    { name: 'Vitamins', emoji: '🍊', urdu: 'وٹامنز' },
-    { name: 'Skin', emoji: '🧴', urdu: 'جلد' },
-    { name: 'Diarrhea', emoji: '💧', urdu: 'دست' },
-    { name: 'Constipation', emoji: '🌾', urdu: 'قبض' },
-    { name: 'Antifungal', emoji: '🍄', urdu: 'فنگل' },
-    { name: 'Thyroid', emoji: '🦋', urdu: 'تھائرائڈ' },
-    { name: 'Nausea', emoji: '🤢', urdu: 'الٹی' }
+    { name: 'Pizza', emoji: '🍕' },
+    { name: 'Burger', emoji: '🍔' },
+    { name: 'Sandwich', emoji: '🥪' },
+    { name: 'Pasta', emoji: '🍝' },
+    { name: 'Sides', emoji: '🍟' }
+  ];
+
+  const chefs = [
+    { name: "Sarlout Rhinoa", role: "Master Pizzaiolo", img: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150&q=80" },
+    { name: "Dumiri Incelo", role: "Sous Chef", img: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=150&q=80" },
+    { name: "Harih Kulguse", role: "Burger Specialist", img: "https://images.unsplash.com/photo-1595273670150-db0d3bf3cab2?w=150&q=80" },
+    { name: "Chualin Curupuso", role: "Pasta Master", img: "https://images.unsplash.com/photo-1622023459113-9b195477c9c4?w=150&q=80" }
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '80px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '80px', paddingBottom: '60px' }}>
       
-      {/* 1. Hero Section */}
-      <section className="hero">
-        <div className="container hero-grid">
-          <div>
-            <div className="hero-tag">
-              <Sparkles size={14} fill="currentColor" /> Authentic Health Solutions for Pakistan
-            </div>
-            
-            <h1 className="hero-title">
-              Your Health, Our Priority.<br />
-              <span>Authentic Medicines</span> Delivered Home.
-            </h1>
-            
-            <p className="hero-desc">
-              MediMart Pakistan offers 100% genuine medical supplies. Consult our AI Pharmacist, search by symptoms, and pay via Cash on Delivery anywhere in Pakistan.
-            </p>
-            
-            {/* Symptom / Name search bar */}
-            <form onSubmit={handleSearchSubmit} className="hero-search-box">
-              <div className="search-input-wrapper">
-                <Search size={22} color="var(--primary)" />
-                <input 
-                  type="text" 
-                  className="search-input" 
-                  placeholder="Dawai ya symptom likhein (e.g. Panadol, Acidity, Headache, بخار)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <button type="submit" className="btn-primary">
-                Search / تلاش کریں
-              </button>
-            </form>
-
-            <div style={{ display: 'flex', gap: '20px', marginTop: '24px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              <span>**Trending Search:**</span>
-              <Link href="/shop?search=Panadol" style={{ textDecoration: 'underline', color: 'var(--primary)', fontWeight: 600 }}>Panadol</Link>
-              <Link href="/shop?search=acidity" style={{ textDecoration: 'underline', color: 'var(--primary)', fontWeight: 600 }}>Acidity Relief</Link>
-              <Link href="/shop?search=cough" style={{ textDecoration: 'underline', color: 'var(--primary)', fontWeight: 600 }}>Cough Syrup</Link>
-            </div>
-          </div>
+      {/* 1. Hero Section - Matching Reference Layout */}
+      <section style={{
+        background: 'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1600&q=80")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        padding: '120px 0 140px 0',
+        color: 'white',
+        borderBottom: '8px solid var(--primary)',
+        textAlign: 'center'
+      }}>
+        <div className="container" style={{ maxWidth: '800px' }}>
+          <span style={{
+            background: 'var(--primary)',
+            color: 'white',
+            fontWeight: 800,
+            fontSize: '0.85rem',
+            padding: '8px 18px',
+            borderRadius: 'var(--radius-pill)',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            display: 'inline-block',
+            marginBottom: '24px'
+          }}>
+            Welcome to Fatpizza
+          </span>
           
-          <div className="hero-visual">
-            <div className="hero-img-bg"></div>
-            <div className="hero-card">
-              <div className="hero-card-icon">
-                <HeartPulse size={36} />
-              </div>
-              <h3 className="hero-card-title">AI Pharmacist Active</h3>
-              <p className="hero-card-subtitle">Click the chat widget on the bottom right to check symptoms in Roman Urdu!</p>
-              <div style={{ 
-                marginTop: '16px', 
-                background: 'var(--primary-bg)', 
-                color: 'var(--primary)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-pill)',
-                display: 'inline-block'
-              }}>
-                💬 Chat Karein / ابھی بات کریں
-              </div>
-            </div>
+          <h1 style={{
+            fontSize: '4.2rem',
+            fontWeight: 900,
+            lineHeight: 1.1,
+            marginBottom: '20px',
+            fontFamily: 'var(--font-display)',
+            textShadow: '0 4px 12px rgba(0,0,0,0.5)'
+          }}>
+            It's Not Just A Pizza,<br />
+            <span style={{ color: 'var(--primary)' }}>An Experience.</span>
+          </h1>
+          
+          <p style={{
+            fontSize: '1.25rem',
+            color: '#f4f1ea',
+            marginBottom: '40px',
+            lineHeight: 1.6,
+            textShadow: '0 2px 6px rgba(0,0,0,0.5)'
+          }}>
+            Handcrafted with passion, baked to perfection in a wood-fired brick oven, and delivered hot to your doorstep with a touch of culinary art.
+          </p>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <Link href="/shop" className="btn-primary" style={{ padding: '16px 36px', fontSize: '1.05rem', fontWeight: 800, borderRadius: 'var(--radius-pill)', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', textDecoration: 'none' }}>
+              View Our Menu
+            </Link>
+            <Link href="/tracking" style={{ padding: '16px 36px', fontSize: '1.05rem', fontWeight: 800, borderRadius: 'var(--radius-pill)', background: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)', border: '2px solid white', color: 'white', cursor: 'pointer', textDecoration: 'none', transition: 'var(--transition)' }}>
+              Track Live Order
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* 2. Category Section */}
+      {/* 2. Discover Our Menu & Category Filter */}
       <section className="container">
-        <div className="section-title-wrap">
-          <div>
-            <h2 className="section-title">Shop by Category / اقسام</h2>
-            <p className="section-subtitle">Dawa ki category muntakhib karein</p>
-          </div>
-          <Link href="/shop" className="view-all">
-            View All Medicines <ChevronRight size={16} />
-          </Link>
-        </div>
-        
-        <div className="category-scroll-container">
-          <div className="category-row">
-            {categories.map((cat, index) => (
-              <Link key={index} href={`/shop?category=${cat.name}`} className="category-pill">
-                <span>{cat.emoji}</span>
-                <span className="mixed-label">
-                  <span>{cat.name}</span>
-                  <span>{cat.urdu}</span>
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Featured Products */}
-      <section className="container">
-        <div className="section-title-wrap">
-          <div>
-            <h2 className="section-title">Featured Medicines / مقبول دوائیں</h2>
-            <p className="section-subtitle">Dawa ka sahi intikhab</p>
-          </div>
-          <Link href="/shop" className="view-all">
-            See Shop Catalog <ChevronRight size={16} />
-          </Link>
+        <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>Discover Our Menu</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '6px' }}>Taste the goodness of handcrafted gourmet specialties</p>
+          <div style={{ width: '60px', height: '4px', background: 'var(--primary)', margin: '16px auto 0 auto', borderRadius: '2px' }} />
         </div>
 
+        {/* Category Pills */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '40px' }}>
+          <Link href="/shop" className="category-pill" style={{ textDecoration: 'none' }}>
+            <span>🍽️</span>
+            <span>All Menu Items</span>
+          </Link>
+          {categories.map((cat, idx) => (
+            <Link key={idx} href={`/shop?category=${cat.name}`} className="category-pill" style={{ textDecoration: 'none' }}>
+              <span>{cat.emoji}</span>
+              <span>{cat.name}s</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Menu Cards List with tape sticker */}
         {isLoading ? (
           <div className="product-grid">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="product-card" style={{ pointerEvents: 'none', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
-                  <div className="skeleton-shimmer" style={{ width: '100%', height: '100%' }} />
-                </div>
-                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div className="skeleton-shimmer" style={{ width: '35%', height: '12px' }} />
-                  <div className="skeleton-shimmer" style={{ width: '80%', height: '20px' }} />
-                  <div className="skeleton-shimmer" style={{ width: '60%', height: '14px' }} />
-                  <div className="skeleton-shimmer" style={{ width: '45%', height: '12px' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' }}>
-                    <div style={{ width: '50%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div className="skeleton-shimmer" style={{ width: '50%', height: '10px' }} />
-                      <div className="skeleton-shimmer" style={{ width: '90%', height: '16px' }} />
-                    </div>
-                    <div className="skeleton-shimmer" style={{ width: '36px', height: '36px', borderRadius: '50%' }} />
-                  </div>
-                </div>
+              <div key={i} className="product-card" style={{ height: '320px' }}>
+                <div className="skeleton-shimmer" style={{ width: '100%', height: '180px' }} />
               </div>
             ))}
           </div>
         ) : (
           <div className="product-grid">
-            {featuredMedicines.map((med) => (
+            {featuredItems.map((item) => (
               <div 
-                key={med.id} 
-                className="product-card" 
-                style={{ cursor: 'pointer' }}
-                onClick={() => router.push(`/product/${med.id}`)}
+                key={item.id} 
+                className="product-card tape-sticker" 
+                style={{ cursor: 'pointer', background: 'white' }}
+                onClick={() => router.push(`/product/${item.id}`)}
               >
-                {med.requires_prescription && (
-                  <span className="badge-prescription">Rx - Required</span>
-                )}
-                
-                <div className="product-img-wrap">
+                <div className="product-img-wrap" style={{ background: '#fcfcfc', borderBottom: '1px solid var(--border-color)', height: '220px', padding: '0', display: 'block', position: 'relative' }}>
                   <img 
-                    src={med.image_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80'} 
-                    alt={med.name} 
-                    className="product-img" 
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80';
-                    }}
+                    src={item.image_url} 
+                    alt={item.name} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--primary)', color: 'white', fontSize: '0.8rem', fontWeight: 800, padding: '4px 10px', borderRadius: 'var(--radius-sm)' }}>
+                    Rs. {item.price_pkr}
+                  </div>
                 </div>
-                
-                <div className="product-content">
-                  <span className="product-category">{med.category}</span>
-                  <h3 className="product-name">{med.name}</h3>
-                  <span className="product-generic">{med.generic_name}</span>
-                  <span className="product-dosage">{med.dosage}</span>
+
+                <div className="product-content" style={{ padding: '20px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.category}</span>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginTop: '4px', color: 'var(--foreground)' }}>{item.name}</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px', minHeight: '38px', lineBreak: 'anywhere' }}>
+                    {item.generic_name}
+                  </p>
                   
-                  <div className="product-footer">
-                    <div className="product-price">
-                      <span className="price-label">Price / قیمت</span>
-                      <span className="price-val">Rs. {med.price_pkr}</span>
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} size={14} fill="#f59e0b" color="#f59e0b" />
+                    ))}
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginLeft: '4px' }}>5.0</span>
+                  </div>
+
+                  <div className="product-footer" style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>{item.dosage}</span>
                     <button 
                       className="btn-icon-add" 
-                      onClick={(e) => handleAddToCart(e, med)}
-                      title="Add to Cart"
+                      onClick={(e) => handleAddToCart(e, item)}
+                      style={{ background: 'var(--primary)', color: 'white', borderRadius: '50%' }}
                     >
-                      <Plus size={20} />
+                      <Plus size={18} />
                     </button>
                   </div>
                 </div>
@@ -257,6 +217,83 @@ export default function HomePage() {
         )}
       </section>
 
+      {/* 3. Ways To Enjoy Section (Matching Reference layout) */}
+      <section className="container">
+        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '40px', alignItems: 'center', background: 'white', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+          {/* Orange promo banner left */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f35d25 0%, #ff8c42 100%)',
+            padding: '50px',
+            color: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            minHeight: '350px',
+            position: 'relative'
+          }}>
+            <h2 style={{ fontSize: '2.8rem', fontWeight: 900, lineHeight: 1.1, marginBottom: '20px', fontFamily: 'var(--font-display)' }}>
+              30 minutes, or<br />pizza for free.
+            </h2>
+            <p style={{ fontSize: '1rem', color: '#fff0e6', marginBottom: '30px', maxWidth: '380px' }}>
+              We guarantee hot, fresh pizzas delivered to your door within half an hour, or your order is completely free of charge!
+            </p>
+            
+            <div style={{ display: 'flex', gap: '20px', fontSize: '0.85rem' }}>
+              <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px 18px', borderRadius: 'var(--radius-md)' }}>
+                🛵 <strong>Fast Delivery</strong>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px 18px', borderRadius: 'var(--radius-md)' }}>
+                🍕 <strong>Hot & Fresh</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Story / Ways to enjoy details right */}
+          <div style={{ padding: '50px' }}>
+            <h3 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '16px' }}>This Is Our Story</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '24px' }}>
+              Fatpizza started as a small brick oven kitchen in DHA. Our secret has always been simple: imported San Marzano tomato sauce, fresh hand-pulled local mozzarella, and a signature crust fermented for 48 hours. Today, we still bake every single pizza to order with love.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', textAlign: 'center', marginTop: '20px' }}>
+              <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+                <span style={{ fontSize: '1.5rem' }}>🛍️</span>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>Pick up</div>
+              </div>
+              <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+                <span style={{ fontSize: '1.5rem' }}>🍽️</span>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>Dine-in</div>
+              </div>
+              <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+                <span style={{ fontSize: '1.5rem' }}>🚚</span>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>Catering</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Chefs Section */}
+      <section className="container">
+        <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>Meet Our Great Chefs</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '6px' }}>The culinary artists crafting your experience</p>
+          <div style={{ width: '60px', height: '4px', background: 'var(--primary)', margin: '16px auto 0 auto', borderRadius: '2px' }} />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '30px' }}>
+          {chefs.map((chef, idx) => (
+            <div key={idx} className="product-card tape-sticker" style={{ textAlign: 'center', padding: '30px 20px', background: 'white' }}>
+              <div style={{ width: '110px', height: '110px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 16px auto', border: '4px solid var(--border-color)' }}>
+                <img src={chef.img} alt={chef.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800 }}>{chef.name}</h4>
+              <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', marginTop: '4px' }}>{chef.role}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Notification Toast */}
       {showNotification && (
         <div style={{
@@ -264,72 +301,49 @@ export default function HomePage() {
           bottom: '100px',
           left: '30px',
           zIndex: 9999,
-          background: 'var(--foreground)',
+          background: 'var(--accent)',
           color: 'white',
           padding: '16px 24px',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: 'var(--radius-sm)',
           boxShadow: 'var(--shadow-lg)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
           fontSize: '0.9rem',
-          fontWeight: 600,
+          fontWeight: 800,
+          border: '1px solid var(--primary)',
           animation: 'slideUp 0.25s'
         }}>
           <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '50%', padding: '4px' }}>
             <Check size={14} />
           </div>
-          <span>Added **{showNotification}** to cart / کارٹ میں شامل کر دیا گیا!</span>
+          <span>Added **{showNotification}** to cart / آرڈر شامل کر دیا گیا!</span>
         </div>
       )}
 
-      {/* 4. Steps Section */}
-      <section style={{ background: '#ffffff', padding: '80px 0', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <h2 className="section-title">How to Order / آرڈر کرنے کا طریقہ</h2>
-            <p className="section-subtitle" style={{ fontSize: '1rem' }}>Sada aur aasan marhalay</p>
-          </div>
-          
-          <div className="steps-grid">
-            <div>
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', fontSize: '1.5rem', fontWeight: 800 }}>1</div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>Select Medicines / دوا چنیں</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>Catalog se dawai dhoondein ya AI chat assistant se symptoms share kar ke select karein.</p>
-            </div>
-            
-            <div>
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', fontSize: '1.5rem', fontWeight: 800 }}>2</div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>Cart & Checkout / معلومات</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>Cart mein dawa check karein aur apna pata, phone number aur shehar (City) darj karein.</p>
-            </div>
-            
-            <div>
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', fontSize: '1.5rem', fontWeight: 800 }}>3</div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '10px' }}>Cash on Delivery / ادائیگی</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>Dawai receive karte waqt paise ada karein (No online payment required).</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Spinner global animation */}
-      <style jsx global>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        @keyframes skeleton-shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        .skeleton-shimmer {
-          background: linear-gradient(90deg, var(--border-color) 25%, var(--background) 37%, var(--border-color) 63%);
-          background-size: 400% 100%;
-          animation: skeleton-shimmer 1.4s ease infinite;
-          border-radius: 4px;
-          display: block;
-        }
-      `}</style>
+      {/* Floating Bottom Left Specials Widget */}
+      <Link href="/shop" style={{
+        position: 'fixed',
+        bottom: '30px',
+        left: '30px',
+        zIndex: 999,
+        background: 'var(--primary)',
+        color: 'white',
+        padding: '12px 24px',
+        borderRadius: 'var(--radius-pill)',
+        boxShadow: '0 8px 24px rgba(243, 93, 37, 0.4)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontWeight: 800,
+        fontSize: '0.85rem',
+        textDecoration: 'none',
+        border: 'none',
+        cursor: 'pointer'
+      }}>
+        <Flame size={16} fill="white" />
+        <span>Build Your Pizza!</span>
+      </Link>
 
     </div>
   );

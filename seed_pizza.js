@@ -1,27 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+const supabaseUrl = 'https://zipqopowyrcsnpgjcdoi.supabase.co';
+const supabaseKey = 'sb_publishable_MbDu_V7Kn_0xv3M4JM1jnQ_RrkSyH6J';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zipqopowyrcsnpgjcdoi.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_MbDu_V7Kn_0xv3M4JM1jnQ_RrkSyH6J';
-
-const realSupabase = createClient(supabaseUrl, supabaseAnonKey);
-
-export interface PizzaItem {
-  id: number;
-  name: string;
-  generic_name: string;
-  category: string;
-  price_pkr: number;
-  stock: number;
-  dosage: string;
-  description: string;
-  manufacturer: string;
-  requires_prescription: boolean;
-  image_url: string;
-}
-
-export const pizzaMenu: PizzaItem[] = [
+const menuItems = [
   {
-    id: 1,
+    id: 101,
     name: "Veggie Lover Pizza",
     generic_name: "Mushrooms, Olives, Bell Peppers, Onions & Mozzarella",
     category: "Pizza",
@@ -34,7 +16,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1571066811602-71683a3f680d?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 2,
+    id: 102,
     name: "Cheese Lover",
     generic_name: "Loaded Mozzarella, Cheddar, Parmesan & Herb Sauce",
     category: "Pizza",
@@ -47,7 +29,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 3,
+    id: 103,
     name: "Afghani Feast",
     generic_name: "Charcoal Grilled Afghani Boti, Onions & White Garlic Sauce",
     category: "Pizza",
@@ -60,7 +42,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1604917621956-10dfa7cce2e7?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 4,
+    id: 104,
     name: "Chicken Supreme",
     generic_name: "Smoked Chicken chunks, Chicken Salami, Bell Peppers & Olives",
     category: "Pizza",
@@ -73,7 +55,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 5,
+    id: 105,
     name: "Chk Supreme",
     generic_name: "Spiced Chicken Tikka, Fajita Strips & Mozzarella",
     category: "Pizza",
@@ -86,7 +68,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 6,
+    id: 106,
     name: "Chicken Fajita Supreme",
     generic_name: "Sizzling Fajita Chicken, Bell Peppers, Onions & Jalapeños",
     category: "Pizza",
@@ -99,7 +81,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 7,
+    id: 107,
     name: "BBQ Tikka Pizza",
     generic_name: "Smokey BBQ Tikka Boti, Jalapeño Peppers & Onions",
     category: "Pizza",
@@ -112,7 +94,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 8,
+    id: 108,
     name: "Cheese Sticks",
     generic_name: "Garlic Butter Breadsticks with Melted Mozzarella",
     category: "Sides",
@@ -125,7 +107,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1531749668029-2db88e4b76ce?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 9,
+    id: 109,
     name: "Pizza Fries",
     generic_name: "Crispy Fries topped with Pizza Sauce, Pepperoni & Cheese",
     category: "Sides",
@@ -138,7 +120,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1585109649139-366815a0d713?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 10,
+    id: 110,
     name: "Club Sandwich",
     generic_name: "Triple-Decker Grilled Chicken, Fried Egg, Cheese & Lettuce",
     category: "Sandwich",
@@ -151,7 +133,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1567234669003-dce7a7a88821?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 11,
+    id: 111,
     name: "Mexican Chicken Sandwich",
     generic_name: "Spicy Mexican Seasoned Chicken Breast, Salsa & Jalapeños",
     category: "Sandwich",
@@ -164,7 +146,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1525059696034-4967a8e1dca2?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 12,
+    id: 112,
     name: "Kabab Chaska Pizza",
     generic_name: "Traditional Seekh Kabab slices, Green Chilies & Yogurt Mint Drizzle",
     category: "Pizza",
@@ -177,7 +159,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 13,
+    id: 113,
     name: "Zinger Burger",
     generic_name: "Crispy Golden Fried Chicken Fillet, Mayo & Iceberg Lettuce",
     category: "Burger",
@@ -190,7 +172,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 14,
+    id: 114,
     name: "Creamy Pizza",
     generic_name: "Rich Cream Sauce, Grilled Chicken, Mushrooms & Parsley",
     category: "Pizza",
@@ -203,8 +185,8 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1594007654729-407ededc414a?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 15,
-    name: "Cheese n Peproni Pizza",
+    id: 115,
+    name: "Cheese n Pepperoni Pizza",
     generic_name: "Gooey Mozzarella & Lots of Spicy Pepperoni Slices",
     category: "Pizza",
     price_pkr: 1150,
@@ -216,7 +198,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 16,
+    id: 116,
     name: "Chicken BBQ Wings",
     generic_name: "Tossed in Smokey BBQ Sauce & Garnished with Sesame",
     category: "Sides",
@@ -229,7 +211,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 17,
+    id: 117,
     name: "Beef Burger",
     generic_name: "Grilled Beef Patty, Cheddar Cheese, Pickles & Burger Sauce",
     category: "Burger",
@@ -242,7 +224,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 18,
+    id: 118,
     name: "Creamy Fajita Pizza",
     generic_name: "Creamy Base, Seasoned Fajita Chicken, Onions & Peppers",
     category: "Pizza",
@@ -255,7 +237,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 19,
+    id: 119,
     name: "Creamy Tikka Pizza",
     generic_name: "Rich Cream Base, Spicy Chicken Tikka Boti & Red Onions",
     category: "Pizza",
@@ -268,7 +250,7 @@ export const pizzaMenu: PizzaItem[] = [
     image_url: "https://images.unsplash.com/photo-1594007654729-407ededc414a?w=600&auto=format&fit=crop&q=80"
   },
   {
-    id: 20,
+    id: 120,
     name: "Chicken Cheese Creamy Pasta",
     generic_name: "Fettuccine in Rich Alfredo White Sauce with Grilled Chicken & Herbs",
     category: "Pasta",
@@ -282,83 +264,74 @@ export const pizzaMenu: PizzaItem[] = [
   }
 ];
 
-class MockQueryBuilder {
-  private data: any[];
-  private isSingle = false;
-
-  constructor(data: any[]) {
-    this.data = data;
-  }
-
-  select(columns?: string) {
-    return this;
-  }
-
-  single() {
-    this.isSingle = true;
-    return this;
-  }
-
-  eq(column: string, value: any) {
-    if (column === 'id') {
-      this.data = this.data.filter(item => item.id === Number(value));
-    } else if (column === 'category') {
-      this.data = this.data.filter(item => item.category.toLowerCase() === String(value).toLowerCase());
-    }
-    return this;
-  }
-
-  in(column: string, values: any[]) {
-    if (column === 'id') {
-      const numValues = values.map(Number);
-      this.data = this.data.filter(item => numValues.includes(item.id));
-    }
-    return this;
-  }
-
-  or(filters: string) {
-    const matches = filters.match(/%([^%]+)%/);
-    if (matches && matches[1]) {
-      const searchStr = matches[1].toLowerCase();
-      this.data = this.data.filter(item => 
-        item.name.toLowerCase().includes(searchStr) || 
-        item.generic_name.toLowerCase().includes(searchStr) || 
-        item.description.toLowerCase().includes(searchStr)
-      );
-    }
-    return this;
-  }
-
-  order(column: string, options?: { ascending?: boolean }) {
-    this.data.sort((a, b) => {
-      if (options?.ascending === false) {
-        return b[column] > a[column] ? 1 : -1;
+async function seedDatabase() {
+  console.log('Clearing old products and seeding Fatpizza menu...');
+  
+  try {
+    // 1. First read existing medicines to see connection
+    const getResponse = await fetch(`${supabaseUrl}/rest/v1/medicines?select=id`, {
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`
       }
-      return a[column] > b[column] ? 1 : -1;
     });
-    return this;
-  }
-
-  limit(num: number) {
-    this.data = this.data.slice(0, num);
-    return this;
-  }
-
-  async then(onfulfilled?: (value: any) => any) {
-    const result = { data: this.isSingle ? (this.data[0] || null) : this.data, error: null };
-    if (onfulfilled) {
-      return onfulfilled(result);
+    
+    if (!getResponse.ok) {
+      throw new Error(`Failed to fetch medicines: ${getResponse.statusText}`);
     }
-    return result;
+    
+    const existing = await getResponse.json();
+    console.log(`Found ${existing.length} existing items in DB.`);
+    
+    // 2. Delete existing medicines
+    // In Supabase REST API, deleting all rows can be done by filtering with `id=gt.0` or similar
+    const deleteResponse = await fetch(`${supabaseUrl}/rest/v1/medicines?id=gt.0`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`
+      }
+    });
+    
+    if (!deleteResponse.ok) {
+      const err = await deleteResponse.text();
+      console.warn('DELETE without filter might need special headers or fails, trying delete with list of IDs:', err);
+      // Fallback: Delete using exact list of IDs if RLS/REST blocks bulk deletes without filter
+      for (const item of existing) {
+        await fetch(`${supabaseUrl}/rest/v1/medicines?id=eq.${item.id}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`
+          }
+        });
+      }
+    } else {
+      console.log('Successfully cleared existing items.');
+    }
+    
+    // 3. Insert new menu items
+    const insertResponse = await fetch(`${supabaseUrl}/rest/v1/medicines`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(menuItems)
+    });
+    
+    if (!insertResponse.ok) {
+      const errText = await insertResponse.text();
+      throw new Error(`Insert failed: ${insertResponse.status} ${insertResponse.statusText} - ${errText}`);
+    }
+    
+    const insertedData = await insertResponse.json();
+    console.log(`Successfully seeded ${insertedData.length} Fatpizza menu items!`);
+  } catch (error) {
+    console.error('Seeding error:', error);
   }
 }
 
-export const supabase = {
-  ...realSupabase,
-  from(table: string) {
-    if (table === 'medicines') {
-      return new MockQueryBuilder(JSON.parse(JSON.stringify(pizzaMenu))) as any;
-    }
-    return realSupabase.from(table);
-  }
-};
+seedDatabase();

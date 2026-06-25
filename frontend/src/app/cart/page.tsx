@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, HelpCircle } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 export default function CartPage() {
@@ -29,11 +29,11 @@ export default function CartPage() {
       
       {/* Title */}
       <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2.2rem', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '8px' }}>
-          Your Health Basket / شاپنگ کارٹ
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
+          Your Basket / شاپنگ کارٹ
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          Review selected items before order confirmation
+          Review selected food items before checking out
         </p>
       </div>
 
@@ -62,16 +62,16 @@ export default function CartPage() {
           }}>
             <ShoppingCart size={36} />
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '8px' }}>Your Cart is Empty / کارٹ خالی ہے</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '8px' }}>Your Basket is Empty / کارٹ خالی ہے</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '400px', margin: '0 auto 28px auto', lineHeight: 1.6 }}>
-            Aap ne abhi tak koi dawa cart mein shamil nahi ki. Hamare medicine catalog se dawai muntakhib karein.
+            You haven't added any pizza or burger to your basket yet.
           </p>
-          <Link href="/shop" className="btn-primary" style={{ display: 'inline-flex' }}>
-            Browse Shop Catalog <ArrowRight size={16} />
+          <Link href="/shop" className="btn-primary" style={{ display: 'inline-flex', background: 'var(--primary)', color: 'white', textDecoration: 'none' }}>
+            Go to Menu <ArrowRight size={16} />
           </Link>
         </div>
       ) : (
-        /* Full Cart View split */
+        /* Full Cart View */
         <div className="tab-container" style={{ display: 'flex', gap: '32px' }}>
           
           {/* Left panel: list of items */}
@@ -97,40 +97,34 @@ export default function CartPage() {
                   <div style={{
                     width: '80px',
                     height: '80px',
-                    background: '#fcfefe',
                     borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-color)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '8px'
+                    overflow: 'hidden'
                   }}>
                     <img 
-                      src={item.image_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&q=80'} 
+                      src={item.image_url} 
                       alt={item.name} 
-                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&q=80';
-                      }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </div>
 
-                  {/* Name and specification */}
+                  {/* Name and toppings */}
                   <div>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '2px' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '2px' }}>
                       <Link href={`/product/${item.id}`} style={{ color: 'var(--foreground)', textDecoration: 'none' }} onMouseOver={(e) => e.currentTarget.style.color = 'var(--primary)'} onMouseOut={(e) => e.currentTarget.style.color = 'var(--foreground)'}>
                         {item.name}
                       </Link>
                     </h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '4px' }}>{item.generic_name}</p>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, background: 'var(--primary-bg)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px' }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px', lineBreak: 'anywhere' }}>{item.generic_name}</p>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'var(--primary-bg)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px' }}>
                       {item.dosage}
                     </span>
-                    {item.requires_prescription && (
-                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--accent)', marginLeft: '8px' }}>⚠️ Rx Required</span>
-                    )}
                   </div>
 
+                  {/* Qty Selector */}
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -153,9 +147,9 @@ export default function CartPage() {
                     >+</button>
                   </div>
 
-                  {/* Total price calculation */}
+                  {/* Total price */}
                   <div style={{ textAlign: 'right', justifySelf: 'end' }}>
-                    <div style={{ fontSize: '1rem', fontWeight: 800 }}>Rs. {item.price_pkr * item.quantity}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 900 }}>Rs. {item.price_pkr * item.quantity}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rs. {item.price_pkr} each</div>
                   </div>
 
@@ -181,18 +175,18 @@ export default function CartPage() {
                 </div>
               ))}
               
-              {/* Back to shop option inside table */}
+              {/* Back to shop */}
               <div style={{ padding: '20px 24px', background: 'var(--background)' }}>
                 <Link href="/shop" style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
                   color: 'var(--primary)',
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: '0.9rem',
                   textDecoration: 'none'
                 }}>
-                  <ArrowLeft size={16} /> Continue Medicine Shopping / مزید دوائیں خریدیں
+                  <ArrowLeft size={16} /> Back to Food Menu / مزید آرڈر کریں
                 </Link>
               </div>
             </div>
@@ -210,7 +204,7 @@ export default function CartPage() {
                 <span style={{ fontWeight: 700 }}>Rs. {cartSubtotal}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Shipping Fee / ڈلیوری فیس</span>
+                <span style={{ color: 'var(--text-muted)' }}>Delivery Fee / ڈلیوری فیس</span>
                 <span style={{ fontWeight: 700 }}>Rs. {shippingFee}</span>
               </div>
               <div style={{
@@ -222,40 +216,23 @@ export default function CartPage() {
                 padding: '10px 14px',
                 borderRadius: 'var(--radius-sm)',
                 fontSize: '0.75rem',
-                fontWeight: 700
+                fontWeight: 800
               }}>
-                ℹ️ Flat Delivery charge across Pakistan.
+                🛵 Flat delivery charges applied.
               </div>
               
               <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '8px 0' }} />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem' }}>
-                <span style={{ fontWeight: 800 }}>Total / کل بل</span>
-                <span style={{ fontWeight: 800, color: 'var(--primary)' }}>Rs. {grandTotal}</span>
+                <span style={{ fontWeight: 900 }}>Total / کل بل</span>
+                <span style={{ fontWeight: 900, color: 'var(--primary)' }}>Rs. {grandTotal}</span>
               </div>
             </div>
-
-            {/* Warning if checkout has prescription Rx required items */}
-            {cart.some(i => i.requires_prescription) && (
-              <div style={{
-                background: 'rgba(249, 115, 22, 0.08)',
-                border: '1px solid rgba(249, 115, 22, 0.2)',
-                color: 'var(--accent)',
-                padding: '12px 14px',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                lineHeight: 1.4,
-                marginBottom: '24px'
-              }}>
-                ⚠️ Cart contains **Rx Prescription-required** medicines. Please ensure you have a digital copy of your doctor's note.
-              </div>
-            )}
 
             <button 
               className="btn-primary" 
               onClick={() => router.push('/checkout')}
-              style={{ width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1rem' }}
+              style={{ width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800 }}
             >
               Proceed to Checkout <ArrowRight size={18} />
             </button>
@@ -268,9 +245,9 @@ export default function CartPage() {
               color: 'var(--text-muted)',
               fontSize: '0.78rem',
               marginTop: '16px',
-              fontWeight: 600
+              fontWeight: 700
             }}>
-              <ShieldCheck size={16} color="var(--primary)" /> Secure Checkout Powered by Cash on Delivery
+              <ShieldCheck size={16} color="var(--primary)" /> Cash on Delivery (COD) Available
             </div>
 
           </div>
@@ -330,23 +307,6 @@ export default function CartPage() {
             grid-row: 1 / span 3 !important;
             justify-self: center !important;
             align-self: center !important;
-          }
-        }
-        
-        @media (max-width: 900px) and (min-width: 769px) {
-          .tab-container {
-            flex-direction: column !important;
-          }
-          .cart-summary {
-            position: relative !important;
-            top: 0 !important;
-            width: 100% !important;
-            margin-top: 20px;
-          }
-          .cart-item-row {
-            grid-template-columns: 80px 1.5fr 1fr 1fr 30px !important;
-            padding: 16px !important;
-            gap: 12px !important;
           }
         }
       `}</style>

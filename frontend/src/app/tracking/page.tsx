@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, ClipboardList, CheckCircle2, Clock, Truck, ShieldCheck, MapPin, Phone, HelpCircle, PackageCheck } from 'lucide-react';
+import { Search, ClipboardList, Clock, Truck, ShieldCheck, MapPin, Phone, HelpCircle, PackageOpen } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
 interface OrderItem {
@@ -40,7 +40,6 @@ function TrackingContent() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
 
-  // If tracking code is passed in URL on load, fetch automatically
   useEffect(() => {
     if (initialCode) {
       handleTrackOrder(initialCode);
@@ -51,7 +50,6 @@ function TrackingContent() {
     e.preventDefault();
     if (!trackingInput.trim()) return;
     
-    // Update URL param
     const params = new URLSearchParams();
     params.set('code', trackingInput.trim().toUpperCase());
     router.push(`/tracking?${params.toString()}`);
@@ -70,11 +68,9 @@ function TrackingContent() {
     try {
       let query = supabase.from('orders').select('*');
 
-      // Let users track by either Tracking Code (e.g. MM-ABC123) OR Phone number
-      if (term.startsWith('MM-')) {
+      if (term.startsWith('FP-') || term.startsWith('MM-')) {
         query = query.eq('tracking_code', term);
       } else {
-        // Clean phone query (remove leading + or zero spaces)
         const cleanPhone = term.replace(/[\s-+]/g, '');
         query = query.eq('phone', cleanPhone);
       }
@@ -84,21 +80,19 @@ function TrackingContent() {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        // If query returned multiple orders (by phone), choose the latest one
         const sorted = data.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         setOrder(sorted[0]);
       } else {
-        setErrorMsg('Humein is reference code ya phone number ke mutabiq koi order nahi mila. Baraye meherbani sahi code darj karein. / کوئی آرڈر نہیں ملا۔');
+        setErrorMsg('We could not find any order with this code or phone number. / کوئی آرڈر نہیں ملا۔');
       }
     } catch (e: any) {
       console.error('Error tracking order:', e);
-      setErrorMsg('Server connection fail. Please try again.');
+      setErrorMsg('Server connection failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Helper to determine status progress step indexes
   const getStatusIndex = (status: string) => {
     switch (status) {
       case 'Pending': return 0;
@@ -109,9 +103,9 @@ function TrackingContent() {
   };
 
   const timelineSteps = [
-    { title: 'Order Placed', desc: 'Aap ka order system me confirm ho chuka hai.', icon: Clock },
-    { title: 'Dispatched / Rawana', desc: 'Medicine pack ho kar rider ko de di gayi hai.', icon: Truck },
-    { title: 'Delivered / وصول', desc: 'Dawai aap tak munasib tareeqay se pahunch gayi.', icon: PackageCheck }
+    { title: 'Order Confirmed', desc: 'Order received. Kitchen has started preparation.', icon: Clock },
+    { title: 'Baking & Packing', desc: 'Food is in the oven, cooking to perfection.', icon: Flame },
+    { title: 'Out for Delivery', desc: 'Fresh & hot food is on its way to you.', icon: Truck }
   ];
 
   return (
@@ -119,11 +113,11 @@ function TrackingContent() {
       
       {/* Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '8px' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
           Track Your Order / آرڈر ٹریکنگ
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
-          Apne order ki delivery status fori check karein
+          Get live updates on your pizza preparation and delivery status
         </p>
       </div>
 
@@ -142,74 +136,24 @@ function TrackingContent() {
             <input 
               type="text" 
               className="search-input" 
-              placeholder="Apna Tracking Code (e.g. MM-ABC123) ya Mobile Number darj karein..."
+              placeholder="Enter your Tracking Code (e.g. FP-ABC123) or Mobile Number..."
               value={trackingInput}
               onChange={(e) => setTrackingInput(e.target.value)}
             />
           </div>
-          <button type="submit" className="btn-primary" style={{ padding: '12px 28px' }}>
-            Track Now / ٹریک کریں
+          <button type="submit" className="btn-primary" style={{ padding: '12px 28px', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800, borderRadius: 'var(--radius-sm)' }}>
+            Track Now
           </button>
         </form>
         <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '12px', textAlign: 'center' }}>
-          *Note: Mobile number likhte waqt country code ke baghair likhein (e.g. 03001234567).
+          *Note: Enter phone number without country code (e.g., 03001234567).
         </span>
       </div>
 
       {/* Loading state */}
       {isLoading && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-          {/* Status timeline skeleton */}
-          <div style={{
-            background: 'var(--card-bg)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '40px',
-            boxShadow: 'var(--shadow-sm)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <div>
-                <div className="skeleton-shimmer" style={{ width: '100px', height: '12px', marginBottom: '6px' }} />
-                <div className="skeleton-shimmer" style={{ width: '140px', height: '22px' }} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
-                <div className="skeleton-shimmer" style={{ width: '120px', height: '12px' }} />
-                <div className="skeleton-shimmer" style={{ width: '80px', height: '20px', borderRadius: '12px' }} />
-              </div>
-            </div>
-
-            {/* Simulated Timeline */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
-              {[1, 2, 3].map((step) => (
-                <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '120px' }}>
-                  <div className="skeleton-shimmer" style={{ width: '52px', height: '52px', borderRadius: '50%' }} />
-                  <div className="skeleton-shimmer" style={{ width: '80px', height: '14px', marginTop: '12px' }} />
-                  <div className="skeleton-shimmer" style={{ width: '110px', height: '10px', marginTop: '6px' }} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Skeletons row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px' }} className="tracking-panels-grid">
-            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '30px' }}>
-              <div className="skeleton-shimmer" style={{ width: '150px', height: '18px', marginBottom: '20px' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="skeleton-shimmer" style={{ width: '100%', height: '14px' }} />
-                <div className="skeleton-shimmer" style={{ width: '80%', height: '14px' }} />
-                <div className="skeleton-shimmer" style={{ width: '60%', height: '14px' }} />
-              </div>
-            </div>
-            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '30px' }}>
-              <div className="skeleton-shimmer" style={{ width: '120px', height: '18px', marginBottom: '20px' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div className="skeleton-shimmer" style={{ width: '100%', height: '14px' }} />
-                <div className="skeleton-shimmer" style={{ width: '100%', height: '14px' }} />
-                <div className="skeleton-shimmer" style={{ width: '100%', height: '24px', marginTop: '10px' }} />
-              </div>
-            </div>
-          </div>
-
+        <div style={{ textAlign: 'center', padding: '40px 0' }}>
+          <p>Tracking Order...</p>
         </div>
       )}
 
@@ -225,15 +169,15 @@ function TrackingContent() {
           boxShadow: 'var(--shadow-sm)'
         }}>
           <HelpCircle size={40} style={{ margin: '0 auto 12px auto' }} />
-          <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>{errorMsg}</p>
+          <p style={{ fontWeight: 800, fontSize: '0.95rem' }}>{errorMsg}</p>
         </div>
       )}
 
-      {/* Success Order tracking info display */}
+      {/* Track Results Display */}
       {!isLoading && order && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }} className="tracking-results-anim">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           
-          {/* Status timeline progress indicators */}
+          {/* Status timeline */}
           <div style={{
             background: 'var(--card-bg)',
             border: '1px solid var(--border-color)',
@@ -243,16 +187,15 @@ function TrackingContent() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
               <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>TRACKING REF:</span>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'monospace' }}>{order.tracking_code}</h3>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800 }}>TRACKING REF:</span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--primary)', fontFamily: 'monospace' }}>{order.tracking_code}</h3>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>CURRENT STATUS:</span><br />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800 }}>STATUS:</span><br />
                 <span className={`status-badge ${order.status.toLowerCase()}`}>{order.status}</span>
               </div>
             </div>
 
-            {/* If order is Cancelled, show direct warning instead of timeline */}
             {order.status === 'Cancelled' ? (
               <div style={{
                 background: 'rgba(239, 68, 68, 0.08)',
@@ -266,12 +209,12 @@ function TrackingContent() {
               }}>
                 <HelpCircle size={28} />
                 <div>
-                  <h4 style={{ fontWeight: 700 }}>Order Cancelled / منسوخ شدہ</h4>
-                  <p style={{ fontSize: '0.85rem', opacity: 0.9 }}>Yeh order phone verification na hone ya doctor prescription mojood na hone ki bina par cancel kar diya gaya hai.</p>
+                  <h4 style={{ fontWeight: 800 }}>Order Cancelled</h4>
+                  <p style={{ fontSize: '0.85rem', opacity: 0.9 }}>This order has been cancelled. Please contact helpline for details.</p>
                 </div>
               </div>
             ) : (
-              /* Timeline Rendering */
+              /* Timeline */
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -279,7 +222,6 @@ function TrackingContent() {
                 marginTop: '40px'
               }} className="timeline-horizontal">
                 
-                {/* Connecting track line */}
                 <div style={{
                   position: 'absolute',
                   top: '24px',
@@ -289,7 +231,6 @@ function TrackingContent() {
                   background: 'var(--border-color)',
                   zIndex: 1
                 }}>
-                  {/* Active highlight line */}
                   <div style={{
                     height: '100%',
                     width: `${getStatusIndex(order.status) * 50}%`,
@@ -298,7 +239,6 @@ function TrackingContent() {
                   }}></div>
                 </div>
 
-                {/* Steps */}
                 {timelineSteps.map((step, idx) => {
                   const statusIdx = getStatusIndex(order.status);
                   const isCompleted = idx <= statusIdx;
@@ -324,14 +264,14 @@ function TrackingContent() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: isActive ? '0 0 0 6px rgba(13, 148, 136, 0.15)' : 'none',
+                        boxShadow: isActive ? '0 0 0 6px rgba(243, 93, 37, 0.15)' : 'none',
                         transition: 'var(--transition)'
                       }}>
                         <Icon size={22} />
                       </div>
                       <h4 style={{ 
                         fontSize: '0.85rem', 
-                        fontWeight: 700, 
+                        fontWeight: 800, 
                         marginTop: '12px',
                         color: isCompleted ? 'var(--foreground)' : 'var(--text-muted)'
                       }}>{step.title}</h4>
@@ -343,14 +283,13 @@ function TrackingContent() {
             )}
           </div>
 
-          {/* Customer and billing verification panel */}
+          {/* panels */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1.2fr 1fr',
             gap: '30px'
           }} className="tracking-panels-grid">
             
-            {/* Info receipt */}
             <div style={{
               background: 'var(--card-bg)',
               border: '1px solid var(--border-color)',
@@ -359,7 +298,7 @@ function TrackingContent() {
               boxShadow: 'var(--shadow-sm)'
             }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
-                Delivery Summary / ڈلیوری کی تفصیل
+                Delivery Summary / ڈلیوری की تفصیل
               </h3>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.85rem' }}>
@@ -373,7 +312,7 @@ function TrackingContent() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <Phone size={16} color="var(--primary)" style={{ flexShrink: 0 }} />
+                  <Phone size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
                     <span style={{ color: 'var(--text-muted)' }}>Contact Number:</span><br />
                     <strong>{order.phone}</strong>
@@ -382,7 +321,6 @@ function TrackingContent() {
               </div>
             </div>
 
-            {/* Items receipt */}
             <div style={{
               background: 'var(--card-bg)',
               border: '1px solid var(--border-color)',
@@ -416,7 +354,7 @@ function TrackingContent() {
         </div>
       )}
 
-      {/* Initial welcome search tip */}
+      {/* Initial state */}
       {!searched && (
         <div style={{
           background: 'var(--card-bg)',
@@ -427,14 +365,13 @@ function TrackingContent() {
           boxShadow: 'var(--shadow-sm)'
         }}>
           <ClipboardList size={40} style={{ color: 'var(--primary)', margin: '0 auto 16px auto' }} />
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '8px' }}>Checking Order Status?</h3>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '8px' }}>Checking Order Status?</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '500px', margin: '0 auto', lineHeight: 1.6 }}>
-            Aap ke SMS ya confirmation page par diya gaya tracking code (e.g. MM-AAAAAA) upar darj karein. Agar aap ke paas tracking code nahi hai to apna register kiya gaya mobile number likh kar bhi check kar sakte hain.
+            Enter the tracking code (e.g. FP-ABCDEF) from your confirmation receipt, or enter your registered mobile number to search for your latest order.
           </p>
         </div>
       )}
 
-      {/* Responsive overwrites & skeleton styles */}
       <style jsx global>{`
         @keyframes skeleton-shimmer {
           0% { background-position: -200% 0; }
@@ -466,7 +403,7 @@ function TrackingContent() {
             margin-top: 0 !important;
           }
           .timeline-horizontal > div:first-child {
-            display: none !important; /* Hide connection line on mobile */
+            display: none !important;
           }
           .tracking-panels-grid {
             grid-template-columns: 1fr !important;
@@ -481,8 +418,7 @@ export default function TrackingPage() {
   return (
     <Suspense fallback={
       <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
-        <div style={{ width: '40px', height: '40px', border: '3px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
-        <p style={{ marginTop: '16px' }}>Tracking Engine Loading...</p>
+        <p>Tracking Engine Loading...</p>
       </div>
     }>
       <TrackingContent />
