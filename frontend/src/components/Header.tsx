@@ -43,22 +43,66 @@ export default function Header() {
           <nav>
             <ul className="nav-menu">
               <li>
-                <Link href="/" className={`nav-link ${isLinkActive('/') ? 'active' : ''}`} style={{ color: 'white' }}>
+                <Link 
+                  href="/" 
+                  className={`nav-link ${isLinkActive('/') ? 'active' : ''}`} 
+                  style={{ 
+                    color: isLinkActive('/') ? '#000000' : 'white', 
+                    background: isLinkActive('/') ? 'white' : 'transparent',
+                    fontWeight: 750,
+                    textDecoration: 'none',
+                    padding: '8px 18px',
+                    borderRadius: 'var(--radius-pill)'
+                  }}
+                >
                   <span>{t('Home', 'ہوم')}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/shop" className={`nav-link ${isLinkActive('/shop') ? 'active' : ''}`} style={{ color: 'white' }}>
+                <Link 
+                  href="/shop" 
+                  className={`nav-link ${isLinkActive('/shop') ? 'active' : ''}`} 
+                  style={{ 
+                    color: isLinkActive('/shop') ? '#000000' : 'white', 
+                    background: isLinkActive('/shop') ? 'white' : 'transparent',
+                    fontWeight: 750,
+                    textDecoration: 'none',
+                    padding: '8px 18px',
+                    borderRadius: 'var(--radius-pill)'
+                  }}
+                >
                   <span>{t('Menu', 'مینو')}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/tracking" className={`nav-link ${isLinkActive('/tracking') ? 'active' : ''}`} style={{ color: 'white' }}>
+                <Link 
+                  href="/tracking" 
+                  className={`nav-link ${isLinkActive('/tracking') ? 'active' : ''}`} 
+                  style={{ 
+                    color: isLinkActive('/tracking') ? '#000000' : 'white', 
+                    background: isLinkActive('/tracking') ? 'white' : 'transparent',
+                    fontWeight: 750,
+                    textDecoration: 'none',
+                    padding: '8px 18px',
+                    borderRadius: 'var(--radius-pill)'
+                  }}
+                >
                   <span>{t('Track Order', 'آرڈر ٹریک کریں')}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/admin" className={`nav-link ${isLinkActive('/admin') ? 'active' : ''}`} style={{ color: 'white' }}>
+                <Link 
+                  href="/admin" 
+                  className={`nav-link ${isLinkActive('/admin') ? 'active' : ''}`} 
+                  style={{ 
+                    color: isLinkActive('/admin') ? '#000000' : 'white', 
+                    background: isLinkActive('/admin') ? 'white' : 'transparent',
+                    fontWeight: 750,
+                    textDecoration: 'none',
+                    padding: '8px 18px',
+                    borderRadius: 'var(--radius-pill)'
+                  }}
+                >
                   <span>{t('Admin Panel', 'ایڈمن پینل')}</span>
                 </Link>
               </li>

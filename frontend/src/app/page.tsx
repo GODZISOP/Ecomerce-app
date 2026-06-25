@@ -174,7 +174,7 @@ export default function HomePage() {
               <div 
                 key={item.id} 
                 className="product-card tape-sticker" 
-                style={{ cursor: 'pointer', background: 'white' }}
+                style={{ cursor: 'pointer', background: 'var(--card-bg)' }}
                 onClick={() => router.push(`/product/${item.id}`)}
               >
                 <div className="product-img-wrap" style={{ background: '#fcfcfc', borderBottom: '1px solid var(--border-color)', height: '220px', padding: '0', display: 'block', position: 'relative' }}>
@@ -221,7 +221,7 @@ export default function HomePage() {
 
       {/* 3. Ways To Enjoy Section (Matching Reference layout) */}
       <section className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '40px', alignItems: 'center', background: 'white', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '40px', alignItems: 'center', background: 'var(--card-bg)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
           {/* Orange promo banner left */}
           <div style={{
             background: 'linear-gradient(135deg, #f35d25 0%, #ff8c42 100%)',
@@ -251,24 +251,24 @@ export default function HomePage() {
           </div>
 
           {/* Story / Ways to enjoy details right */}
-          <div style={{ padding: '50px' }}>
-            <h3 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '16px' }}>{t('This Is Our Story', 'یہ ہے ہماری کہانی')}</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '24px' }}>
+          <div style={{ padding: '50px', color: '#111111' }}>
+            <h3 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '16px', color: '#111111' }}>{t('This Is Our Story', 'یہ ہے ہماری کہانی')}</h3>
+            <p style={{ color: '#333333', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '24px' }}>
               {t('Fatpizza started as a small brick oven kitchen in DHA. Our secret has always been simple: imported San Marzano tomato sauce, fresh hand-pulled local mozzarella, and a signature crust fermented for 48 hours. Today, we still bake every single pizza to order with love.', 'فیٹ پیزا کا آغاز ڈی ایچ اے میں ایک چھوٹے سے تندوری کچن سے ہوا تھا۔ ہمارا راز ہمیشہ سادہ رہا ہے: بہترین ٹماٹر کی چٹنی، تازہ مقامی پنیر، اور 48 گھنٹے تک خمیر کیا ہوا خاص خمیرہ۔ آج بھی ہم ہر پیزا کو محبت سے آرڈر پر ہی تیار کرتے ہیں۔')}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', textAlign: 'center', marginTop: '20px' }}>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🛍️</span>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>{t('Pick up', 'خود لے جائیں')}</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: '#111111' }}>{t('Pick up', 'خود لے جائیں')}</div>
               </div>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🍽️</span>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>{t('Dine-in', 'وہیں کھائیں')}</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: '#111111' }}>{t('Dine-in', 'وہیں کھائیں')}</div>
               </div>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🚚</span>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>{t('Catering', 'کیٹرنگ')}</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: '#111111' }}>{t('Catering', 'کیٹرنگ')}</div>
               </div>
             </div>
           </div>
@@ -285,7 +285,7 @@ export default function HomePage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '30px' }}>
           {chefs.map((chef, idx) => (
-            <div key={idx} className="product-card tape-sticker" style={{ textAlign: 'center', padding: '30px 20px', background: 'white' }}>
+            <div key={idx} className="product-card tape-sticker" style={{ textAlign: 'center', padding: '30px 20px', background: 'var(--card-bg)' }}>
               <div style={{ width: '110px', height: '110px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 16px auto', border: '4px solid var(--border-color)' }}>
                 <img src={chef.img} alt={chef.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>

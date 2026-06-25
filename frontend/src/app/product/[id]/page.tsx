@@ -165,12 +165,12 @@ export default function ProductDetailPage() {
 
           {/* Name */}
           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--foreground)', marginBottom: '4px', lineHeight: 1.2 }}>
-            {item.name}
+            {t(item.name)}
           </h1>
 
           {/* Ingredients / toppings list */}
           <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
-            ✨ <strong style={{ color: 'var(--foreground)' }}>{t('Ingredients:', 'اجزاء:')}</strong> {item.generic_name}
+            ✨ <strong style={{ color: 'var(--foreground)' }}>{t('Ingredients:', 'اجزاء:')}</strong> {t(item.generic_name)}
           </p>
 
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '24px' }}>
@@ -181,7 +181,7 @@ export default function ProductDetailPage() {
               color: 'var(--primary)',
               padding: '4px 12px',
               borderRadius: 'var(--radius-sm)'
-            }}>{item.dosage}</span>
+            }}>{t(item.dosage)}</span>
 
             <span style={{
               fontSize: '0.8' + 'rem',
@@ -221,7 +221,7 @@ export default function ProductDetailPage() {
           <div style={{ marginBottom: '32px' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '10px' }}>{t('Description:', 'تفصیل:')}</h3>
             <p style={{ fontSize: '0.95rem', color: 'var(--foreground)', lineHeight: 1.6 }}>
-              {item.description}
+              {t(item.description)}
             </p>
           </div>
 
@@ -239,7 +239,7 @@ export default function ProductDetailPage() {
           }}>
             <div>
               <strong>{t('Kitchen:', 'کچن:')}</strong><br />
-              <span style={{ color: 'var(--foreground)', fontWeight: 700 }}>{item.manufacturer}</span>
+              <span style={{ color: 'var(--foreground)', fontWeight: 700 }}>{t(item.manufacturer, item.manufacturer === 'Fatpizza Kitchen' ? 'فیٹ پیزا کچن' : item.manufacturer)}</span>
             </div>
             <div>
               <strong>{t('Type:', 'قسم:')}</strong><br />
