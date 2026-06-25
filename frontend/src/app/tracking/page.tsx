@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, ClipboardList, Clock, Truck, ShieldCheck, MapPin, Phone, HelpCircle, PackageOpen } from 'lucide-react';
+import { Search, ClipboardList, Clock, Truck, ShieldCheck, MapPin, Phone, HelpCircle, PackageOpen, Flame } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
 interface OrderItem {

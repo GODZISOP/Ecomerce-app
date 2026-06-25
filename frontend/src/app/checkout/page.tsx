@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { ShieldCheck, Truck, ArrowLeft, ClipboardList } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabaseClient';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, cartSubtotal, clearCart } = useCart();
+  const { t } = useLanguage();
 
   const shippingFee = cart.length > 0 ? 150 : 0;
   const grandTotal = cartSubtotal + shippingFee;
@@ -41,26 +43,26 @@ export default function CheckoutPage() {
 
   const validateForm = () => {
     if (name.trim().length < 3) {
-      return 'Please enter your full name (At least 3 characters). / نام درج کریں۔';
+      return t('Please enter your full name (At least 3 characters).', 'براہ کرم اپنا پورا نام درج کریں (کم از کم 3 حروف)۔');
     }
     
     const cleanedPhone = phone.replace(/[\s-]/g, '');
     const phoneRegex = /^(03\d{9}|\+923\d{9})$/;
     if (!phoneRegex.test(cleanedPhone)) {
-      return 'Please enter a valid Pakistani mobile number (e.g. 03001234567). / موبائل نمبر درست درج کریں۔';
+      return t('Please enter a valid Pakistani mobile number (e.g. 03001234567).', 'براہ کرم درست پاکستانی موبائل نمبر درج کریں (مثال کے طور پر 03001234567)۔');
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      return 'Please enter a valid email address (e.g. customer@example.com). / ای میل درست درج کریں۔';
+      return t('Please enter a valid email address (e.g. customer@example.com).', 'براہ کرم درست ای میل پتہ درج کریں (مثال کے طور پر customer@example.com)۔');
     }
 
     if (address.trim().length < 10) {
-      return 'Please enter your complete street address for accurate delivery. / پتہ درج کریں۔';
+      return t('Please enter your complete street address for accurate delivery.', 'براہ کرم درست ترسیل کے لیے اپنا پورا گلی/محلے کا پتہ درج کریں۔');
     }
 
     if (!city) {
-      return 'Please select a delivery city. / شہر منتخب کریں۔';
+      return t('Please select a delivery city.', 'براہ کرم ترسیل کا شہر منتخب کریں۔');
     }
 
     return null;
@@ -154,7 +156,7 @@ export default function CheckoutPage() {
 
     } catch (e: any) {
       console.error('Error placing order:', e);
-      setErrorMsg(e.message || 'Error processing your order. Please try again.');
+      setErrorMsg(e.message || t('Error processing your order. Please try again.', 'آرڈر پروسیس کرنے میں خرابی پیش آئی۔ دوبارہ کوشش کریں۔'));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsSubmitting(false);
@@ -171,7 +173,7 @@ export default function CheckoutPage() {
     return (
       <div className="container" style={{ padding: '100px 24px', textAlign: 'center' }}>
         <div className="spinner" style={{ width: '40px', height: '40px', border: '3px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', margin: '0 auto' }}></div>
-        <p style={{ marginTop: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>Securing checkout session / لوڈ ہو رہا ہے...</p>
+        <p style={{ marginTop: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>{t('Securing checkout session...', 'سیشن لوڈ ہو رہا ہے...')}</p>
       </div>
     );
   }
@@ -199,7 +201,7 @@ export default function CheckoutPage() {
           marginBottom: '32px'
         }}
       >
-        <ArrowLeft size={18} /> Back to Basket / واپس جائیں
+        <ArrowLeft size={18} /> {t('Back to Basket', 'واپس کارٹ میں جائیں')}
       </button>
 
       {/* Main split grid */}
@@ -209,10 +211,10 @@ export default function CheckoutPage() {
         <div className="responsive-tab-main">
           <div className="responsive-card" style={{ background: 'white', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '40px' }}>
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
-              Delivery Information / پتہ اور معلومات
+              {t('Delivery Information', 'پتہ اور معلومات')}
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '30px' }}>
-              Enter accurate delivery details. Cash on Delivery is verified via Phone Call.
+              {t('Enter accurate delivery details. Cash on Delivery is verified via Phone Call.', 'درست ڈیلیوری کی معلومات درج کریں۔ فون کال کے ذریعے کیش آن ڈیلیوری کی تصدیق کی جاتی ہے۔')}
             </p>
 
             {errorMsg && (
@@ -236,7 +238,7 @@ export default function CheckoutPage() {
               {/* Full Name */}
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
-                  Full Name / خریدار کا نام <span style={{ color: 'red' }}>*</span>
+                  {t('Full Name', 'خریدار کا نام')} <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input 
                   type="text" 
@@ -253,7 +255,7 @@ export default function CheckoutPage() {
               {/* Phone Number */}
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
-                  Phone Number / موبائل نمبر <span style={{ color: 'red' }}>*</span>
+                  {t('Phone Number', 'موبائل نمبر')} <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input 
                   type="tel" 
@@ -270,7 +272,7 @@ export default function CheckoutPage() {
               {/* Email Address */}
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
-                  Email Address / ای میل <span style={{ color: 'red' }}>*</span>
+                  {t('Email Address', 'ای میل')} <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input 
                   type="email" 
@@ -287,7 +289,7 @@ export default function CheckoutPage() {
               {/* Shipping Address */}
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
-                  Complete Address / گھر کا پتہ <span style={{ color: 'red' }}>*</span>
+                  {t('Complete Address', 'گھر کا پتہ')} <span style={{ color: 'red' }}>*</span>
                 </label>
                 <textarea 
                   className="form-input"
@@ -304,7 +306,7 @@ export default function CheckoutPage() {
               {/* City Selector */}
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
-                  City / شہر <span style={{ color: 'red' }}>*</span>
+                  {t('City', 'شہر')} <span style={{ color: 'red' }}>*</span>
                 </label>
                 <select 
                   className="form-input" 
@@ -333,9 +335,9 @@ export default function CheckoutPage() {
               }}>
                 <Truck size={24} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
-                  <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '4px' }}>Cash on Delivery Only (کیش آن ڈلیوری)</h4>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '4px' }}>{t('Cash on Delivery Only', 'صرف کیش آن ڈلیوری')}</h4>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    Pay safely at your doorstep once your food is delivered hot and fresh. No advance banking details needed.
+                    {t('Pay safely at your doorstep once your food is delivered hot and fresh. No advance banking details needed.', 'جب آپ کا کھانا گرم اور تازہ پہنچایا جائے تو دہلیز پر محفوظ طریقے سے ادائیگی کریں۔ پیشگی بینکنگ تفصیلات کی ضرورت نہیں ہے۔')}
                   </p>
                 </div>
               </div>
@@ -346,7 +348,7 @@ export default function CheckoutPage() {
                 disabled={isSubmitting}
                 style={{ width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1.05rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800, borderRadius: 'var(--radius-sm)' }}
               >
-                {isSubmitting ? 'Processing Order...' : 'Confirm Order / آرڈر کنفرم کریں'}
+                {isSubmitting ? t('Processing Order...', 'آرڈر جا رہا ہے...') : t('Confirm Order', 'آرڈر کنفرم کریں')}
               </button>
 
             </form>
@@ -357,7 +359,7 @@ export default function CheckoutPage() {
         <div className="responsive-tab-sidebar">
           <div className="responsive-card summary-card" style={{ background: 'white', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '30px' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ClipboardList size={18} color="var(--primary)" /> Basket Summary ({cart.length})
+              <ClipboardList size={18} color="var(--primary)" /> {t('Basket Summary', 'آرڈر کی تفصیل')} ({cart.length})
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px', maxHeight: '240px', overflowY: 'auto' }}>
@@ -378,16 +380,16 @@ export default function CheckoutPage() {
             {/* Billing details */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.9rem', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Basket Subtotal:</span>
+                <span style={{ color: 'var(--text-muted)' }}>{t('Basket Subtotal:', 'ٹوٹل قیمت:')}</span>
                 <span style={{ fontWeight: 700 }}>Rs. {cartSubtotal}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Delivery Fee:</span>
+                <span style={{ color: 'var(--text-muted)' }}>{t('Delivery Fee:', 'ڈلیوری فیس:')}</span>
                 <span style={{ fontWeight: 700 }}>Rs. {shippingFee}</span>
               </div>
               <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '6px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem' }}>
-                <span style={{ fontWeight: 900 }}>Total Order Value:</span>
+                <span style={{ fontWeight: 900 }}>{t('Total Order Value:', 'کل واجب الادا رقم:')}</span>
                 <span style={{ fontWeight: 900, color: 'var(--primary)' }}>Rs. {grandTotal}</span>
               </div>
             </div>
@@ -404,7 +406,7 @@ export default function CheckoutPage() {
               justifyContent: 'center',
               gap: '6px'
             }}>
-              <ShieldCheck size={14} /> Fatpizza Kitchen Approved
+              <ShieldCheck size={14} /> {t('Fatpizza Kitchen Approved', 'فیٹ پیزا کچن سے منظور شدہ')}
             </div>
 
           </div>
@@ -439,10 +441,10 @@ export default function CheckoutPage() {
           }} />
           <div style={{ textAlign: 'center' }}>
             <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--foreground)', marginBottom: '8px' }}>
-              Placing Your Order / آرڈر پروسیس ہو رہا ہے
+              {t('Placing Your Order...', 'آرڈر پروسیس ہو رہا ہے...')}
             </h3>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Cooking in progress. Please do not close or refresh this page.
+              {t('Cooking in progress. Please do not close or refresh this page.', 'تیاری جاری ہے۔ براہ کرم اس صفحہ کو بند یا ریفریش نہ کریں۔')}
             </p>
           </div>
         </div>

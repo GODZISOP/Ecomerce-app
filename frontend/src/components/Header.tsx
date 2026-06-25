@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, Menu, X, ChevronRight, Pizza, Flame } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Header() {
   const pathname = usePathname();
   const { cartCount } = useCart();
+  const { language, setLanguage, t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isLinkActive = (path: string) => {
@@ -32,7 +34,7 @@ export default function Header() {
                 Fat<span style={{ color: 'var(--primary)' }}>pizza</span>
               </span>
               <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--border-color)', textTransform: 'uppercase', letterSpacing: '2px', marginTop: '-4px' }}>
-                Fresh & Hot
+                {t('Fresh & Hot', 'تازہ اور گرم')}
               </span>
             </div>
           </Link>
@@ -42,22 +44,22 @@ export default function Header() {
             <ul className="nav-menu">
               <li>
                 <Link href="/" className={`nav-link ${isLinkActive('/') ? 'active' : ''}`} style={{ color: 'white' }}>
-                  <span>Home</span>
+                  <span>{t('Home', 'ہوم')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/shop" className={`nav-link ${isLinkActive('/shop') ? 'active' : ''}`} style={{ color: 'white' }}>
-                  <span>Menu</span>
+                  <span>{t('Menu', 'مینو')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/tracking" className={`nav-link ${isLinkActive('/tracking') ? 'active' : ''}`} style={{ color: 'white' }}>
-                  <span>Track Order</span>
+                  <span>{t('Track Order', 'آرڈر ٹریک کریں')}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/admin" className={`nav-link ${isLinkActive('/admin') ? 'active' : ''}`} style={{ color: 'white' }}>
-                  <span>Admin Panel</span>
+                  <span>{t('Admin Panel', 'ایڈمن پینل')}</span>
                 </Link>
               </li>
             </ul>
@@ -66,9 +68,30 @@ export default function Header() {
           {/* Header Actions */}
           <div className="nav-actions">
             <div className="icon-btn-wrap" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              {/* Order Now button as seen in image */}
+              {/* Language Switcher */}
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as any)}
+                style={{
+                  background: '#3d251a',
+                  color: 'white',
+                  border: '1px solid #42281d',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '6px 12px',
+                  fontSize: '0.85rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  outline: 'none',
+                  fontFamily: 'inherit'
+                }}
+              >
+                <option value="en">English</option>
+                <option value="ur">اردو</option>
+              </select>
+
+              {/* Order Now button */}
               <Link href="/shop" className="btn-primary" style={{ padding: '10px 20px', borderRadius: 'var(--radius-pill)', textDecoration: 'none', background: 'var(--primary)', color: 'white', fontWeight: 800, fontSize: '0.85rem' }}>
-                Order Now
+                {t('Order Now', 'آرڈر کریں')}
               </Link>
 
               <Link href="/cart" className="icon-btn" aria-label="Shopping Cart" style={{ color: 'white', borderColor: '#42281d', background: '#3d251a' }}>
@@ -129,7 +152,7 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     style={{ color: 'white' }}
                   >
-                    <span>Home</span>
+                    <span>{t('Home', 'ہوم')}</span>
                     <ChevronRight size={16} />
                   </Link>
                 </li>
@@ -140,7 +163,7 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     style={{ color: 'white' }}
                   >
-                    <span>Menu</span>
+                    <span>{t('Menu', 'مینو')}</span>
                     <ChevronRight size={16} />
                   </Link>
                 </li>
@@ -151,7 +174,7 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     style={{ color: 'white' }}
                   >
-                    <span>Track Order</span>
+                    <span>{t('Track Order', 'آرڈر ٹریک کریں')}</span>
                     <ChevronRight size={16} />
                   </Link>
                 </li>
@@ -162,7 +185,7 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     style={{ color: 'white' }}
                   >
-                    <span>Admin Panel</span>
+                    <span>{t('Admin Panel', 'ایڈمن پینل')}</span>
                     <ChevronRight size={16} />
                   </Link>
                 </li>
@@ -171,10 +194,10 @@ export default function Header() {
 
             <div className="mobile-drawer-footer" style={{ borderTop: '1px solid #42281d' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Flame size={16} /> AI Chat Helper Active
+                <Flame size={16} /> {t('AI Chat Helper Active', 'اے آئی چیٹ اسسٹنٹ فعال')}
               </span>
               <span style={{ fontSize: '0.75rem', color: 'var(--border-color)' }}>
-                Fatpizza Call Center: +92 300 1234567
+                {t('Fatpizza Call Center: +92 300 1234567', 'فیٹ پیزا کال سینٹر: 1234567-300-92+')}
               </span>
             </div>
           </div>

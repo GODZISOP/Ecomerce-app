@@ -7,9 +7,11 @@ import { Search, ChevronRight, Check, Plus, Star, ShieldCheck, Heart, User, Flam
 import { supabase } from '@/lib/supabaseClient';
 import { PizzaItem } from '@/lib/supabaseClient';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function HomePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [featuredItems, setFeaturedItems] = useState<PizzaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,7 +101,7 @@ export default function HomePage() {
             display: 'inline-block',
             marginBottom: '24px'
           }}>
-            Welcome to Fatpizza
+            {t('Welcome to Fatpizza', 'فیٹ پیزا میں خوش آمدید')}
           </span>
           
           <h1 style={{
@@ -110,8 +112,8 @@ export default function HomePage() {
             fontFamily: 'var(--font-display)',
             textShadow: '0 4px 12px rgba(0,0,0,0.5)'
           }}>
-            It's Not Just A Pizza,<br />
-            <span style={{ color: 'var(--primary)' }}>An Experience.</span>
+            {t("It's Not Just A Pizza,", 'یہ صرف پیزا نہیں ہے،')}<br />
+            <span style={{ color: 'var(--primary)' }}>{t('An Experience.', 'ایک یادگار تجربہ ہے۔')}</span>
           </h1>
           
           <p style={{
@@ -121,15 +123,15 @@ export default function HomePage() {
             lineHeight: 1.6,
             textShadow: '0 2px 6px rgba(0,0,0,0.5)'
           }}>
-            Handcrafted with passion, baked to perfection in a wood-fired brick oven, and delivered hot to your doorstep with a touch of culinary art.
+            {t('Handcrafted with passion, baked to perfection in a wood-fired brick oven, and delivered hot to your doorstep with a touch of culinary art.', 'محبت سے تیار کردہ، لکڑی کے تندور میں پکایا ہوا، اور فنی نفاست کے ساتھ گرما گرم آپ کی دہلیز پر پہنچایا گیا۔')}
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
             <Link href="/shop" className="btn-primary" style={{ padding: '16px 36px', fontSize: '1.05rem', fontWeight: 800, borderRadius: 'var(--radius-pill)', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', textDecoration: 'none' }}>
-              View Our Menu
+              {t('View Our Menu', 'ہمارا مینو دیکھیں')}
             </Link>
             <Link href="/tracking" style={{ padding: '16px 36px', fontSize: '1.05rem', fontWeight: 800, borderRadius: 'var(--radius-pill)', background: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)', border: '2px solid white', color: 'white', cursor: 'pointer', textDecoration: 'none', transition: 'var(--transition)' }}>
-              Track Live Order
+              {t('Track Live Order', 'آرڈر ٹریک کریں')}
             </Link>
           </div>
         </div>
@@ -138,8 +140,8 @@ export default function HomePage() {
       {/* 2. Discover Our Menu & Category Filter */}
       <section className="container">
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>Discover Our Menu</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '6px' }}>Taste the goodness of handcrafted gourmet specialties</p>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>{t('Discover Our Menu', 'ہمارا مینو دریافت کریں')}</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '6px' }}>{t('Taste the goodness of handcrafted gourmet specialties', 'ہمارے ہاتھ سے تیار کردہ خاص کھانوں کا ذائقہ چکھیں')}</p>
           <div style={{ width: '60px', height: '4px', background: 'var(--primary)', margin: '16px auto 0 auto', borderRadius: '2px' }} />
         </div>
 
@@ -147,12 +149,12 @@ export default function HomePage() {
         <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '40px' }}>
           <Link href="/shop" className="category-pill" style={{ textDecoration: 'none' }}>
             <span>🍽️</span>
-            <span>All Menu Items</span>
+            <span>{t('All Menu Items', 'تمام آئٹمز')}</span>
           </Link>
           {categories.map((cat, idx) => (
             <Link key={idx} href={`/shop?category=${cat.name}`} className="category-pill" style={{ textDecoration: 'none' }}>
               <span>{cat.emoji}</span>
-              <span>{cat.name}s</span>
+              <span>{t(`${cat.name}s`, `${cat.name === 'Sides' ? 'سائیڈز' : cat.name === 'Pizza' ? 'پیزا' : cat.name === 'Burger' ? 'برگر' : cat.name === 'Pasta' ? 'پاستا' : cat.name === 'Sandwich' ? 'سینڈوچ' : cat.name}`)}</span>
             </Link>
           ))}
         </div>
@@ -232,41 +234,41 @@ export default function HomePage() {
             position: 'relative'
           }}>
             <h2 style={{ fontSize: '2.8rem', fontWeight: 900, lineHeight: 1.1, marginBottom: '20px', fontFamily: 'var(--font-display)' }}>
-              30 minutes, or<br />pizza for free.
+              {t('30 minutes, or pizza for free.', '30 منٹ میں ڈلیوری، ورنہ پیزا مفت۔')}
             </h2>
             <p style={{ fontSize: '1rem', color: '#fff0e6', marginBottom: '30px', maxWidth: '380px' }}>
-              We guarantee hot, fresh pizzas delivered to your door within half an hour, or your order is completely free of charge!
+              {t('We guarantee hot, fresh pizzas delivered to your door within half an hour, or your order is completely free of charge!', 'ہم آدھے گھنٹے کے اندر آپ کے دروازے پر گرم اور تازہ پیزا پہنچانے کی ضمانت دیتے ہیں، ورنہ آپ کا آرڈر بالکل مفت ہوگا!')}
             </p>
             
             <div style={{ display: 'flex', gap: '20px', fontSize: '0.85rem' }}>
               <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px 18px', borderRadius: 'var(--radius-md)' }}>
-                🛵 <strong>Fast Delivery</strong>
+                🛵 <strong>{t('Fast Delivery', 'تیز ترین ڈلیوری')}</strong>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.2)', padding: '10px 18px', borderRadius: 'var(--radius-md)' }}>
-                🍕 <strong>Hot & Fresh</strong>
+                🍕 <strong>{t('Hot & Fresh', 'گرم اور تازہ')}</strong>
               </div>
             </div>
           </div>
 
           {/* Story / Ways to enjoy details right */}
           <div style={{ padding: '50px' }}>
-            <h3 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '16px' }}>This Is Our Story</h3>
+            <h3 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '16px' }}>{t('This Is Our Story', 'یہ ہے ہماری کہانی')}</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '24px' }}>
-              Fatpizza started as a small brick oven kitchen in DHA. Our secret has always been simple: imported San Marzano tomato sauce, fresh hand-pulled local mozzarella, and a signature crust fermented for 48 hours. Today, we still bake every single pizza to order with love.
+              {t('Fatpizza started as a small brick oven kitchen in DHA. Our secret has always been simple: imported San Marzano tomato sauce, fresh hand-pulled local mozzarella, and a signature crust fermented for 48 hours. Today, we still bake every single pizza to order with love.', 'فیٹ پیزا کا آغاز ڈی ایچ اے میں ایک چھوٹے سے تندوری کچن سے ہوا تھا۔ ہمارا راز ہمیشہ سادہ رہا ہے: بہترین ٹماٹر کی چٹنی، تازہ مقامی پنیر، اور 48 گھنٹے تک خمیر کیا ہوا خاص خمیرہ۔ آج بھی ہم ہر پیزا کو محبت سے آرڈر پر ہی تیار کرتے ہیں۔')}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', textAlign: 'center', marginTop: '20px' }}>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🛍️</span>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>Pick up</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>{t('Pick up', 'خود لے جائیں')}</div>
               </div>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🍽️</span>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>Dine-in</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>{t('Dine-in', 'وہیں کھائیں')}</div>
               </div>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🚚</span>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>Catering</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px' }}>{t('Catering', 'کیٹرنگ')}</div>
               </div>
             </div>
           </div>
@@ -276,8 +278,8 @@ export default function HomePage() {
       {/* 4. Chefs Section */}
       <section className="container">
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>Meet Our Great Chefs</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '6px' }}>The culinary artists crafting your experience</p>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>{t('Meet Our Great Chefs', 'ہمارے ماہر شیف سے ملیں')}</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '6px' }}>{t('The culinary artists crafting your experience', 'آپ کے ذائقے کو سجانے والے ہمارے فنکار')}</p>
           <div style={{ width: '60px', height: '4px', background: 'var(--primary)', margin: '16px auto 0 auto', borderRadius: '2px' }} />
         </div>
 
@@ -288,7 +290,7 @@ export default function HomePage() {
                 <img src={chef.img} alt={chef.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <h4 style={{ fontSize: '1.1rem', fontWeight: 800 }}>{chef.name}</h4>
-              <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', marginTop: '4px' }}>{chef.role}</p>
+              <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', marginTop: '4px' }}>{t(chef.role, chef.role === 'Master Pizzaiolo' ? 'ماہر پیزا میکر' : chef.role === 'Sous Chef' ? 'نائب شیف' : chef.role === 'Burger Specialist' ? 'برگر کے ماہر' : chef.role === 'Pasta Master' ? 'پاستا کے ماہر' : chef.role)}</p>
             </div>
           ))}
         </div>
@@ -317,7 +319,7 @@ export default function HomePage() {
           <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '50%', padding: '4px' }}>
             <Check size={14} />
           </div>
-          <span>Added **{showNotification}** to cart / آرڈر شامل کر دیا گیا!</span>
+          <span>{t(`Added **${showNotification}** to cart`, `**${showNotification}** کارٹ میں شامل کر دیا گیا!`)}</span>
         </div>
       )}
 
@@ -342,7 +344,7 @@ export default function HomePage() {
         cursor: 'pointer'
       }}>
         <Flame size={16} fill="white" />
-        <span>Build Your Pizza!</span>
+        <span>{t('Build Your Pizza!', 'اپنا پیزا بنائیں!')}</span>
       </Link>
 
     </div>

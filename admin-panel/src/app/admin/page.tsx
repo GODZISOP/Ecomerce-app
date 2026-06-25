@@ -476,10 +476,10 @@ export default function PremiumAdminPanel() {
           </div>
 
           <h1 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '6px', letterSpacing: '-0.5px' }}>
-            MediMart Admin Login
+            Fatpizza Admin Login
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '32px' }}>
-            Enter passcode to unlock senior pharmacist dashboard.<br/>(ایڈمن پینل لاگ ان کریں)
+            Enter passcode to unlock Fatpizza kitchen manager dashboard.<br/>(ایڈمن پینل لاگ ان کریں)
           </p>
 
           {authError && (
@@ -562,13 +562,13 @@ export default function PremiumAdminPanel() {
             textTransform: 'uppercase',
             letterSpacing: '1px'
           }}>
-            Senior Pharmacist Workspace
+            Fatpizza Kitchen Manager
           </span>
           <h1 style={{ fontSize: '2.1rem', fontWeight: 800, letterSpacing: '-0.5px', marginTop: '6px' }}>
-            MediMart Admin Panel / ایڈمن ڈیش بورڈ
+            Fatpizza Admin Panel / ایڈمن ڈیش بورڈ
           </h1>
         </div>
-
+ 
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
             Session Active
@@ -591,7 +591,7 @@ export default function PremiumAdminPanel() {
           </button>
         </div>
       </div>
-
+ 
       {/* Modern Horizontal Navigation Tabs */}
       <div style={{
         display: 'flex',
@@ -604,8 +604,7 @@ export default function PremiumAdminPanel() {
         {[
           { id: 'dashboard', label: 'Overview / تجزیات', icon: Activity },
           { id: 'orders', label: 'Fulfillment Orders / آرڈرز', icon: ClipboardList },
-          { id: 'medicines', label: 'Medicines Inventory / ادویات', icon: ShoppingBag },
-          { id: 'prescriptions', label: 'Prescription Verifier / نسخہ فائل', icon: FileText, count: pendingPrescriptionOrders.length },
+          { id: 'medicines', label: 'Menu Inventory / مینو ادویات', icon: ShoppingBag },
           { id: 'settings', label: 'Shop Settings / ترتیبات', icon: Settings }
         ].map((tab) => {
           const Icon = tab.icon;
@@ -632,28 +631,11 @@ export default function PremiumAdminPanel() {
             >
               <Icon size={18} />
               <span>{tab.label}</span>
-              {tab.count !== undefined && tab.count > 0 && (
-                <span style={{
-                  background: isActive ? 'white' : 'var(--accent)',
-                  color: isActive ? 'var(--primary)' : 'white',
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
-                  borderRadius: '50%',
-                  width: '20px',
-                  height: '20px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: '4px'
-                }}>
-                  {tab.count}
-                </span>
-              )}
             </button>
           );
         })}
       </div>
-
+ 
       {/* TAB CONTENT SPACES */}
       
       {/* 1. DASHBOARD TAB */}
@@ -675,7 +657,7 @@ export default function PremiumAdminPanel() {
                 )}
               </div>
             </div>
-
+ 
             {/* Total Orders */}
             <div className="stat-card" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               <div className="stat-icon" style={{ background: '#dbeafe', color: '#1e40af', flexShrink: 0 }}>
@@ -690,7 +672,7 @@ export default function PremiumAdminPanel() {
                 )}
               </div>
             </div>
-
+ 
             {/* Pending Verifications */}
             <div className="stat-card" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               <div className="stat-icon" style={{ background: '#fef3c7', color: '#92400e', flexShrink: 0 }}>
@@ -705,29 +687,29 @@ export default function PremiumAdminPanel() {
                 )}
               </div>
             </div>
-
-            {/* Rx Warning checks */}
+ 
+            {/* Cancelled orders */}
             <div className="stat-card" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div className="stat-icon" style={{ background: 'rgba(249, 115, 22, 0.1)', color: 'var(--accent)', flexShrink: 0 }}>
-                <FileText size={24} />
+              <div className="stat-icon" style={{ background: '#fee2e2', color: '#ef4444', flexShrink: 0 }}>
+                <XCircle size={24} />
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Rx Verifications</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cancelled Orders</div>
                 {isLoadingOrders ? (
                   <div className="skeleton-shimmer" style={{ width: '50px', height: '24px', borderRadius: '4px', marginTop: '4px' }} />
                 ) : (
-                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--foreground)' }}>{stats.rxPendingOrders}</div>
+                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--foreground)' }}>{stats.cancelledOrders}</div>
                 )}
               </div>
             </div>
-
+ 
             {/* Low stock catalog alert */}
             <div className="stat-card" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               <div className="stat-icon" style={{ background: '#fee2e2', color: '#991b1b', flexShrink: 0 }}>
                 <AlertCircle size={24} />
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Low Stock Meds</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Low Stock Items</div>
                 {isLoadingMedicines ? (
                   <div className="skeleton-shimmer" style={{ width: '50px', height: '24px', borderRadius: '4px', marginTop: '4px' }} />
                 ) : (
@@ -1023,7 +1005,6 @@ export default function PremiumAdminPanel() {
                     <th>Customer Name</th>
                     <th>City</th>
                     <th>COD Bill</th>
-                    <th>Rx Warning</th>
                     <th>Fulfillment</th>
                     <th>Actions</th>
                   </tr>
@@ -1054,23 +1035,6 @@ export default function PremiumAdminPanel() {
                         
                         {/* Cod billing value */}
                         <td style={{ fontWeight: 800 }}>Rs. {ord.grand_total}</td>
-                        
-                        {/* Prescription alerts */}
-                        <td>
-                          {isRx ? (
-                            <span style={{
-                              background: 'rgba(249, 115, 22, 0.08)',
-                              color: 'var(--accent)',
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              padding: '4px 10px',
-                              borderRadius: 'var(--radius-pill)',
-                              border: '1px solid rgba(249, 115, 22, 0.2)'
-                            }}>⚠️ Rx Required</span>
-                          ) : (
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No Rx required</span>
-                          )}
-                        </td>
                         
                         {/* Fulfillment dropdown inline */}
                         <td>
@@ -1188,7 +1152,7 @@ export default function PremiumAdminPanel() {
                   setEditingMedicine({
                     name: '',
                     generic_name: '',
-                    category: 'Painkiller',
+                    category: 'Pizza',
                     price_pkr: 0,
                     stock: 50,
                     dosage: '',
@@ -1202,7 +1166,7 @@ export default function PremiumAdminPanel() {
                 className="btn-primary"
                 style={{ padding: '8px 16px', fontSize: '0.85rem' }}
               >
-                <Plus size={16} /> Add Medicine
+                <Plus size={16} /> Add Menu Item
               </button>
             </div>
           </div>
@@ -1273,12 +1237,11 @@ export default function PremiumAdminPanel() {
                 <thead>
                   <tr>
                     <th>Item ID</th>
-                    <th>Medicine Image</th>
-                    <th>Name & Formula</th>
+                    <th>Food Image</th>
+                    <th>Name & Ingredients</th>
                     <th>Category</th>
                     <th>Price</th>
                     <th>Stock status</th>
-                    <th>Rx standard</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -1293,9 +1256,9 @@ export default function PremiumAdminPanel() {
                         <img 
                           src={med.image_url} 
                           alt={med.name} 
-                          style={{ width: '40px', height: '40px', objectFit: 'contain', background: '#fcfefe', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                          style={{ width: '40px', height: '40px', objectFit: 'cover', background: '#fcfefe', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                           onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&q=80';
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80';
                           }}
                         />
                       </td>
@@ -1319,16 +1282,7 @@ export default function PremiumAdminPanel() {
                           color: med.stock < 15 ? 'var(--status-cancelled)' : 'var(--foreground)'
                         }}>{med.stock} Units</span>
                         {med.stock < 15 && (
-                          <div style={{ fontSize: '0.7 room', color: 'var(--status-cancelled)', fontWeight: 700 }}>⚠️ Low Stock Reorder!</div>
-                        )}
-                      </td>
-
-                      {/* Prescriptions requirements */}
-                      <td>
-                        {med.requires_prescription ? (
-                          <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.75rem' }}>⚠️ Requires Rx</span>
-                        ) : (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No Rx</span>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--status-cancelled)', fontWeight: 700 }}>⚠️ Low Stock!</div>
                         )}
                       </td>
 
@@ -2022,7 +1976,7 @@ export default function PremiumAdminPanel() {
 
             <div style={{ padding: '32px' }}>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.5px' }}>
-                {medicineModalType === 'add' ? 'Add New Medicine / نئی دوا شامل کریں' : 'Edit Medicine Details / ترمیم کریں'}
+                {medicineModalType === 'add' ? 'Add New Menu Item / نیا آئٹم شامل کریں' : 'Edit Menu Item Details / ترمیم کریں'}
               </h2>
 
               <form onSubmit={handleSaveMedicine} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -2030,24 +1984,24 @@ export default function PremiumAdminPanel() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   {/* Name */}
                   <div className="form-group">
-                    <label className="form-label">Medicine Name <span style={{ color: 'red' }}>*</span></label>
+                    <label className="form-label">Item Name <span style={{ color: 'red' }}>*</span></label>
                     <input 
                       type="text"
                       className="form-input"
-                      placeholder="e.g. Panadol Forte"
+                      placeholder="e.g. Veggie Lover Pizza"
                       value={editingMedicine.name || ''}
                       onChange={(e) => setEditingMedicine({ ...editingMedicine, name: e.target.value })}
                       required
                     />
                   </div>
 
-                  {/* Generic formula name */}
+                  {/* Ingredients */}
                   <div className="form-group">
-                    <label className="form-label">Generic Formula <span style={{ color: 'red' }}>*</span></label>
+                    <label className="form-label">Ingredients & Toppings <span style={{ color: 'red' }}>*</span></label>
                     <input 
                       type="text"
                       className="form-input"
-                      placeholder="e.g. Paracetamol"
+                      placeholder="e.g. Mushrooms, Olives, Mozzarella"
                       value={editingMedicine.generic_name || ''}
                       onChange={(e) => setEditingMedicine({ ...editingMedicine, generic_name: e.target.value })}
                       required
@@ -2065,16 +2019,11 @@ export default function PremiumAdminPanel() {
                       onChange={(e) => setEditingMedicine({ ...editingMedicine, category: e.target.value })}
                       required
                     >
-                      <option value="Painkiller">Painkiller</option>
-                      <option value="Antibiotic">Antibiotic</option>
-                      <option value="Antacid">Antacid</option>
-                      <option value="Diabetes">Diabetes</option>
-                      <option value="Blood Pressure">Blood Pressure</option>
-                      <option value="Cholesterol">Cholesterol</option>
-                      <option value="Respiratory">Respiratory</option>
-                      <option value="Allergy">Allergy</option>
-                      <option value="Vitamins">Vitamins</option>
-                      <option value="Skin">Skin</option>
+                      <option value="Pizza">Pizza</option>
+                      <option value="Burger">Burger</option>
+                      <option value="Sandwich">Sandwich</option>
+                      <option value="Pasta">Pasta</option>
+                      <option value="Sides">Sides</option>
                     </select>
                   </div>
 
@@ -2104,13 +2053,13 @@ export default function PremiumAdminPanel() {
                     />
                   </div>
 
-                  {/* Dosage specification */}
+                  {/* Portion specification */}
                   <div className="form-group">
-                    <label className="form-label">Dosage Spec</label>
+                    <label className="form-label">Size / Portion Spec</label>
                     <input 
                       type="text"
                       className="form-input"
-                      placeholder="e.g. 500mg, 120ml"
+                      placeholder="e.g. 12 inch Medium, 6 Pieces"
                       value={editingMedicine.dosage || ''}
                       onChange={(e) => setEditingMedicine({ ...editingMedicine, dosage: e.target.value })}
                     />
@@ -2118,13 +2067,13 @@ export default function PremiumAdminPanel() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  {/* Manufacturer */}
+                  {/* Kitchen maker */}
                   <div className="form-group">
-                    <label className="form-label">Manufacturer Company</label>
+                    <label className="form-label">Kitchen / Maker</label>
                     <input 
                       type="text"
                       className="form-input"
-                      placeholder="e.g. GSK Pakistan"
+                      placeholder="e.g. Fatpizza Kitchen"
                       value={editingMedicine.manufacturer || ''}
                       onChange={(e) => setEditingMedicine({ ...editingMedicine, manufacturer: e.target.value })}
                     />
@@ -2145,38 +2094,22 @@ export default function PremiumAdminPanel() {
 
                 {/* Description details */}
                 <div className="form-group">
-                  <label className="form-label">Product Description / Uses</label>
+                  <label className="form-label">Product Description</label>
                   <textarea 
                     className="form-input"
                     rows={3}
                     style={{ resize: 'none', fontFamily: 'inherit' }}
-                    placeholder="Provide usage guidelines and specifications..."
+                    placeholder="Provide description and special instructions..."
                     value={editingMedicine.description || ''}
                     onChange={(e) => setEditingMedicine({ ...editingMedicine, description: e.target.value })}
                   />
                 </div>
 
-                {/* Prescriptions switch checkbox */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  background: 'var(--background)',
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-color)'
-                }}>
-                  <input 
-                    type="checkbox" 
-                    id="modalRx"
-                    style={{ cursor: 'pointer', width: '18px', height: '18px', accentColor: 'var(--primary)' }}
-                    checked={editingMedicine.requires_prescription || false}
-                    onChange={(e) => setEditingMedicine({ ...editingMedicine, requires_prescription: e.target.checked })}
-                  />
-                  <label htmlFor="modalRx" style={{ cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}>
-                    ⚠️ Requires Doctor Prescription (Rx Required)
-                  </label>
-                </div>
+                {/* Hidden Rx checklist */}
+                <input 
+                  type="hidden" 
+                  value="false"
+                />
 
                 {/* Save cancel controls */}
                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>

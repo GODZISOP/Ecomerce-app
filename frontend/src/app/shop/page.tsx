@@ -6,10 +6,12 @@ import { Search, SlidersHorizontal, Plus, Check, ShoppingCart, HelpCircle, Star 
 import { supabase } from '@/lib/supabaseClient';
 import { PizzaItem } from '@/lib/supabaseClient';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 function ShopContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   
   // URL Param states
   const initialSearch = searchParams.get('search') || '';
@@ -101,7 +103,7 @@ function ShopContent() {
       {/* Header and statistics */}
       <div style={{ marginBottom: '32px' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
-          Fatpizza Menu / مینو
+          {t('Fatpizza Menu', 'فیٹ پیزا مینو')}
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
           {isLoading ? 'Searching Menu...' : `Found ${menuItems.length} delicious items ready to order`}
@@ -190,13 +192,13 @@ function ShopContent() {
               <input 
                 type="text" 
                 className="search-input" 
-                placeholder="Search for pizza, burger, pasta, toppings (e.g., Pepperoni, Cheese, Veggie)..."
+                placeholder={t("Search for pizza, burger, pasta, toppings (e.g., Pepperoni, Cheese, Veggie)...", "پیزا، برگر، پاستا یا ٹوپنگز تلاش کریں...")}
                 value={search}
                 onChange={handleSearchChange}
               />
             </div>
             <button type="submit" className="btn-primary" style={{ borderRadius: 'var(--radius-sm)' }}>
-              Search / تلاش کریں
+              {t('Search', 'تلاش کریں')}
             </button>
           </form>
 
@@ -219,9 +221,9 @@ function ShopContent() {
               boxShadow: 'var(--shadow-sm)'
             }}>
               <HelpCircle size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>No Food Items Found</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>{t('No Food Items Found', 'کوئی مینو آئٹم نہیں ملا')}</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '400px', margin: '0 auto 20px auto' }}>
-                We couldn't find anything matching your search. Try adjusting filters or typing another name.
+                {t("We couldn't find anything matching your search. Try adjusting filters or typing another name.", "ہمیں آپ کی تلاش کے مطابق کچھ نہیں ملا۔ فلٹرز کو تبدیل کریں یا کوئی دوسرا نام لکھیں۔")}
               </p>
               <button 
                 onClick={() => {
@@ -232,7 +234,7 @@ function ShopContent() {
                 className="btn-primary"
                 style={{ padding: '8px 20px', fontSize: '0.85rem' }}
               >
-                Clear Filters / ری سیٹ کریں
+                {t('Clear Filters', 'فلٹرز ری سیٹ کریں')}
               </button>
             </div>
           ) : (
@@ -304,7 +306,7 @@ function ShopContent() {
           <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '50%', padding: '4px' }}>
             <Check size={14} />
           </div>
-          <span>Added **{showNotification}** to cart / کارٹ میں شامل!</span>
+          <span>{t(`Added **${showNotification}** to cart`, `**${showNotification}** کارٹ میں شامل کر دیا گیا!`)}</span>
         </div>
       )}
 
@@ -328,11 +330,12 @@ function ShopContent() {
 }
 
 export default function ShopPage() {
+  const { t } = useLanguage();
   return (
     <Suspense fallback={
       <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
         <div style={{ width: '40px', height: '40px', border: '3px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
-        <p style={{ marginTop: '16px' }}>Menu Loading...</p>
+        <p style={{ marginTop: '16px' }}>{t('Menu Loading...', 'مینو لوڈ ہو رہا ہے...')}</p>
       </div>
     }>
       <ShopContent />
