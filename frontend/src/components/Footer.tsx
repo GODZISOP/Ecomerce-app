@@ -2,8 +2,10 @@
 
 import React from 'react';
 import { Pizza, Phone, MapPin, Mail } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Footer() {
+  const { t } = useLanguage();
   return (
     <footer style={{ 
       backgroundColor: '#2e1a12', 
@@ -28,7 +30,7 @@ export default function Footer() {
               </span>
             </div>
             <p style={{ fontSize: '0.85rem', color: '#c7bfae', marginBottom: '20px', lineHeight: 1.6 }}>
-              It's Not Just A Pizza, An Experience. Handcrafted with passion, baked to perfection in a wood-fired oven and delivered with a touch of art.
+              {t("It's Not Just A Pizza, An Experience. Handcrafted with passion, baked to perfection in a wood-fired oven and delivered with a touch of art.", "یہ صرف پیزا نہیں ہے، ایک یادگار تجربہ ہے۔ محبت سے تیار کردہ، لکڑی کے تندور میں پکا ہوا، اور فنی نفاست کے ساتھ پہنچایا گیا۔")}
             </p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -44,51 +46,51 @@ export default function Footer() {
                 boxShadow: 'none',
                 display: 'inline-block'
               }}>
-                Franchise Opportunities Available!
+                {t('Franchise Opportunities Available!', 'فرنچائز کے مواقع دستیاب ہیں!')}
               </a>
             </div>
           </div>
 
           {/* Locations */}
           <div>
-            <h5 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '20px', color: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}>Locations</h5>
+            <h5 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '20px', color: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('Locations', 'مقامات')}</h5>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem', color: '#c7bfae' }}>
-              <li>📍 DHA Phase 5, Karachi</li>
-              <li>📍 Gulberg III, Lahore</li>
-              <li>📍 F-7 Markaz, Islamabad</li>
-              <li>📍 Centaurus Mall, Islamabad</li>
+              <li>📍 {t('DHA Phase 5, Karachi', 'ڈی ایچ اے فیز 5، کراچی')}</li>
+              <li>📍 {t('Gulberg III, Lahore', 'گلبرگ III، لاہور')}</li>
+              <li>📍 {t('F-7 Markaz, Islamabad', 'ایف 7 مرکز، اسلام آباد')}</li>
+              <li>📍 {t('Centaurus Mall, Islamabad', 'سینٹورس مال، اسلام آباد')}</li>
             </ul>
           </div>
 
           {/* Opening Hours */}
           <div>
-            <h5 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '20px', color: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}>Opening Hours</h5>
+            <h5 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '20px', color: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('Opening Hours', 'اوقاتِ کار')}</h5>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem', color: '#c7bfae' }}>
               <li>
-                <strong style={{ color: 'white' }}>Monday - Thursday:</strong>
-                <div style={{ marginTop: '2px' }}>11:00 AM - 12:00 AM</div>
+                <strong style={{ color: 'white' }}>{t('Monday - Thursday:', 'پیر تا جمعرات:')}</strong>
+                <div style={{ marginTop: '2px' }}>{t('11:00 AM - 12:00 AM', 'صبح 11:00 بجے سے رات 12:00 بجے تک')}</div>
               </li>
               <li>
-                <strong style={{ color: 'white' }}>Friday - Sunday:</strong>
-                <div style={{ marginTop: '2px' }}>11:00 AM - 02:00 AM</div>
+                <strong style={{ color: 'white' }}>{t('Friday - Sunday:', 'جمعہ تا اتوار:')}</strong>
+                <div style={{ marginTop: '2px' }}>{t('11:00 AM - 02:00 AM', 'صبح 11:00 بجے سے رات 02:00 بجے تک')}</div>
               </li>
               <li>
-                <strong style={{ color: 'white' }}>Delivery Service:</strong>
-                <div style={{ marginTop: '2px' }}>24 Hours / 7 Days</div>
+                <strong style={{ color: 'white' }}>{t('Delivery Service:', 'ڈلیوری سروس:')}</strong>
+                <div style={{ marginTop: '2px' }}>{t('24 Hours / 7 Days', '24 گھنٹے / 7 دن')}</div>
               </li>
             </ul>
           </div>
 
           {/* Newsletter Signup */}
           <div>
-            <h5 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '20px', color: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}>Newsletter</h5>
+            <h5 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '20px', color: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('Newsletter', 'خبر نامہ')}</h5>
             <p style={{ fontSize: '0.82rem', color: '#c7bfae', marginBottom: '16px', lineHeight: 1.5 }}>
-              Subscribe to get latest deals, specials, and free pizza coupons!
+              {t('Subscribe to get latest deals, specials, and free pizza coupons!', 'جدید ترین ڈیلز، سپیشلز اور مفت پیزا کوپن حاصل کرنے کے لیے سبسکرائب کریں!')}
             </p>
             <div style={{ display: 'flex', gap: '6px' }}>
               <input 
                 type="email" 
-                placeholder="Enter your email" 
+                placeholder={t('Enter your email', 'اپنا ای میل درج کریں')} 
                 style={{ 
                   flex: 1, 
                   background: '#3d251a', 
@@ -110,7 +112,7 @@ export default function Footer() {
                 fontWeight: 700, 
                 cursor: 'pointer' 
               }}>
-                Send
+                {t('Send', 'بھیجیں')}
               </button>
             </div>
             
@@ -142,9 +144,9 @@ export default function Footer() {
             color: '#c7bfae'
           }}
         >
-          <span>© {new Date().getFullYear()} Fatpizza Pakistan. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} {t('Fatpizza Pakistan. All rights reserved.', 'فیٹ پیزا پاکستان۔ جملہ حقوق محفوظ ہیں۔')}</span>
           <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 800 }}>
-            IT'S NOT JUST A PIZZA, AN EXPERIENCE.
+            {t("IT'S NOT JUST A PIZZA, AN EXPERIENCE.", "یہ صرف پیزا نہیں ہے، ایک یادگار تجربہ ہے۔")}
           </span>
         </div>
       </div>

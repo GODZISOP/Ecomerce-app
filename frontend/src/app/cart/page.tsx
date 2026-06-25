@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function CartPage() {
   const router = useRouter();
   const { cart, updateCartQty, removeFromCart, cartSubtotal } = useCart();
+  const { t } = useLanguage();
 
   const shippingFee = cart.length > 0 ? 150 : 0;
   const grandTotal = cartSubtotal + shippingFee;
@@ -30,10 +32,10 @@ export default function CartPage() {
       {/* Title */}
       <div style={{ marginBottom: '32px' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
-          Your Basket / شاپنگ کارٹ
+          {t('Your Basket', 'شاپنگ کارٹ')}
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          Review selected food items before checking out
+          {t('Review selected food items before checking out', 'چیک آؤٹ کرنے سے پہلے منتخب کردہ کھانوں کا جائزہ لیں')}
         </p>
       </div>
 
@@ -62,12 +64,12 @@ export default function CartPage() {
           }}>
             <ShoppingCart size={36} />
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '8px' }}>Your Basket is Empty / کارٹ خالی ہے</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '8px' }}>{t('Your Basket is Empty', 'کارٹ خالی ہے')}</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '400px', margin: '0 auto 28px auto', lineHeight: 1.6 }}>
-            You haven't added any pizza or burger to your basket yet.
+            {t("You haven't added any pizza or burger to your basket yet.", 'آپ نے ابھی تک اپنے کارٹ میں کوئی پیزا یا برگر شامل نہیں کیا ہے۔')}
           </p>
           <Link href="/shop" className="btn-primary" style={{ display: 'inline-flex', background: 'var(--primary)', color: 'white', textDecoration: 'none' }}>
-            Go to Menu <ArrowRight size={16} />
+            {t('Go to Menu', 'مینو پر جائیں')} <ArrowRight size={16} />
           </Link>
         </div>
       ) : (
@@ -150,7 +152,7 @@ export default function CartPage() {
                   {/* Total price */}
                   <div style={{ textAlign: 'right', justifySelf: 'end' }}>
                     <div style={{ fontSize: '1.1rem', fontWeight: 900 }}>Rs. {item.price_pkr * item.quantity}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rs. {item.price_pkr} each</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rs. {item.price_pkr} {t('each', 'فی عدد')}</div>
                   </div>
 
                   {/* Remove button */}
@@ -186,7 +188,7 @@ export default function CartPage() {
                   fontSize: '0.9rem',
                   textDecoration: 'none'
                 }}>
-                  <ArrowLeft size={16} /> Back to Food Menu / مزید آرڈر کریں
+                  <ArrowLeft size={16} /> {t('Back to Food Menu', 'مزید آرڈر کریں')}
                 </Link>
               </div>
             </div>
@@ -195,16 +197,16 @@ export default function CartPage() {
           {/* Right panel: order summary checkout card */}
           <div className="cart-summary" style={{ flex: 0.8 }}>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '24px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
-              Order Details / بل کی تفصیل
+              {t('Order Details', 'بل کی تفصیل')}
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Subtotal / کل قیمت</span>
+                <span style={{ color: 'var(--text-muted)' }}>{t('Subtotal', 'کل قیمت')}</span>
                 <span style={{ fontWeight: 700 }}>Rs. {cartSubtotal}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Delivery Fee / ڈلیوری فیس</span>
+                <span style={{ color: 'var(--text-muted)' }}>{t('Delivery Fee', 'ڈلیوری فیس')}</span>
                 <span style={{ fontWeight: 700 }}>Rs. {shippingFee}</span>
               </div>
               <div style={{
@@ -218,13 +220,13 @@ export default function CartPage() {
                 fontSize: '0.75rem',
                 fontWeight: 800
               }}>
-                🛵 Flat delivery charges applied.
+                🛵 {t('Flat delivery charges applied.', 'فلیٹ ڈلیوری چارجز لاگو ہیں۔')}
               </div>
               
               <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '8px 0' }} />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem' }}>
-                <span style={{ fontWeight: 900 }}>Total / کل بل</span>
+                <span style={{ fontWeight: 900 }}>{t('Total', 'کل بل')}</span>
                 <span style={{ fontWeight: 900, color: 'var(--primary)' }}>Rs. {grandTotal}</span>
               </div>
             </div>
@@ -234,7 +236,7 @@ export default function CartPage() {
               onClick={() => router.push('/checkout')}
               style={{ width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800 }}
             >
-              Proceed to Checkout <ArrowRight size={18} />
+              {t('Proceed to Checkout', 'چیک آؤٹ کی طرف جائیں')} <ArrowRight size={18} />
             </button>
 
             <div style={{
@@ -247,7 +249,7 @@ export default function CartPage() {
               marginTop: '16px',
               fontWeight: 700
             }}>
-              <ShieldCheck size={16} color="var(--primary)" /> Cash on Delivery (COD) Available
+              <ShieldCheck size={16} color="var(--primary)" /> {t('Cash on Delivery (COD) Available', 'کیش آن ڈلیوری (سی او ڈی) دستیاب ہے')}
             </div>
 
           </div>

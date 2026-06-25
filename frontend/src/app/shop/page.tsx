@@ -106,7 +106,7 @@ function ShopContent() {
           {t('Fatpizza Menu', 'فیٹ پیزا مینو')}
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          {isLoading ? 'Searching Menu...' : `Found ${menuItems.length} delicious items ready to order`}
+          {isLoading ? t('Searching Menu...', 'مینو تلاش کیا جا رہا ہے...') : t(`Found ${menuItems.length} delicious items ready to order`, `آرڈر کرنے کے لیے ${menuItems.length} مزیدار چیزیں ملیں`)}
         </p>
       </div>
 
@@ -130,7 +130,7 @@ function ShopContent() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
             <SlidersHorizontal size={18} color="var(--primary)" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Categories</h3>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>{t('Categories', 'اقسام')}</h3>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -157,7 +157,7 @@ function ShopContent() {
                   }}
                   className="category-filter-btn"
                 >
-                  <span>{cat}s</span>
+                  <span>{t(cat === 'All' ? 'All Items' : `${cat}s`, cat === 'All' ? 'تمام کھانے' : cat === 'Pizza' ? 'پیزا' : cat === 'Burger' ? 'برگر' : cat === 'Sandwich' ? 'سینڈوچ' : cat === 'Pasta' ? 'پاستا' : cat === 'Sides' ? 'سائیڈز' : cat)}</span>
                   {isActive && <span style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%' }}></span>}
                 </button>
               );
@@ -177,8 +177,8 @@ function ShopContent() {
               flexDirection: 'column',
               gap: '6px'
             }}>
-              <span style={{ fontWeight: 900 }}>🔥 Chef Tip:</span>
-              <span>Our pizzas are baked fresh in a traditional wood-fired brick oven. Customize toppings at checkout!</span>
+              <span style={{ fontWeight: 900 }}>🔥 {t('Chef Tip:', 'باورچی کا مشورہ:')}</span>
+              <span>{t('Our pizzas are baked fresh in a traditional wood-fired brick oven. Customize toppings at checkout!', 'ہمارے پیزا روایتی لکڑی کے تندور میں تازہ پکے ہوئے ہیں۔ چیک آؤٹ پر اپنی پسند کے مطابق تبدیل کریں!')}</span>
             </div>
           </div>
         </aside>

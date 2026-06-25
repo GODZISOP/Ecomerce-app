@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, ClipboardList, Clock, Truck, ShieldCheck, MapPin, Phone, HelpCircle, PackageOpen, Flame } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface OrderItem {
   id: number;
@@ -32,6 +33,7 @@ interface Order {
 function TrackingContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { t } = useLanguage();
   
   const initialCode = searchParams.get('code') || '';
   const [trackingInput, setTrackingInput] = useState(initialCode);
@@ -83,11 +85,11 @@ function TrackingContent() {
         const sorted = data.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         setOrder(sorted[0]);
       } else {
-        setErrorMsg('We could not find any order with this code or phone number. / کوئی آرڈر نہیں ملا۔');
+        setErrorMsg(t('We could not find any order with this code or phone number.', 'ہمیں اس کوڈ یا موبائل نمبر کے ساتھ کوئی آرڈر نہیں ملا۔'));
       }
     } catch (e: any) {
       console.error('Error tracking order:', e);
-      setErrorMsg('Server connection failed. Please try again.');
+      setErrorMsg(t('Server connection failed. Please try again.', 'سرور کنکشن ناکام رہا۔ دوبارہ کوشش کریں۔'));
     } finally {
       setIsLoading(false);
     }
@@ -103,9 +105,9 @@ function TrackingContent() {
   };
 
   const timelineSteps = [
-    { title: 'Order Confirmed', desc: 'Order received. Kitchen has started preparation.', icon: Clock },
-    { title: 'Baking & Packing', desc: 'Food is in the oven, cooking to perfection.', icon: Flame },
-    { title: 'Out for Delivery', desc: 'Fresh & hot food is on its way to you.', icon: Truck }
+    { title: t('Order Confirmed', 'آرڈر کی تصدیق'), desc: t('Order received. Kitchen has started preparation.', 'آرڈر موصول ہو گیا۔ کچن نے تیاری شروع کر دی ہے۔'), icon: Clock },
+    { title: t('Baking & Packing', 'تیاری اور پیکنگ'), desc: t('Food is in the oven, cooking to perfection.', 'کھانا تندور میں پک رہا ہے۔'), icon: Flame },
+    { title: t('Out for Delivery', 'ڈلیوری کے لیے روانہ'), desc: t('Fresh & hot food is on its way to you.', 'گرما گرم کھانا آپ کی طرف روانہ ہے۔'), icon: Truck }
   ];
 
   return (
@@ -114,10 +116,10 @@ function TrackingContent() {
       {/* Title */}
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
-          Track Your Order / آرڈر ٹریکنگ
+          {t('Track Your Order', 'آرڈر ٹریکنگ')}
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
-          Get live updates on your pizza preparation and delivery status
+          {t('Get live updates on your pizza preparation and delivery status', 'اپنے پیزا کی تیاری اور ڈلیوری کی تازہ ترین صورتحال جانیں')}
         </p>
       </div>
 
@@ -136,24 +138,24 @@ function TrackingContent() {
             <input 
               type="text" 
               className="search-input" 
-              placeholder="Enter your Tracking Code (e.g. FP-ABC123) or Mobile Number..."
+              placeholder={t("Enter your Tracking Code (e.g. FP-ABC123) or Mobile Number...", "اپنا ٹریکنگ کوڈ (مثلاً FP-ABC123) یا موبائل نمبر درج کریں...")}
               value={trackingInput}
               onChange={(e) => setTrackingInput(e.target.value)}
             />
           </div>
           <button type="submit" className="btn-primary" style={{ padding: '12px 28px', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800, borderRadius: 'var(--radius-sm)' }}>
-            Track Now
+            {t('Track Now', 'ابھی ٹریک کریں')}
           </button>
         </form>
         <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginTop: '12px', textAlign: 'center' }}>
-          *Note: Enter phone number without country code (e.g., 03001234567).
+          *Note: {t('Enter phone number without country code (e.g., 03001234567).', 'ملکی کوڈ کے بغیر فون نمبر درج کریں (مثلاً 03001234567)۔')}
         </span>
       </div>
 
       {/* Loading state */}
       {isLoading && (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <p>Tracking Order...</p>
+          <p>{t('Tracking Order...', 'آرڈر تلاش کیا جا رہا ہے...')}</p>
         </div>
       )}
 
@@ -187,12 +189,12 @@ function TrackingContent() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
               <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800 }}>TRACKING REF:</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800 }}>{t('TRACKING REF:', 'ٹریکنگ نمبر:')}</span>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--primary)', fontFamily: 'monospace' }}>{order.tracking_code}</h3>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800 }}>STATUS:</span><br />
-                <span className={`status-badge ${order.status.toLowerCase()}`}>{order.status}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 800 }}>{t('STATUS:', 'حالت:')}</span><br />
+                <span className={`status-badge ${order.status.toLowerCase()}`}>{t(order.status, order.status === 'Pending' ? 'زیر التوا' : order.status === 'Dispatched' ? 'روانہ کر دیا گیا' : order.status === 'Delivered' ? 'پہنچ گیا' : order.status === 'Cancelled' ? 'منسوخ ہو گیا' : order.status)}</span>
               </div>
             </div>
 
@@ -209,8 +211,8 @@ function TrackingContent() {
               }}>
                 <HelpCircle size={28} />
                 <div>
-                  <h4 style={{ fontWeight: 800 }}>Order Cancelled</h4>
-                  <p style={{ fontSize: '0.85rem', opacity: 0.9 }}>This order has been cancelled. Please contact helpline for details.</p>
+                  <h4 style={{ fontWeight: 800 }}>{t('Order Cancelled', 'آرڈر منسوخ ہو گیا')}</h4>
+                  <p style={{ fontSize: '0.85rem', opacity: 0.9 }}>{t('This order has been cancelled. Please contact helpline for details.', 'یہ آرڈر منسوخ کر دیا گیا ہے۔ تفصیلات کے لیے ہیلپ لائن سے رابطہ کریں۔')}</p>
                 </div>
               </div>
             ) : (
@@ -298,14 +300,14 @@ function TrackingContent() {
               boxShadow: 'var(--shadow-sm)'
             }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
-                Delivery Summary / ڈلیوری की تفصیل
+                {t('Delivery Summary', 'ڈلیوری کی تفصیل')}
               </h3>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.85rem' }}>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <MapPin size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
-                    <span style={{ color: 'var(--text-muted)' }}>Customer Address:</span><br />
+                    <span style={{ color: 'var(--text-muted)' }}>{t('Customer Address:', 'صارف کا پتہ:')}</span><br />
                     <strong style={{ color: 'var(--foreground)' }}>{order.customer_name}</strong><br />
                     <span>{order.address}, {order.city}</span>
                   </div>
@@ -314,7 +316,7 @@ function TrackingContent() {
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <Phone size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
-                    <span style={{ color: 'var(--text-muted)' }}>Contact Number:</span><br />
+                    <span style={{ color: 'var(--text-muted)' }}>{t('Contact Number:', 'رابطہ نمبر:')}</span><br />
                     <strong>{order.phone}</strong>
                   </div>
                 </div>
@@ -329,7 +331,7 @@ function TrackingContent() {
               boxShadow: 'var(--shadow-sm)'
             }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
-                Bill Payment / ادائیگی
+                {t('Bill Payment', 'ادائیگی')}
               </h3>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem', marginBottom: '16px' }}>
@@ -344,7 +346,7 @@ function TrackingContent() {
               <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', marginBottom: '12px' }} />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.05rem' }}>
-                <span style={{ fontWeight: 800 }}>COD Amount Payable:</span>
+                <span style={{ fontWeight: 800 }}>{t('COD Amount Payable:', 'کل واجب الادا رقم (سی او ڈی):')}</span>
                 <span style={{ fontWeight: 800, color: 'var(--primary)' }}>Rs. {order.grand_total}</span>
               </div>
             </div>
@@ -365,9 +367,9 @@ function TrackingContent() {
           boxShadow: 'var(--shadow-sm)'
         }}>
           <ClipboardList size={40} style={{ color: 'var(--primary)', margin: '0 auto 16px auto' }} />
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '8px' }}>Checking Order Status?</h3>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '8px' }}>{t('Checking Order Status?', 'آرڈر کی صورتحال چیک کر رہے ہیں؟')}</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '500px', margin: '0 auto', lineHeight: 1.6 }}>
-            Enter the tracking code (e.g. FP-ABCDEF) from your confirmation receipt, or enter your registered mobile number to search for your latest order.
+            {t('Enter the tracking code (e.g. FP-ABCDEF) from your confirmation receipt, or enter your registered mobile number to search for your latest order.', 'اپنے آرڈر کی تصدیق کی رسید سے ٹریکنگ کوڈ درج کریں، یا اپنا رجسٹرڈ موبائل نمبر درج کر کے تلاش کریں۔')}
           </p>
         </div>
       )}

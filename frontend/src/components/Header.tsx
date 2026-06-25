@@ -10,7 +10,7 @@ import { useLanguage } from '@/context/LanguageContext';
 export default function Header() {
   const pathname = usePathname();
   const { cartCount } = useCart();
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, mounted } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isLinkActive = (path: string) => {
@@ -69,25 +69,27 @@ export default function Header() {
           <div className="nav-actions">
             <div className="icon-btn-wrap" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               {/* Language Switcher */}
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as any)}
-                style={{
-                  background: '#3d251a',
-                  color: 'white',
-                  border: '1px solid #42281d',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '6px 12px',
-                  fontSize: '0.85rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  outline: 'none',
-                  fontFamily: 'inherit'
-                }}
-              >
-                <option value="en">English</option>
-                <option value="ur">اردو</option>
-              </select>
+              {mounted && (
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as any)}
+                  style={{
+                    background: '#3d251a',
+                    color: 'white',
+                    border: '1px solid #42281d',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '6px 12px',
+                    fontSize: '0.85rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    outline: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  <option value="en">English</option>
+                  <option value="ur">اردو</option>
+                </select>
+              )}
 
               {/* Order Now button */}
               <Link href="/shop" className="btn-primary" style={{ padding: '10px 20px', borderRadius: 'var(--radius-pill)', textDecoration: 'none', background: 'var(--primary)', color: 'white', fontWeight: 800, fontSize: '0.85rem' }}>

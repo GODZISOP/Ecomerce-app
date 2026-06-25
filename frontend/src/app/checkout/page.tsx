@@ -243,7 +243,7 @@ export default function CheckoutPage() {
                 <input 
                   type="text" 
                   className="form-input"
-                  placeholder="e.g. Muhammad Ali"
+                  placeholder={t('e.g. Muhammad Ali', 'مثال کے طور پر: محمد علی')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isSubmitting}
@@ -260,7 +260,7 @@ export default function CheckoutPage() {
                 <input 
                   type="tel" 
                   className="form-input"
-                  placeholder="e.g. 03001234567"
+                  placeholder={t('e.g. 03001234567', 'مثال کے طور پر: 03001234567')}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={isSubmitting}
@@ -277,7 +277,7 @@ export default function CheckoutPage() {
                 <input 
                   type="email" 
                   className="form-input"
-                  placeholder="e.g. customer@example.com"
+                  placeholder={t('e.g. customer@example.com', 'مثال کے طور پر: customer@example.com')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
@@ -294,7 +294,7 @@ export default function CheckoutPage() {
                 <textarea 
                   className="form-input"
                   rows={4}
-                  placeholder="e.g. House # 42-B, Street 5, Phase 6, DHA"
+                  placeholder={t('e.g. House # 42-B, Street 5, Phase 6, DHA', 'مثال کے طور پر: مکان نمبر 42-بی، گلی نمبر 5، فیز 6، ڈی ایچ اے')}
                   style={{ resize: 'none', fontFamily: 'inherit', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
