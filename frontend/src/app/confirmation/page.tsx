@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Copy, Check, Calendar, MapPin, Phone, Truck, ArrowRight, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface OrderItem {
   id: number;
@@ -34,6 +35,7 @@ function ConfirmationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const code = searchParams.get('code') || '';
+  const { t } = useLanguage();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -77,7 +79,7 @@ function ConfirmationContent() {
   if (isLoading) {
     return (
       <div className="container" style={{ padding: '60px 24px 100px 24px', maxWidth: '800px', textAlign: 'center' }}>
-        <p>Receipt Loading...</p>
+        <p>{t('Receipt Loading...', 'رسید لوڈ ہو رہی ہے...')}</p>
       </div>
     );
   }
@@ -85,10 +87,10 @@ function ConfirmationContent() {
   if (!code) {
     return (
       <div className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '12px' }}>Order Tracking Code Missing</h2>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>No order summary reference provided.</p>
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '12px' }}>{t('Order Tracking Code Missing', 'آرڈر ٹریکنگ کوڈ موجود نہیں ہے')}</h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>{t('No order summary reference provided.', 'آرڈر کی تفصیلات کا کوئی حوالہ نہیں ملا۔')}</p>
         <Link href="/" className="btn-primary" style={{ textDecoration: 'none' }}>
-          Return to Home Page
+          {t('Return to Home Page', 'ہوم پیج پر واپس جائیں')}
         </Link>
       </div>
     );
@@ -112,17 +114,14 @@ function ConfirmationContent() {
         <div style={{ position: 'relative', zIndex: 2 }}>
           
           <h1 style={{ fontSize: '2.2rem', fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--foreground)', marginBottom: '4px', lineHeight: 1.25 }}>
-            Thank You! / شکریہ
+            {t('Thank You!', 'شکریہ!')}
           </h1>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary)', marginBottom: '12px' }}>
-            Order Placed Successfully!
+            {t('Order Placed Successfully!', 'آرڈر کامیابی سے مل گیا!')}
           </h2>
-          <p style={{ color: 'var(--primary)', fontSize: '1.25rem', marginBottom: '20px', fontWeight: 800 }}>
-            آرڈر کامیابی سے موصول ہو گیا ہے!
-          </p>
 
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '540px', margin: '0 auto 30px auto', lineHeight: 1.6 }}>
-            Our kitchen has started preparing your order! We guarantee fresh, hot pizza and burgers delivered in **30 minutes** or it's free. We will contact you if we need any delivery directions.
+            {t("Our kitchen has started preparing your order! We guarantee fresh, hot pizza and burgers delivered in 30 minutes or it's free. We will contact you if we need any delivery directions.", "ہمارے کچن نے آپ کے آرڈر کی تیاری شروع کر دی ہے! ہم 30 منٹ کے اندر گرما گرم پیزا اور برگر کی ڈلیوری کی ضمانت دیتے ہیں، ورنہ بالکل مفت۔ اگر پتہ معلوم کرنے میں مدد کی ضرورت ہوئی تو ہم آپ سے رابطہ کریں گے۔")}
           </p>
 
           {/* Tracking box */}
@@ -137,7 +136,7 @@ function ConfirmationContent() {
             marginBottom: '10px'
           }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-              TRACKING REFERENCE CODE / ٹریکنگ کوڈ
+              {t('TRACKING REFERENCE CODE', 'ٹریکنگ کوڈ')}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', fontFamily: 'monospace', letterSpacing: '0.5px' }}>{code}</span>
@@ -163,7 +162,7 @@ function ConfirmationContent() {
           </div>
           
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-            Use this code to track your order status live.
+            {t('Use this code to track your order status live.', 'اپنے آرڈر کی صورتحال معلوم کرنے کے لیے یہ کوڈ استعمال کریں۔')}
           </div>
         </div>
       </div>
@@ -179,7 +178,7 @@ function ConfirmationContent() {
           marginBottom: '32px'
         }}>
           <h3 style={{ fontSize: '1.2rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '24px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
-            Order Receipt / رسید کی تفصیل
+            {t('Order Receipt', 'رسید کی تفصیل')}
           </h3>
 
           <div style={{
@@ -192,7 +191,7 @@ function ConfirmationContent() {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
               <MapPin size={18} color="var(--primary)" style={{ flexShrink: 0 }} />
               <div>
-                <span style={{ color: 'var(--text-muted)' }}>Deliver to:</span><br />
+                <span style={{ color: 'var(--text-muted)' }}>{t('Deliver to:', 'ترسیل کا پتہ:')}</span><br />
                 <strong style={{ color: 'var(--foreground)' }}>{order.customer_name}</strong><br />
                 <span>{order.address}, {order.city}</span>
               </div>
@@ -201,7 +200,7 @@ function ConfirmationContent() {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
               <Phone size={18} color="var(--primary)" style={{ flexShrink: 0 }} />
               <div>
-                <span style={{ color: 'var(--text-muted)' }}>Contact Phone:</span><br />
+                <span style={{ color: 'var(--text-muted)' }}>{t('Contact Phone:', 'فون نمبر:')}</span><br />
                 <strong style={{ color: 'var(--foreground)' }}>{order.phone}</strong>
               </div>
             </div>
@@ -209,19 +208,19 @@ function ConfirmationContent() {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
               <Calendar size={18} color="var(--primary)" style={{ flexShrink: 0 }} />
               <div>
-                <span style={{ color: 'var(--text-muted)' }}>Order Date:</span><br />
+                <span style={{ color: 'var(--text-muted)' }}>{t('Order Date:', 'آرڈر کی تاریخ:')}</span><br />
                 <strong style={{ color: 'var(--foreground)' }}>{new Date(order.created_at).toLocaleDateString('en-PK')}</strong>
               </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '28px' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>FOOD ITEMS ORDERED</span>
+            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>{t('FOOD ITEMS ORDERED', 'منتخب کھانوں کی فہرست')}</span>
             {order.items.map((item, idx) => (
               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
                 <div>
-                  <span style={{ fontWeight: 800 }}>{item.name}</span>
-                  <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>({item.dosage})</span>
+                  <span style={{ fontWeight: 800 }}>{t(item.name)}</span>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>({t(item.dosage)})</span>
                   <span style={{ color: 'var(--text-muted)', marginLeft: '12px' }}>x{item.quantity}</span>
                 </div>
                 <span style={{ fontWeight: 800 }}>Rs. {item.price_pkr * item.quantity}</span>
@@ -233,16 +232,16 @@ function ConfirmationContent() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.9rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Subtotal:</span>
+              <span style={{ color: 'var(--text-muted)' }}>{t('Subtotal:', 'کل قیمت:')}</span>
               <span style={{ fontWeight: 600 }}>Rs. {order.subtotal}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Delivery charges:</span>
+              <span style={{ color: 'var(--text-muted)' }}>{t('Delivery charges:', 'ڈلیوری چارجز:')}</span>
               <span style={{ fontWeight: 600 }}>Rs. {order.shipping_fee}</span>
             </div>
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '6px 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem' }}>
-              <span style={{ fontWeight: 900 }}>Amount Payable (COD):</span>
+              <span style={{ fontWeight: 900 }}>{t('Amount Payable (COD):', 'کل واجب الادا رقم (سی او ڈی):')}</span>
               <span style={{ fontWeight: 900, color: 'var(--primary)' }}>Rs. {order.grand_total}</span>
             </div>
           </div>
@@ -261,7 +260,7 @@ function ConfirmationContent() {
           className="btn-primary"
           style={{ padding: '14px 28px', fontSize: '0.95rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: 800 }}
         >
-          Track Order Progress <ArrowRight size={16} />
+          {t('Track Order Progress', 'آرڈر کی صورتحال جانیں')} <ArrowRight size={16} />
         </button>
 
         <button 
@@ -278,7 +277,7 @@ function ConfirmationContent() {
             transition: 'var(--transition-fast)'
           }}
         >
-          Go Back to Menu
+          {t('Go Back to Menu', 'مینو پر واپس جائیں')}
         </button>
       </div>
 
@@ -293,7 +292,7 @@ function ConfirmationContent() {
         gap: '6px',
         fontWeight: 700
       }}>
-        <ShieldCheck size={16} color="var(--primary)" /> Fatpizza Fresh & Hot Guarantee. Handcrafted pizza made daily.
+        <ShieldCheck size={16} color="var(--primary)" /> {t('Fatpizza Fresh & Hot Guarantee. Handcrafted pizza made daily.', 'فیٹ پیزا کی تازہ اور گرم ڈلیوری کی گارنٹی۔ روزانہ تازہ تیار شدہ پیزا۔')}
       </div>
     </div>
   );

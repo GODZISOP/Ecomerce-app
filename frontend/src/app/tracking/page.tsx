@@ -337,7 +337,7 @@ function TrackingContent() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem', marginBottom: '16px' }}>
                 {order.items.map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>{item.name} x{item.quantity}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{t(item.name)} x{item.quantity}</span>
                     <span style={{ fontWeight: 600 }}>Rs. {item.price_pkr * item.quantity}</span>
                   </div>
                 ))}

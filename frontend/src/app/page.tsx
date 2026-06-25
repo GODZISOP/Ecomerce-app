@@ -189,10 +189,10 @@ export default function HomePage() {
                 </div>
 
                 <div className="product-content" style={{ padding: '20px' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.category}</span>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginTop: '4px', color: 'var(--foreground)' }}>{item.name}</h3>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>{t(item.category, item.category === 'Pizza' ? 'پیزا' : item.category === 'Burger' ? 'برگر' : item.category === 'Sandwich' ? 'سینڈوچ' : item.category === 'Pasta' ? 'پاستا' : item.category === 'Sides' ? 'سائیڈز' : item.category)}</span>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginTop: '4px', color: 'var(--foreground)' }}>{t(item.name)}</h3>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px', minHeight: '38px', lineBreak: 'anywhere' }}>
-                    {item.generic_name}
+                    {t(item.generic_name)}
                   </p>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
@@ -203,7 +203,7 @@ export default function HomePage() {
                   </div>
 
                   <div className="product-footer" style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>{item.dosage}</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>{t(item.dosage)}</span>
                     <button 
                       className="btn-icon-add" 
                       onClick={(e) => handleAddToCart(e, item)}

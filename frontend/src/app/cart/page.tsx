@@ -117,12 +117,12 @@ export default function CartPage() {
                   <div>
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '2px' }}>
                       <Link href={`/product/${item.id}`} style={{ color: 'var(--foreground)', textDecoration: 'none' }} onMouseOver={(e) => e.currentTarget.style.color = 'var(--primary)'} onMouseOut={(e) => e.currentTarget.style.color = 'var(--foreground)'}>
-                        {item.name}
+                        {t(item.name)}
                       </Link>
                     </h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px', lineBreak: 'anywhere' }}>{item.generic_name}</p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px', lineBreak: 'anywhere' }}>{t(item.generic_name)}</p>
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'var(--primary-bg)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px' }}>
-                      {item.dosage}
+                      {t(item.dosage)}
                     </span>
                   </div>
 

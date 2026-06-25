@@ -366,9 +366,9 @@ export default function CheckoutPage() {
               {cart.map((item) => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
                   <div style={{ maxWidth: '75%' }}>
-                    <span style={{ fontWeight: 800 }}>{item.name}</span>
+                    <span style={{ fontWeight: 800 }}>{t(item.name)}</span>
                     <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>x{item.quantity}</span>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{item.dosage}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t(item.dosage)}</div>
                   </div>
                   <span style={{ fontWeight: 800 }}>Rs. {item.price_pkr * item.quantity}</span>
                 </div>

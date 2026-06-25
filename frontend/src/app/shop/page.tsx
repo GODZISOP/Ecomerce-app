@@ -255,12 +255,12 @@ function ShopContent() {
                   </div>
                   
                   <div className="product-content" style={{ padding: '16px' }}>
-                    <span className="product-category" style={{ fontSize: '0.7rem' }}>{item.category}</span>
-                    <h3 className="product-name" style={{ fontSize: '1.1rem', fontWeight: 800 }}>{item.name}</h3>
+                    <span className="product-category" style={{ fontSize: '0.7rem' }}>{t(item.category, item.category === 'Pizza' ? 'پیزا' : item.category === 'Burger' ? 'برگر' : item.category === 'Sandwich' ? 'سینڈوچ' : item.category === 'Pasta' ? 'پاستا' : item.category === 'Sides' ? 'سائیڈز' : item.category)}</span>
+                    <h3 className="product-name" style={{ fontSize: '1.1rem', fontWeight: 800 }}>{t(item.name)}</h3>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', minHeight: '38px', lineBreak: 'anywhere' }}>
-                      {item.generic_name}
+                      {t(item.generic_name)}
                     </p>
-                    <span className="product-dosage" style={{ fontSize: '0.75rem', padding: '2px 8px', marginBottom: '12px' }}>{item.dosage}</span>
+                    <span className="product-dosage" style={{ fontSize: '0.75rem', padding: '2px 8px', marginBottom: '12px' }}>{t(item.dosage)}</span>
                     
                     <div className="product-footer">
                       <div className="product-price">
@@ -306,7 +306,7 @@ function ShopContent() {
           <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '50%', padding: '4px' }}>
             <Check size={14} />
           </div>
-          <span>{t(`Added **${showNotification}** to cart`, `**${showNotification}** کارٹ میں شامل کر دیا گیا!`)}</span>
+          <span>{t(`Added **${t(showNotification)}** to cart`, `**${t(showNotification)}** کارٹ میں شامل کر دیا گیا!`)}</span>
         </div>
       )}
 
