@@ -231,13 +231,13 @@ export default function CartPage() {
               </div>
             </div>
 
-            <button 
+            <a 
+              href="/checkout"
               className="btn-primary" 
-              onClick={() => router.push('/checkout')}
-              style={{ width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800 }}
+              style={{ display: 'flex', width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800, textDecoration: 'none' }}
             >
               {t('Proceed to Checkout', 'چیک آؤٹ کی طرف جائیں')} <ArrowRight size={18} />
-            </button>
+            </a>
 
             <div style={{
               display: 'flex',

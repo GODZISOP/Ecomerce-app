@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ShieldCheck, Truck, ArrowLeft, ClipboardList } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabaseClient';
@@ -32,26 +33,7 @@ export default function CheckoutPage() {
     setIsMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!isMounted) return;
-    if (isSuccess) return;
 
-    // Check if there is a saved cart in localStorage to avoid race conditions during mount
-    let hasSavedItems = false;
-    try {
-      const savedCart = localStorage.getItem('medimart_cart');
-      if (savedCart) {
-        const parsed = JSON.parse(savedCart);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          hasSavedItems = true;
-        }
-      }
-    } catch (e) {}
-
-    if (cart.length === 0 && !hasSavedItems && !isSubmitting) {
-      router.push('/cart');
-    }
-  }, [cart, router, isSubmitting, isMounted, isSuccess]);
 
   const validateForm = () => {
     if (name.trim().length < 3) {
@@ -217,7 +199,18 @@ export default function CheckoutPage() {
         </div>
       );
     }
-    return null;
+
+    return (
+      <div className="container" style={{ padding: '80px 24px', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '12px', fontFamily: 'var(--font-display)' }}>{t('Your Basket is Empty', 'کارٹ خالی ہے')}</h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+          {t('Please add some items to your basket before checking out.', 'چیک آؤٹ کرنے سے پہلے براہ کرم اپنے کارٹ میں کچھ چیزیں شامل کریں۔')}
+        </p>
+        <Link href="/shop" className="btn-primary" style={{ display: 'inline-flex', background: 'var(--primary)', color: 'white', textDecoration: 'none' }}>
+          {t('Go to Menu', 'مینو پر جائیں')}
+        </Link>
+      </div>
+    );
   }
 
   return (
