@@ -282,12 +282,16 @@ export const pizzaMenu: PizzaItem[] = [
   }
 ];
 
+let globalCachedMenu: any[] | null = null;
+let globalLastFetchTime = 0;
+
 class MockQueryBuilder {
-  private data: any[];
+  private filters: ((data: any[]) => any[])[] = [];
   private isSingle = false;
+  private defaultData: any[];
 
   constructor(data: any[]) {
-    this.data = data;
+    this.defaultData = data;
   }
 
   select(columns?: string) {
@@ -300,65 +304,90 @@ class MockQueryBuilder {
   }
 
   eq(column: string, value: any) {
-    if (column === 'id') {
-      this.data = this.data.filter(item => item.id === Number(value));
-    } else if (column === 'category') {
-      this.data = this.data.filter(item => item.category.toLowerCase() === String(value).toLowerCase());
-    }
+    this.filters.push((data) => {
+      if (column === 'id') {
+        return data.filter(item => item.id === Number(value));
+      } else if (column === 'category') {
+        return data.filter(item => item.category.toLowerCase() === String(value).toLowerCase());
+      }
+      return data;
+    });
     return this;
   }
 
   in(column: string, values: any[]) {
-    if (column === 'id') {
-      const numValues = values.map(Number);
-      this.data = this.data.filter(item => numValues.includes(item.id));
-    }
+    this.filters.push((data) => {
+      if (column === 'id') {
+        const numValues = values.map(Number);
+        return data.filter(item => numValues.includes(item.id));
+      }
+      return data;
+    });
     return this;
   }
 
   or(filters: string) {
-    // Simple search filter simulation
-    // filters looks like: name.ilike.%search%,generic_name.ilike.%search%...
-    const matches = filters.match(/%([^%]+)%/);
-    if (matches && matches[1]) {
-      const searchStr = matches[1].toLowerCase();
-      this.data = this.data.filter(item => 
-        item.name.toLowerCase().includes(searchStr) || 
-        item.generic_name.toLowerCase().includes(searchStr) || 
-        item.description.toLowerCase().includes(searchStr)
-      );
-    }
+    this.filters.push((data) => {
+      const matches = filters.match(/%([^%]+)%/);
+      if (matches && matches[1]) {
+        const searchStr = matches[1].toLowerCase();
+        return data.filter(item => 
+          item.name.toLowerCase().includes(searchStr) || 
+          item.generic_name.toLowerCase().includes(searchStr) || 
+          item.description.toLowerCase().includes(searchStr)
+        );
+      }
+      return data;
+    });
     return this;
   }
 
   order(column: string, options?: { ascending?: boolean }) {
-    this.data.sort((a, b) => {
-      if (options?.ascending === false) {
-        return b[column] > a[column] ? 1 : -1;
-      }
-      return a[column] > b[column] ? 1 : -1;
+    this.filters.push((data) => {
+      const sorted = [...data];
+      sorted.sort((a, b) => {
+        if (options?.ascending === false) {
+          return b[column] > a[column] ? 1 : -1;
+        }
+        return a[column] > b[column] ? 1 : -1;
+      });
+      return sorted;
     });
     return this;
   }
 
   limit(num: number) {
-    this.data = this.data.slice(0, num);
+    this.filters.push((data) => data.slice(0, num));
     return this;
   }
 
-  // Promise support
   async then(onfulfilled?: (value: any) => any) {
-    try {
-      const response = await fetch('/api/admin/medicines');
-      const apiData = await response.json();
-      if (apiData.success && apiData.medicines) {
-        this.data = apiData.medicines;
+    let activeData = [...this.defaultData];
+    const now = Date.now();
+
+    // Cache responses for 10 seconds to make interaction snappy
+    if (globalCachedMenu && (now - globalLastFetchTime < 10000)) {
+      activeData = globalCachedMenu;
+    } else {
+      try {
+        const response = await fetch('/api/admin/medicines');
+        const apiData = await response.json();
+        if (apiData.success && apiData.medicines) {
+          globalCachedMenu = apiData.medicines;
+          globalLastFetchTime = now;
+          activeData = apiData.medicines;
+        }
+      } catch (e) {
+        console.error('Error fetching mock medicines from local API:', e);
       }
-    } catch (e) {
-      console.error('Error fetching mock medicines from local API:', e);
     }
 
-    const result = { data: this.isSingle ? (this.data[0] || null) : this.data, error: null };
+    // Apply filters in sequence
+    for (const filterFn of this.filters) {
+      activeData = filterFn(activeData);
+    }
+
+    const result = { data: this.isSingle ? (activeData[0] || null) : activeData, error: null };
     if (onfulfilled) {
       return onfulfilled(result);
     }

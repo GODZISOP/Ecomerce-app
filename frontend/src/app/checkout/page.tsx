@@ -36,7 +36,19 @@ export default function CheckoutPage() {
     if (!isMounted) return;
     if (isSuccess) return;
 
-    if (cart.length === 0 && !isSubmitting) {
+    // Check if there is a saved cart in localStorage to avoid race conditions during mount
+    let hasSavedItems = false;
+    try {
+      const savedCart = localStorage.getItem('medimart_cart');
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          hasSavedItems = true;
+        }
+      }
+    } catch (e) {}
+
+    if (cart.length === 0 && !hasSavedItems && !isSubmitting) {
       router.push('/cart');
     }
   }, [cart, router, isSubmitting, isMounted, isSuccess]);
@@ -179,6 +191,32 @@ export default function CheckoutPage() {
   }
 
   if (cart.length === 0 && !isSubmitting && !isSuccess) {
+    let hasSavedItems = false;
+    if (typeof window !== 'undefined') {
+      try {
+        const savedCart = localStorage.getItem('medimart_cart');
+        if (savedCart) {
+          const parsed = JSON.parse(savedCart);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            hasSavedItems = true;
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (hasSavedItems) {
+      return (
+        <div className="container" style={{ padding: '100px 24px', textAlign: 'center' }}>
+          <div className="spinner" style={{ width: '40px', height: '40px', border: '3px solid var(--border-color)', borderTopColor: 'var(--primary)', borderRadius: '50%', margin: '0 auto', animation: 'spin 1s linear infinite' }}></div>
+          <p style={{ marginTop: '16px', color: 'var(--text-muted)', fontWeight: 600 }}>{t('Loading checkout...', 'چیک آؤٹ لوڈ ہو رہا ہے...')}</p>
+          <style jsx global>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      );
+    }
     return null;
   }
 
