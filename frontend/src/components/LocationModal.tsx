@@ -73,7 +73,7 @@ export default function LocationModal() {
     }
   }, [isOpen]);
 
-  const handleGetCurrentLocation = () => {
+  const handleGetCurrentLocation = (isManual: boolean = false) => {
     if (navigator.geolocation) {
       setIsLoading(true);
       navigator.geolocation.getCurrentPosition(
@@ -130,28 +130,32 @@ export default function LocationModal() {
           setSelectedCity('Karachi');
           setSelectedArea('Karachi University Emp C.H.S');
           
-          let errorMsg = '';
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              errorMsg = t('Location permission denied by browser settings. Please allow location access.', 'براؤزر سیٹنگز میں لوکیشن کی اجازت نہیں دی گئی۔ براہ کرم لوکیشن کی اجازت دیں۔');
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMsg = t('Location information is unavailable on this device.', 'اس ڈیوائس پر لوکیشن کی معلومات دستیاب نہیں ہیں۔');
-              break;
-            case error.TIMEOUT:
-              errorMsg = t('Location request timed out.', 'لوکیشن حاصل کرنے کا وقت ختم ہو گیا۔');
-              break;
-            default:
-              errorMsg = error.message;
+          if (isManual) {
+            let errorMsg = '';
+            switch(error.code) {
+              case error.PERMISSION_DENIED:
+                errorMsg = t('Location permission denied by browser settings. Please allow location access.', 'براؤزر سیٹنگز میں لوکیشن کی اجازت نہیں دی گئی۔ براہ کرم لوکیشن کی اجازت دیں۔');
+                break;
+              case error.POSITION_UNAVAILABLE:
+                errorMsg = t('Location information is unavailable on this device.', 'اس ڈیوائس پر لوکیشن کی معلومات دستیاب نہیں ہیں۔');
+                break;
+              case error.TIMEOUT:
+                errorMsg = t('Location request timed out.', 'لوکیشن حاصل کرنے کا وقت ختم ہو گیا۔');
+                break;
+              default:
+                errorMsg = error.message;
+            }
+            alert(`${t('GPS Alert:', 'لوکیشن الرٹ:')} ${errorMsg}\n\n${t('Defaulting to Karachi.', 'کراچی کی ڈیفالٹ لوکیشن منتخب کی جا رہی ہے۔')}`);
           }
-          alert(`${t('GPS Alert:', 'لوکیشن الرٹ:')} ${errorMsg}\n\n${t('Defaulting to Karachi.', 'کراچی کی ڈیفالٹ لوکیشن منتخب کی جا رہی ہے۔')}`);
         },
-        { enableHighAccuracy: false, timeout: 6000, maximumAge: 10000 }
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 10000 }
       );
     } else {
       setSelectedCity('Karachi');
       setSelectedArea('Karachi University Emp C.H.S');
-      alert(t('Geolocation is not supported by your browser.', 'آپ کا براؤزر جیو لوکیشن کو سپورٹ نہیں کرتا۔'));
+      if (isManual) {
+        alert(t('Geolocation is not supported by your browser.', 'آپ کا براؤزر جیو لوکیشن کو سپورٹ نہیں کرتا۔'));
+      }
     }
   };
 
@@ -297,7 +301,7 @@ export default function LocationModal() {
 
         {/* Use Current Location Button */}
         <button
-          onClick={handleGetCurrentLocation}
+          onClick={() => handleGetCurrentLocation(true)}
           disabled={isLoading}
           style={{
             display: 'flex',
