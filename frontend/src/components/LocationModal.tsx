@@ -84,7 +84,14 @@ export default function LocationModal() {
           console.log(`[Location] GPS Position received: Lat=${latitude}, Lon=${longitude}`);
           try {
             console.log("[Location] Fetching reverse geocoding from BigDataCloud...");
-            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+            
+            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`, {
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
             if (!response.ok) throw new Error("HTTP error " + response.status);
             const data = await response.json();
             console.log("[Location] BigDataCloud Response data:", data);
@@ -122,10 +129,19 @@ export default function LocationModal() {
             setSelectedCity(matchedCity);
             setSelectedArea(matchedArea);
           } catch (error) {
-            console.error("[Location] Error reverse geocoding:", error);
-            // Robust fallback so they are never stuck
-            setSelectedCity('Karachi');
-            setSelectedArea('Karachi University Emp C.H.S');
+            console.error("[Location] Error reverse geocoding (Fetch hanging/failed):", error);
+            
+            // Offline Coordinate Bounding-Box Fallback
+            let fallbackCity = 'Karachi';
+            if (latitude >= 31.3 && latitude <= 31.8 && longitude >= 74.1 && longitude <= 74.6) {
+              fallbackCity = 'Lahore';
+            } else if (latitude >= 33.5 && latitude <= 33.9 && longitude >= 72.9 && longitude <= 73.3) {
+              fallbackCity = 'Islamabad';
+            }
+            
+            console.log(`[Location] Offline Fallback mapped Lat=${latitude}, Lon=${longitude} to ${fallbackCity}`);
+            setSelectedCity(fallbackCity);
+            setSelectedArea(CITIES_DATA[fallbackCity]?.[0] || '');
           } finally {
             setIsLoading(false);
           }
