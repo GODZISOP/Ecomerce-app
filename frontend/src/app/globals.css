@@ -1,33 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,700&display=swap');
 
 :root {
-  /* HSL Colors - Vibrant Orange-Red Theme */
-  --primary-hue: 20;
-  --primary-sat: 95%;
+  /* HSL Colors - Vibrant Red Theme */
+  --primary-hue: 357;
+  --primary-sat: 85%;
   --primary-lightness: 50%;
   
-  --primary: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lightness)); /* Fatpizza Orange */
+  --primary: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lightness)); /* Fatpizza Red */
   --primary-hover: hsl(var(--primary-hue), var(--primary-sat), calc(var(--primary-lightness) - 8%));
-  --primary-bg: hsl(var(--primary-hue), var(--primary-sat), 94%);
+  --primary-bg: rgba(227, 27, 35, 0.15);
   
-  --secondary: #e65c00; /* Rich orange */
-  --accent: #2e1a12; /* Dark charcoal/brown */
+  --secondary: #ff3b30; /* Rich red */
+  --accent: #0f0f10; /* Sleek black */
   
-  --background: #f4f1ea; /* Soft retro cream background */
-  --card-bg: #ffffff;
-  --foreground: #1e1b18; /* Dark charcoal text */
-  --border-color: #e2ded5;
-  --text-muted: #6e675f;
+  --background: #0d0d0e; /* Slate dark background */
+  --card-bg: #161618;
+  --foreground: #ffffff; /* White text */
+  --border-color: #2c2c2e;
+  --text-muted: #a1a1a6;
   
   /* Status Colors */
-  --status-pending: #f59e0b;
-  --status-dispatched: #3b82f6;
-  --status-delivered: #10b981;
-  --status-cancelled: #ef4444;
+  --status-pending: #ff9f0a;
+  --status-dispatched: #0a84ff;
+  --status-delivered: #30d158;
+  --status-cancelled: #ff453a;
   
   /* Fonts */
   --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Playfair Display', 'Georgia', serif;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
   
   /* Design Tokens */
   --radius-sm: 4px;
@@ -35,22 +35,22 @@
   --radius-lg: 20px;
   --radius-pill: 9999px;
   
-  --shadow-sm: 0 4px 0px rgba(46, 26, 18, 0.08);
-  --shadow-md: 0 6px 0px rgba(46, 26, 18, 0.12);
-  --shadow-lg: 0 10px 0px rgba(46, 26, 18, 0.16);
-  --shadow-glass: 0 8px 32px 0 rgba(46, 26, 18, 0.08);
+  --shadow-sm: 0 4px 0px rgba(15, 15, 16, 0.08);
+  --shadow-md: 0 6px 0px rgba(15, 15, 16, 0.12);
+  --shadow-lg: 0 10px 0px rgba(15, 15, 16, 0.16);
+  --shadow-glass: 0 8px 32px 0 rgba(15, 15, 16, 0.08);
   
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: all 0.12s ease;
 }
 
 [data-theme='dark'] {
-  --background: #181512;
-  --card-bg: #221e1a;
-  --foreground: #f4f1ea;
-  --border-color: #322d28;
-  --text-muted: #a3988e;
-  --primary-bg: rgba(230, 92, 0, 0.15);
+  --background: #0d0d0e;
+  --card-bg: #161618;
+  --foreground: #ffffff;
+  --border-color: #2c2c2e;
+  --text-muted: #a1a1a6;
+  --primary-bg: rgba(227, 27, 35, 0.15);
 }
 
 /* Reset and Global Styles */
@@ -496,7 +496,7 @@ body {
 
 .category-pill {
   flex-shrink: 0;
-  background: white;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
   padding: 10px 20px;
   border-radius: var(--radius-pill);
@@ -1411,8 +1411,8 @@ body {
   }
 }
 
-/* Medium Mobile Devices (768px and below) */
-@media (max-width: 768px) {
+/* Tablet & Mobile Navigation Breakpoint (1024px and below) */
+@media (max-width: 1024px) {
   /* Navigation */
   .nav-menu {
     display: none !important;
@@ -1423,6 +1423,10 @@ body {
   .nav-container {
     height: 70px;
   }
+}
+
+/* Medium Mobile Devices (768px and below) */
+@media (max-width: 768px) {
 
   /* Structural elements */
   .product-detail-grid {

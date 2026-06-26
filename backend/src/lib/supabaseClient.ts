@@ -31,7 +31,7 @@ export const pizzaMenu: PizzaItem[] = [
     description: "A colorful medley of fresh garden vegetables, sliced mushrooms, black olives, sweet bell peppers, and red onions on a rich tomato base, covered in gooey mozzarella.",
     manufacturer: "Fatpizza Kitchen",
     requires_prescription: false,
-    image_url: "https://images.unsplash.com/photo-1571066811602-71683a3f680d?w=600&auto=format&fit=crop&q=80"
+    image_url: "https://www.thegraciouspantry.com/wp-content/uploads/2023/06/veggie-pizza-recipe-v-1-.jpg"
   },
   {
     id: 2,

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+
 const menuFilePath = path.join(process.cwd(), 'src', 'lib', 'menu.json');
 
 function checkAuth(req: Request) {

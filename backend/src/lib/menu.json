@@ -10,7 +10,7 @@
     "description": "A colorful medley of fresh garden vegetables, sliced mushrooms, black olives, sweet bell peppers, and red onions on a rich tomato base, covered in gooey mozzarella.",
     "manufacturer": "Fatpizza Kitchen",
     "requires_prescription": false,
-    "image_url": "https://images.unsplash.com/photo-1571066811602-71683a3f680d?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://cookieandkate.com/images/2020/10/best-veggie-pizza-recipe-1.jpg"
   },
   {
     "id": 2,
@@ -21,7 +21,7 @@
     "stock": 60,
     "dosage": "12 inch Medium",
     "description": "The ultimate cheese dream. Thick layers of imported mozzarella, sharp cheddar, and fresh parmesan, finished with Italian herbs on our signature thin crust.",
-    "manufacturer: ": "Fatpizza Kitchen",
+    "manufacturer": "Fatpizza Kitchen",
     "requires_prescription": false,
     "image_url": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80"
   },
@@ -45,7 +45,7 @@
     "category": "Pizza",
     "price_pkr": 1150,
     "stock": 40,
-    "dosage: ": "12 inch Medium",
+    "dosage": "12 inch Medium",
     "description": "For true meat and supreme lovers. Smoked chicken chunks, spicy chicken salami, red onions, mushrooms, green bell peppers, and sliced black olives.",
     "manufacturer": "Fatpizza Kitchen",
     "requires_prescription": false,
@@ -107,7 +107,7 @@
     "id": 9,
     "name": "Pizza Fries",
     "generic_name": "Crispy Fries topped with Pizza Sauce, Pepperoni & Cheese",
-    "category: ": "Sides",
+    "category": "Sides",
     "price_pkr": 590,
     "stock": 80,
     "dosage": "Platter",
@@ -139,7 +139,7 @@
     "dosage": "Standard Serving",
     "description": "Toasted pan-pressed sandwich loaded with shredded chicken in spicy Mexican salsa, jalapeño rings, and melted pepper jack cheese.",
     "manufacturer": "Fatpizza Kitchen",
-    "requires_prescription: ": false,
+    "requires_prescription": false,
     "image_url": "https://images.unsplash.com/photo-1525059696034-4967a8e1dca2?w=600&auto=format&fit=crop&q=80"
   },
   {
@@ -179,7 +179,7 @@
     "description": "Creamy white Alfredo base sauce topped with tender sliced grilled chicken breast, button mushrooms, parsley, and premium cheese blend.",
     "manufacturer": "Fatpizza Kitchen",
     "requires_prescription": false,
-    "image_url": "https://images.unsplash.com/photo-1594007654729-407ededc414a?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": 15,

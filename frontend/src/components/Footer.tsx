@@ -8,8 +8,8 @@ export default function Footer() {
   const { t } = useLanguage();
   return (
     <footer style={{ 
-      backgroundColor: '#2e1a12', 
-      color: '#f4f1ea',
+      backgroundColor: '#0a0a0a', 
+      color: 'white',
       borderTop: '5px solid var(--primary)', 
       padding: '70px 0 35px 0',
       marginTop: 'auto' 
@@ -93,8 +93,8 @@ export default function Footer() {
                 placeholder={t('Enter your email', 'اپنا ای میل درج کریں')} 
                 style={{ 
                   flex: 1, 
-                  background: '#3d251a', 
-                  border: '1px solid #42281d', 
+                  background: 'var(--card-bg)', 
+                  border: '1px solid var(--border-color)', 
                   borderRadius: 'var(--radius-sm)', 
                   padding: '8px 12px', 
                   fontSize: '0.82rem', 
@@ -129,7 +129,7 @@ export default function Footer() {
         </div>
 
         {/* Divider line */}
-        <div style={{ height: '1px', background: '#42281d', margin: '30px 0' }} />
+        <div style={{ height: '1px', background: 'var(--border-color)', margin: '30px 0' }} />
 
         {/* Copy Bar */}
         <div 

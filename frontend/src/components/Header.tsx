@@ -22,7 +22,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="site-header" style={{ background: '#2e1a12', borderBottom: '3px solid var(--primary)' }}>
+      <header className="site-header" style={{ background: '#0d0d0e', borderBottom: '3px solid var(--primary)' }}>
         <div className="container nav-container" style={{ height: '90px' }}>
           {/* Pizza Logo */}
           <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
@@ -33,7 +33,7 @@ export default function Header() {
               <span style={{ fontSize: '1.7rem', fontWeight: 900, color: 'white', fontFamily: 'var(--font-display)', letterSpacing: '0.5px' }}>
                 Fat<span style={{ color: 'var(--primary)' }}>pizza</span>
               </span>
-              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--border-color)', textTransform: 'uppercase', letterSpacing: '2px', marginTop: '-4px' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '2px', marginTop: '-4px' }}>
                 {t('Fresh & Hot', 'تازہ اور گرم')}
               </span>
             </div>
@@ -102,9 +102,9 @@ export default function Header() {
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as any)}
                   style={{
-                    background: '#3d251a',
+                    background: 'var(--card-bg)',
                     color: 'white',
-                    border: '1px solid #42281d',
+                    border: '1px solid var(--border-color)',
                     borderRadius: 'var(--radius-sm)',
                     padding: '6px 12px',
                     fontSize: '0.85rem',
@@ -124,7 +124,7 @@ export default function Header() {
                 {t('Order Now', 'آرڈر کریں')}
               </Link>
 
-              <Link href="/cart" className="icon-btn" aria-label="Shopping Cart" style={{ color: 'white', borderColor: '#42281d', background: '#3d251a' }}>
+              <Link href="/cart" className="icon-btn" aria-label="Shopping Cart" style={{ color: 'white', borderColor: 'var(--border-color)', background: 'var(--card-bg)' }}>
                 <ShoppingCart size={20} />
                 {cartCount > 0 && <span className="badge" style={{ background: 'var(--primary)' }}>{cartCount}</span>}
               </Link>
@@ -151,8 +151,8 @@ export default function Header() {
             onClick={() => setIsMobileMenuOpen(false)}
           ></div>
           
-          <div className="mobile-drawer" style={{ background: '#2e1a12', color: 'white' }}>
-            <div className="mobile-drawer-header" style={{ borderBottom: '1px solid #42281d' }}>
+          <div className="mobile-drawer" style={{ background: '#0d0d0e', color: 'white', borderLeft: '1px solid var(--border-color)' }}>
+            <div className="mobile-drawer-header" style={{ borderBottom: '1px solid var(--border-color)' }}>
               <Link href="/" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
                 <div className="logo-icon" style={{ background: 'var(--primary)', color: 'white' }}>
                   <Pizza size={22} strokeWidth={2.5} />
@@ -167,7 +167,7 @@ export default function Header() {
                 className="mobile-drawer-close"
                 onClick={() => setIsMobileMenuOpen(false)}
                 aria-label="Close menu"
-                style={{ color: 'white', background: '#3d251a', border: 'none' }}
+                style={{ color: 'white', background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
               >
                 <X size={20} />
               </button>
@@ -211,11 +211,11 @@ export default function Header() {
               </ul>
             </nav>
 
-            <div className="mobile-drawer-footer" style={{ borderTop: '1px solid #42281d' }}>
+            <div className="mobile-drawer-footer" style={{ borderTop: '1px solid var(--border-color)' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Flame size={16} /> {t('AI Chat Helper Active', 'اے آئی چیٹ اسسٹنٹ فعال')}
               </span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--border-color)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                 {t('Fatpizza Call Center: +92 300 1234567', 'فیٹ پیزا کال سینٹر: 1234567-300-92+')}
               </span>
             </div>

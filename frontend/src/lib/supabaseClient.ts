@@ -31,7 +31,7 @@ export const pizzaMenu: PizzaItem[] = [
     description: "A colorful medley of fresh garden vegetables, sliced mushrooms, black olives, sweet bell peppers, and red onions on a rich tomato base, covered in gooey mozzarella.",
     manufacturer: "Fatpizza Kitchen",
     requires_prescription: false,
-    image_url: "https://images.unsplash.com/photo-1571066811602-71683a3f680d?w=600&auto=format&fit=crop&q=80"
+    image_url: "https://www.thegraciouspantry.com/wp-content/uploads/2023/06/veggie-pizza-recipe-v-1-.jpg"
   },
   {
     id: 2,
@@ -200,7 +200,7 @@ export const pizzaMenu: PizzaItem[] = [
     description: "Creamy white Alfredo base sauce topped with tender sliced grilled chicken breast, button mushrooms, parsley, and premium cheese blend.",
     manufacturer: "Fatpizza Kitchen",
     requires_prescription: false,
-    image_url: "https://images.unsplash.com/photo-1594007654729-407ededc414a?w=600&auto=format&fit=crop&q=80"
+    image_url: "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=600&auto=format&fit=crop&q=80"
   },
   {
     id: 15,
@@ -308,7 +308,7 @@ class MockQueryBuilder {
       if (column === 'id') {
         return data.filter(item => item.id === Number(value));
       } else if (column === 'category') {
-        return data.filter(item => item.category.toLowerCase() === String(value).toLowerCase());
+        return data.filter(item => (item.category || '').toLowerCase() === String(value).toLowerCase());
       }
       return data;
     });

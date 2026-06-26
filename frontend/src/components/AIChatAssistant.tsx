@@ -120,7 +120,7 @@ export default function AIChatAssistant() {
       {isOpen && (
         <div className="chat-panel" style={{ border: '2px solid var(--primary)', borderRadius: 'var(--radius-md)' }}>
           {/* Header */}
-          <div className="chat-header" style={{ background: '#2e1a12', borderBottom: '3px solid var(--primary)' }}>
+          <div className="chat-header" style={{ background: '#0a0a0a', borderBottom: '3px solid var(--primary)' }}>
             <div className="chat-header-info">
               <div className="avatar" style={{ background: 'var(--primary)' }}>
                 <Sparkles size={18} fill="white" />
