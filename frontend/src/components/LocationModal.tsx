@@ -4,33 +4,53 @@ import React, { useState, useEffect } from 'react';
 import { Navigation, MapPin, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
+// Restaurant's exact center coordinates (Update these to your exact shop/kitchen coordinates)
+const RESTAURANT_COORDS = { lat: 24.96388, lon: 67.12789 }; 
+const MAX_DELIVERY_RADIUS_KM = 6;
+
+// Function to calculate distance in km using Haversine formula
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+  return R * c; // Distance in km
+}
+
+// These are the manually allowed areas. Users can only select these manually.
+// Because we only deliver within 6km, we restrict the dropdown to nearby areas.
 const CITIES_DATA: { [key: string]: string[] } = {
   'Karachi': [
-    'DHA / Defence',
-    'Clifton',
     'Gulshan-e-Iqbal',
     'Gulistan-e-Jauhar',
-    'PECHS',
-    'Saddar',
-    'North Nazimabad',
-    'Bahadurabad',
-    'Karsaz',
+    'Scheme 33',
+    'Teachers Society',
+    'PCSIR Society',
+    'Madras Chowk',
+    'Shaaz Bungalows',
+    'Safoora Chowk',
+    'Khatm-e-Nabuwat Chowk',
+    'Mosamiyat',
+    'Kamran Chowrangi',
+    'Munawwar Chowrangi',
+    'Pehlwan Goth',
+    'Rabia City',
+    'Darul Sehat',
+    'Abul Hasan Isphahani Road',
+    'Nipa Chowrangi',
+    'Suparco Road',
+    'Dow University Ojha Campus',
+    'Saadi Town',
+    'Rim Jhim Towers',
+    'Chapal Sun City',
+    'Karachi University Emp C.H.S',
     'Federal B Area',
-    'Karachi University Emp C.H.S'
-  ],
-  'Lahore': [
-    'Gulberg',
-    'DHA Lahore',
-    'Johar Town',
-    'Model Town',
-    'Faisal Town'
-  ],
-  'Islamabad': [
-    'Sector F-6',
-    'Sector F-7',
-    'Sector G-11',
-    'Sector I-8',
-    'DHA Islamabad'
+    'Malir',
+    'Malir Cantt'
   ]
 };
 
@@ -41,6 +61,7 @@ export default function LocationModal() {
   const [selectedCity, setSelectedCity] = useState<string>('Karachi');
   const [selectedArea, setSelectedArea] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchSuccess, setFetchSuccess] = useState(false);
 
   useEffect(() => {
     // Check if location is already set
@@ -66,127 +87,44 @@ export default function LocationModal() {
     };
   }, []);
 
-  // Run auto-fetch location on open
-  useEffect(() => {
-    if (isOpen) {
-      handleGetCurrentLocation();
-    }
-  }, [isOpen]);
-
   const handleGetCurrentLocation = (isManual: boolean = false) => {
     console.log("[Location] handleGetCurrentLocation started. isManual:", isManual);
     if (navigator.geolocation) {
       console.log("[Location] navigator.geolocation is available. Requesting position...");
       setIsLoading(true);
       navigator.geolocation.getCurrentPosition(
-        async (pos) => {
+        (pos) => {
           const { latitude, longitude } = pos.coords;
           console.log(`[Location] GPS Position received: Lat=${latitude}, Lon=${longitude}`);
-          try {
-            console.log("[Location] Fetching reverse geocoding from BigDataCloud...");
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
-            
-            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`, {
-              signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) throw new Error("HTTP error " + response.status);
-            const data = await response.json();
-            console.log("[Location] BigDataCloud Response data:", data);
-            
-            let matchedCity = 'Karachi';
-            let matchedArea = '';
+          
+          const distance = getDistanceFromLatLonInKm(
+            RESTAURANT_COORDS.lat, 
+            RESTAURANT_COORDS.lon, 
+            latitude, 
+            longitude
+          );
+          
+          console.log(`[Location] Distance from restaurant: ${distance.toFixed(2)} km`);
 
-            if (data) {
-              const city = data.city || data.principalSubdivision || data.countryName || '';
-              const suburb = data.locality || '';
-              console.log(`[Location] Extracted city: "${city}", suburb: "${suburb}"`);
-              
-              if (city.toLowerCase().includes('lahore')) {
-                matchedCity = 'Lahore';
-              } else if (city.toLowerCase().includes('islamabad')) {
-                matchedCity = 'Islamabad';
-              }
-
-              let exactAreaMatched = false;
-              const areas = CITIES_DATA[matchedCity] || [];
-              if (suburb) {
-                // Try to find a match in the mock data first
-                const found = areas.find(area => 
-                  area.toLowerCase().replace(/[^a-z0-9]/g, '').includes(suburb.toLowerCase().replace(/[^a-z0-9]/g, '')) ||
-                  suburb.toLowerCase().replace(/[^a-z0-9]/g, '').includes(area.toLowerCase().replace(/[^a-z0-9]/g, ''))
-                );
-                
-                if (found) {
-                  matchedArea = found;
-                  exactAreaMatched = true;
-                } else {
-                  // Real-time dynamic area! If it's not in our mock data, use the real name returned by the API
-                  matchedArea = suburb;
-                  exactAreaMatched = true;
-                }
-              }
-
-              if (!exactAreaMatched && areas.length > 0) {
-                matchedArea = areas[0];
-              }
-            } else {
-              matchedArea = CITIES_DATA[matchedCity]?.[0] || '';
+          if (distance <= MAX_DELIVERY_RADIUS_KM) {
+            console.log(`[Location] Success! User is within delivery radius (${distance.toFixed(2)} km)`);
+            // Automatically select the nearest supported area from our list for the UI
+            setSelectedCity('Karachi');
+            setSelectedArea('Gulshan-e-Iqbal'); // Defaulting to the central hub for the UI selection
+            
+            setFetchSuccess(true);
+            setTimeout(() => setFetchSuccess(false), 3000);
+          } else {
+            console.log(`[Location] Failed! User is outside delivery radius (${distance.toFixed(2)} km)`);
+            if (isManual) {
+              alert(t(`Sorry, we do not deliver to this area. You are ${distance.toFixed(1)} km away (Max 6km).`, `معذرت، ہم اس علاقے میں ڈلیوری نہیں کرتے۔ آپ کا فاصلہ ${distance.toFixed(1)} کلومیٹر ہے۔`));
             }
-
-            console.log(`[Location] Matched City: ${matchedCity}, Matched Area: ${matchedArea}`);
-            // If the matched area is a dynamic real-time area, we add it to the state so the dropdown shows it
-            setSelectedCity(matchedCity);
-            setSelectedArea(matchedArea);
-          } catch (error) {
-            console.error("[Location] Error reverse geocoding (Fetch hanging/failed):", error);
-            
-            // Offline Coordinate Bounding-Box Fallback
-            let fallbackCity = 'Karachi';
-            if (latitude >= 31.3 && latitude <= 31.8 && longitude >= 74.1 && longitude <= 74.6) {
-              fallbackCity = 'Lahore';
-            } else if (latitude >= 33.5 && latitude <= 33.9 && longitude >= 72.9 && longitude <= 73.3) {
-              fallbackCity = 'Islamabad';
-            }
-            
-            console.log(`[Location] Offline Fallback mapped Lat=${latitude}, Lon=${longitude} to ${fallbackCity}`);
-            setSelectedCity(fallbackCity);
-            setSelectedArea(CITIES_DATA[fallbackCity]?.[0] || '');
-          } finally {
-            setIsLoading(false);
           }
+          setIsLoading(false);
         },
         (error) => {
           console.error("[Location] Geolocation error received:", error);
-          
-          console.log("[Location] Falling back to IP-based location (ipapi.co)...");
-          // Try IP-based location fallback so the user doesn't have to rely on GPS
-          fetch('https://ipapi.co/json/')
-            .then(res => res.json())
-            .then(ipData => {
-              console.log("[Location] IP-based location data:", ipData);
-              let matchedCity = 'Karachi';
-              if (ipData && ipData.city) {
-                const cityStr = ipData.city.toLowerCase();
-                if (cityStr.includes('lahore')) {
-                  matchedCity = 'Lahore';
-                } else if (cityStr.includes('islamabad')) {
-                  matchedCity = 'Islamabad';
-                }
-              }
-              console.log(`[Location] IP Match - City: ${matchedCity}`);
-              setSelectedCity(matchedCity);
-              setSelectedArea(CITIES_DATA[matchedCity]?.[0] || '');
-              setIsLoading(false);
-            })
-            .catch(err => {
-              console.error("[Location] IP geolocation fetch failed:", err);
-              setSelectedCity('Karachi');
-              setSelectedArea('Karachi University Emp C.H.S');
-              setIsLoading(false);
-            });
+          setIsLoading(false);
           
           if (isManual) {
             let errorMsg = '';
@@ -198,7 +136,7 @@ export default function LocationModal() {
                 errorMsg = t('Location information is unavailable on this device.', 'اس ڈیوائس پر لوکیشن کی معلومات دستیاب نہیں ہیں۔');
                 break;
               case error.TIMEOUT:
-                errorMsg = t('Location request timed out. Trying IP-based location...', 'لوکیشن حاصل کرنے کا وقت ختم ہو گیا۔ آئی پی کی بنیاد پر لوکیشن تلاش کی جا رہی ہے...');
+                errorMsg = t('Location request timed out. Please enter your location manually.', 'لوکیشن حاصل کرنے کا وقت ختم ہو گیا۔ براہ کرم مینوئل لوکیشن درج کریں۔');
                 break;
               default:
                 errorMsg = error.message;
@@ -209,8 +147,6 @@ export default function LocationModal() {
         { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
       );
     } else {
-      setSelectedCity('Karachi');
-      setSelectedArea('Karachi University Emp C.H.S');
       if (isManual) {
         alert(t('Geolocation is not supported by your browser.', 'آپ کا براؤزر جیو لوکیشن کو سپورٹ نہیں کرتا۔'));
       }
@@ -360,29 +296,40 @@ export default function LocationModal() {
         {/* Use Current Location Button */}
         <button
           onClick={() => handleGetCurrentLocation(true)}
-          disabled={isLoading}
+          disabled={isLoading || fetchSuccess}
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            background: '#f1f3f6',
-            color: '#1a1a1a',
-            border: 'none',
+            background: fetchSuccess ? '#e8f5e9' : '#f1f3f6',
+            color: fetchSuccess ? '#2e7d32' : '#1a1a1a',
+            border: fetchSuccess ? '1px solid #c8e6c9' : 'none',
             padding: '12px 24px',
             borderRadius: '30px',
             fontSize: '0.9rem',
             fontWeight: 700,
-            cursor: 'pointer',
+            cursor: (isLoading || fetchSuccess) ? 'default' : 'pointer',
             marginBottom: '28px',
-            transition: 'background 0.2s ease',
+            transition: 'all 0.3s ease',
             width: '100%',
-            maxWidth: '240px',
+            maxWidth: '260px',
             boxSizing: 'border-box'
           }}
         >
-          <Navigation size={16} style={{ transform: 'rotate(45deg)' }} />
-          {isLoading ? t('Fetching...', 'حاصل کیا جا رہا ہے...') : t('Use Current Location', 'موجودہ لوکیشن استعمال کریں')}
+          {fetchSuccess ? (
+            <>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              {t('Location Fetched!', 'لوکیشن مل گئی!')}
+            </>
+          ) : (
+            <>
+              <Navigation size={16} style={{ transform: 'rotate(45deg)' }} />
+              {isLoading ? t('Fetching...', 'حاصل کیا جا رہا ہے...') : t('Use Current Location', 'موجودہ لوکیشن استعمال کریں')}
+            </>
+          )}
         </button>
 
         {/* Dropdowns */}
