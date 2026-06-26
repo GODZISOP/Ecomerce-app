@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
-const menuFilePath = path.join(process.cwd(), 'src', 'lib', 'menu.json');
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 function checkAuth(req: Request) {
   const authHeader = req.headers.get('authorization');
@@ -14,39 +16,25 @@ function checkAuth(req: Request) {
   return true;
 }
 
-async function readMenu() {
-  try {
-    const data = await fs.readFile(menuFilePath, 'utf8');
-    return JSON.parse(data);
-  } catch (e) {
-    return [];
-  }
-}
-
-async function writeMenu(menu: any) {
-  await fs.writeFile(menuFilePath, JSON.stringify(menu, null, 2), 'utf8');
-}
-
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     const search = searchParams.get('search');
     
-    let medicines = await readMenu();
+    let query = supabase.from('medicines').select('*');
     
     if (category && category !== 'All') {
-      medicines = medicines.filter((m: any) => m.category === category);
+      query = query.eq('category', category);
     }
     
     if (search) {
-      const s = search.toLowerCase();
-      medicines = medicines.filter((m: any) => 
-        m.name.toLowerCase().includes(s) || 
-        m.generic_name.toLowerCase().includes(s) || 
-        m.description.toLowerCase().includes(s)
-      );
+      query = query.or(`name.ilike.%${search}%,generic_name.ilike.%${search}%,description.ilike.%${search}%`);
     }
+    
+    const { data: medicines, error } = await query.order('id', { ascending: true });
+    
+    if (error) throw error;
     
     return NextResponse.json({ success: true, medicines });
   } catch (e: any) {
@@ -67,9 +55,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
     
-    const medicines = await readMenu();
-    const maxId = medicines.reduce((max: number, m: any) => m.id > max ? m.id : max, 0);
-    const nextId = maxId + 1;
+    const { data: maxMed, error: maxError } = await supabase
+      .from('medicines')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+      
+    if (maxError) throw maxError;
+    const nextId = (maxMed && maxMed[0] ? maxMed[0].id : 0) + 1;
     
     const newMedicine = {
       id: nextId,
@@ -85,10 +78,14 @@ export async function POST(req: Request) {
       image_url: image_url || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80'
     };
     
-    medicines.push(newMedicine);
-    await writeMenu(medicines);
+    const { data, error } = await supabase
+      .from('medicines')
+      .insert([newMedicine])
+      .select();
+      
+    if (error) throw error;
     
-    return NextResponse.json({ success: true, medicine: newMedicine });
+    return NextResponse.json({ success: true, medicine: data ? data[0] : newMedicine });
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e.message }, { status: 500 });
   }
@@ -107,14 +104,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
     
-    let medicines = await readMenu();
-    const index = medicines.findIndex((m: any) => m.id === Number(id));
-    if (index === -1) {
-      return NextResponse.json({ error: 'Medicine not found' }, { status: 404 });
-    }
-    
     const updated = {
-      id: Number(id),
       name,
       generic_name: generic_name || '',
       category,
@@ -127,10 +117,19 @@ export async function PUT(req: Request) {
       image_url: image_url || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80'
     };
     
-    medicines[index] = updated;
-    await writeMenu(medicines);
+    const { data, error } = await supabase
+      .from('medicines')
+      .update(updated)
+      .eq('id', Number(id))
+      .select();
+      
+    if (error) throw error;
     
-    return NextResponse.json({ success: true, medicine: updated });
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Medicine not found or not updated' }, { status: 404 });
+    }
+    
+    return NextResponse.json({ success: true, medicine: data[0] });
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e.message }, { status: 500 });
   }
@@ -149,9 +148,12 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Medicine ID is required' }, { status: 400 });
     }
     
-    let medicines = await readMenu();
-    medicines = medicines.filter((m: any) => m.id !== Number(id));
-    await writeMenu(medicines);
+    const { error } = await supabase
+      .from('medicines')
+      .delete()
+      .eq('id', Number(id));
+      
+    if (error) throw error;
     
     return NextResponse.json({ success: true, message: 'Medicine deleted successfully' });
   } catch (e: any) {

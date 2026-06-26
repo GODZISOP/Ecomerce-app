@@ -1,9 +1,5 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-
-const menuFilePath = path.join(process.cwd(), 'src', 'lib', 'menu.json');
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,8 +8,12 @@ const supabase = createClient(
 
 async function readMenu() {
   try {
-    const data = await fs.readFile(menuFilePath, 'utf8');
-    return JSON.parse(data);
+    const { data, error } = await supabase
+      .from('medicines')
+      .select('*')
+      .order('id', { ascending: true });
+    if (error) return [];
+    return data || [];
   } catch (e) {
     return [];
   }
