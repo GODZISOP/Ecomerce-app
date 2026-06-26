@@ -462,7 +462,7 @@ export default function LocationModal() {
                 <option value="" disabled>
                   {t('Select Area', 'علاقہ منتخب کریں')}
                 </option>
-                {(CITIES_DATA[selectedCity] || []).map((area) => (
+                {Array.from(new Set([...(CITIES_DATA[selectedCity] || []), ...(selectedArea ? [selectedArea] : [])])).map((area) => (
                   <option key={area} value={area}>
                     {area}
                   </option>
