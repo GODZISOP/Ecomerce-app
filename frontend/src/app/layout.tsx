@@ -5,6 +5,7 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AIChatAssistant from '@/components/AIChatAssistant';
+import LocationModal from '@/components/LocationModal';
 
 export const metadata: Metadata = {
   title: 'Fatpizza Pakistan | Online Pizza & Burger Delivery',
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body>
         <LanguageProvider>
           <CartProvider>
+            <LocationModal />
             <Header />
             <main style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column' }}>
               {children}
