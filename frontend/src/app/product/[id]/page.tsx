@@ -164,7 +164,7 @@ export default function ProductDetailPage() {
           }}>{t(item.category, item.category === 'Pizza' ? 'پیزا' : item.category === 'Burger' ? 'برگر' : item.category === 'Sandwich' ? 'سینڈوچ' : item.category === 'Pasta' ? 'پاستا' : item.category === 'Sides' ? 'سائیڈز' : item.category)}</span>
 
           {/* Name */}
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--foreground)', marginBottom: '4px', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--foreground)', marginBottom: '4px', lineHeight: 1.2 }}>
             {t(item.name)}
           </h1>
 

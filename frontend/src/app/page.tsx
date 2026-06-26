@@ -83,11 +83,10 @@ export default function HomePage() {
         background: 'linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1600&q=80")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        padding: '120px 0 140px 0',
         color: 'white',
         borderBottom: '8px solid var(--primary)',
         textAlign: 'center'
-      }}>
+      }} className="hero">
         <div className="container" style={{ maxWidth: '800px' }}>
           <span style={{
             background: 'var(--primary)',
@@ -104,8 +103,7 @@ export default function HomePage() {
             {t('Welcome to Fatpizza', 'فیٹ پیزا میں خوش آمدید')}
           </span>
           
-          <h1 style={{
-            fontSize: '4.2rem',
+          <h1 className="hero-title" style={{
             fontWeight: 900,
             lineHeight: 1.1,
             marginBottom: '20px',
@@ -116,12 +114,11 @@ export default function HomePage() {
             <span style={{ color: 'var(--primary)' }}>{t('An Experience.', 'ایک یادگار تجربہ ہے۔')}</span>
           </h1>
           
-          <p style={{
-            fontSize: '1.25rem',
+          <p className="hero-desc" style={{
             color: '#f4f1ea',
-            marginBottom: '40px',
             lineHeight: 1.6,
-            textShadow: '0 2px 6px rgba(0,0,0,0.5)'
+            textShadow: '0 2px 6px rgba(0,0,0,0.5)',
+            margin: '0 auto 40px auto'
           }}>
             {t('Handcrafted with passion, baked to perfection in a wood-fired brick oven, and delivered hot to your doorstep with a touch of culinary art.', 'محبت سے تیار کردہ، لکڑی کے تندور میں پکایا ہوا، اور فنی نفاست کے ساتھ گرما گرم آپ کی دہلیز پر پہنچایا گیا۔')}
           </p>
@@ -140,8 +137,8 @@ export default function HomePage() {
       {/* 2. Discover Our Menu & Category Filter */}
       <section className="container">
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>{t('Discover Our Menu', 'ہمارا مینو دریافت کریں')}</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '6px' }}>{t('Taste the goodness of handcrafted gourmet specialties', 'ہمارے ہاتھ سے تیار کردہ خاص کھانوں کا ذائقہ چکھیں')}</p>
+          <h2 className="section-title" style={{ fontFamily: 'var(--font-display)' }}>{t('Discover Our Menu', 'ہمارا مینو دریافت کریں')}</h2>
+          <p className="section-subtitle">{t('Taste the goodness of handcrafted gourmet specialties', 'ہمارے ہاتھ سے تیار کردہ خاص کھانوں کا ذائقہ چکھیں')}</p>
           <div style={{ width: '60px', height: '4px', background: 'var(--primary)', margin: '16px auto 0 auto', borderRadius: '2px' }} />
         </div>
 
@@ -221,11 +218,11 @@ export default function HomePage() {
 
       {/* 3. Ways To Enjoy Section (Matching Reference layout) */}
       <section className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '40px', alignItems: 'center', background: 'var(--card-bg)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="hero-grid" style={{ alignItems: 'center', background: 'var(--card-bg)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
           {/* Orange promo banner left */}
           <div style={{
             background: 'linear-gradient(135deg, #f35d25 0%, #ff8c42 100%)',
-            padding: '50px',
+            padding: '50px 30px', // slightly less padding for mobile
             color: 'white',
             display: 'flex',
             flexDirection: 'column',
@@ -233,7 +230,7 @@ export default function HomePage() {
             minHeight: '350px',
             position: 'relative'
           }}>
-            <h2 style={{ fontSize: '2.8rem', fontWeight: 900, lineHeight: 1.1, marginBottom: '20px', fontFamily: 'var(--font-display)' }}>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 900, lineHeight: 1.1, marginBottom: '20px', fontFamily: 'var(--font-display)' }}>
               {t('30 minutes, or pizza for free.', '30 منٹ میں ڈلیوری، ورنہ پیزا مفت۔')}
             </h2>
             <p style={{ fontSize: '1rem', color: '#fff0e6', marginBottom: '30px', maxWidth: '380px' }}>
@@ -257,7 +254,7 @@ export default function HomePage() {
               {t('Fatpizza started as a small brick oven kitchen in DHA. Our secret has always been simple: imported San Marzano tomato sauce, fresh hand-pulled local mozzarella, and a signature crust fermented for 48 hours. Today, we still bake every single pizza to order with love.', 'فیٹ پیزا کا آغاز ڈی ایچ اے میں ایک چھوٹے سے تندوری کچن سے ہوا تھا۔ ہمارا راز ہمیشہ سادہ رہا ہے: بہترین ٹماٹر کی چٹنی، تازہ مقامی پنیر، اور 48 گھنٹے تک خمیر کیا ہوا خاص خمیرہ۔ آج بھی ہم ہر پیزا کو محبت سے آرڈر پر ہی تیار کرتے ہیں۔')}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', textAlign: 'center', marginTop: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '16px', textAlign: 'center', marginTop: '20px' }}>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🛍️</span>
                 <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: '#111111' }}>{t('Pick up', 'خود لے جائیں')}</div>
@@ -278,8 +275,8 @@ export default function HomePage() {
       {/* 4. Chefs Section */}
       <section className="container">
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>{t('Meet Our Great Chefs', 'ہمارے ماہر شیف سے ملیں')}</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '6px' }}>{t('The culinary artists crafting your experience', 'آپ کے ذائقے کو سجانے والے ہمارے فنکار')}</p>
+          <h2 className="section-title" style={{ fontFamily: 'var(--font-display)' }}>{t('Meet Our Great Chefs', 'ہمارے ماہر شیف سے ملیں')}</h2>
+          <p className="section-subtitle">{t('The culinary artists crafting your experience', 'آپ کے ذائقے کو سجانے والے ہمارے فنکار')}</p>
           <div style={{ width: '60px', height: '4px', background: 'var(--primary)', margin: '16px auto 0 auto', borderRadius: '2px' }} />
         </div>
 
