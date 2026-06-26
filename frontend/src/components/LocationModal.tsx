@@ -74,15 +74,20 @@ export default function LocationModal() {
   }, [isOpen]);
 
   const handleGetCurrentLocation = (isManual: boolean = false) => {
+    console.log("[Location] handleGetCurrentLocation started. isManual:", isManual);
     if (navigator.geolocation) {
+      console.log("[Location] navigator.geolocation is available. Requesting position...");
       setIsLoading(true);
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const { latitude, longitude } = pos.coords;
+          console.log(`[Location] GPS Position received: Lat=${latitude}, Lon=${longitude}`);
           try {
+            console.log("[Location] Fetching reverse geocoding from BigDataCloud...");
             const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
             if (!response.ok) throw new Error("HTTP error " + response.status);
             const data = await response.json();
+            console.log("[Location] BigDataCloud Response data:", data);
             
             let matchedCity = 'Karachi';
             let matchedArea = '';
@@ -90,6 +95,7 @@ export default function LocationModal() {
             if (data) {
               const city = data.city || data.principalSubdivision || data.countryName || '';
               const suburb = data.locality || '';
+              console.log(`[Location] Extracted city: "${city}", suburb: "${suburb}"`);
               
               if (city.toLowerCase().includes('lahore')) {
                 matchedCity = 'Lahore';
@@ -112,10 +118,11 @@ export default function LocationModal() {
               matchedArea = CITIES_DATA[matchedCity]?.[0] || '';
             }
 
+            console.log(`[Location] Matched City: ${matchedCity}, Matched Area: ${matchedArea}`);
             setSelectedCity(matchedCity);
             setSelectedArea(matchedArea);
           } catch (error) {
-            console.error("Error reverse geocoding:", error);
+            console.error("[Location] Error reverse geocoding:", error);
             // Robust fallback so they are never stuck
             setSelectedCity('Karachi');
             setSelectedArea('Karachi University Emp C.H.S');
@@ -124,12 +131,14 @@ export default function LocationModal() {
           }
         },
         (error) => {
-          console.error("Geolocation error:", error);
+          console.error("[Location] Geolocation error received:", error);
           
+          console.log("[Location] Falling back to IP-based location (ipapi.co)...");
           // Try IP-based location fallback so the user doesn't have to rely on GPS
           fetch('https://ipapi.co/json/')
             .then(res => res.json())
             .then(ipData => {
+              console.log("[Location] IP-based location data:", ipData);
               let matchedCity = 'Karachi';
               if (ipData && ipData.city) {
                 const cityStr = ipData.city.toLowerCase();
@@ -139,12 +148,13 @@ export default function LocationModal() {
                   matchedCity = 'Islamabad';
                 }
               }
+              console.log(`[Location] IP Match - City: ${matchedCity}`);
               setSelectedCity(matchedCity);
               setSelectedArea(CITIES_DATA[matchedCity]?.[0] || '');
               setIsLoading(false);
             })
             .catch(err => {
-              console.error("IP geolocation failed:", err);
+              console.error("[Location] IP geolocation fetch failed:", err);
               setSelectedCity('Karachi');
               setSelectedArea('Karachi University Emp C.H.S');
               setIsLoading(false);
