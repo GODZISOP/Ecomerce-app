@@ -168,7 +168,7 @@ export default function LocationModal() {
             alert(`${t('GPS Alert:', 'لوکیشن الرٹ:')} ${errorMsg}`);
           }
         },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 10000 }
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
       );
     } else {
       setSelectedCity('Karachi');
