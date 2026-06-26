@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingCart, Menu, X, ChevronRight, Pizza, Flame } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronRight, Pizza, Flame, MapPin, ChevronDown } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -12,6 +12,26 @@ export default function Header() {
   const { cartCount } = useCart();
   const { language, setLanguage, t, mounted } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [locationDetails, setLocationDetails] = useState({
+    city: '',
+    area: '',
+    orderType: 'delivery'
+  });
+
+  useEffect(() => {
+    const updateLocation = () => {
+      const city = localStorage.getItem('fatpizza_user_city') || '';
+      const area = localStorage.getItem('fatpizza_user_area') || '';
+      const orderType = localStorage.getItem('fatpizza_order_type') || 'delivery';
+      setLocationDetails({ city, area, orderType });
+    };
+
+    updateLocation();
+    window.addEventListener('location-updated', updateLocation);
+    return () => {
+      window.removeEventListener('location-updated', updateLocation);
+    };
+  }, []);
 
   const isLinkActive = (path: string) => {
     if (path === '/') {
@@ -38,6 +58,63 @@ export default function Header() {
               </span>
             </div>
           </Link>
+
+          {/* Location Selector */}
+          <div 
+            onClick={() => window.dispatchEvent(new Event('open-location-modal'))}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              cursor: 'pointer',
+              padding: '8px 14px',
+              borderRadius: '12px',
+              transition: 'all 0.2s',
+              marginLeft: '20px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}
+            className="header-location-selector"
+          >
+            <div style={{
+              background: 'rgba(241, 60, 11, 0.15)',
+              color: '#f13c0b',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <MapPin size={18} color="#f13c0b" />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ 
+                fontSize: '0.8rem', 
+                fontWeight: 700, 
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                lineHeight: '1.2'
+              }}>
+                {locationDetails.orderType === 'pickup' ? t('Pick-up from', 'پک اپ کریں') : t('Delivery to', 'ڈلیوری تا')} 
+                <ChevronDown size={12} style={{ opacity: 0.8 }} />
+              </span>
+              <span style={{ 
+                fontSize: '0.72rem', 
+                color: '#bbbbbb',
+                maxWidth: '220px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                lineHeight: '1.2',
+                marginTop: '2px'
+              }}>
+                {locationDetails.area ? `${locationDetails.area}, ${locationDetails.city}` : t('Select Location', 'لوکیشن منتخب کریں')}
+              </span>
+            </div>
+          </div>
 
           {/* Navigation Menu (Desktop) */}
           <nav>

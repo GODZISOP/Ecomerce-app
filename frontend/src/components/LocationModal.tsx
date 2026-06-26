@@ -48,6 +48,22 @@ export default function LocationModal() {
     if (!savedLocation) {
       setTimeout(() => setIsOpen(true), 1200);
     }
+
+    const handleOpen = () => {
+      // Load saved values if they exist when opening
+      const savedCity = localStorage.getItem('fatpizza_user_city');
+      const savedArea = localStorage.getItem('fatpizza_user_area');
+      const savedType = localStorage.getItem('fatpizza_order_type') as any;
+      if (savedCity) setSelectedCity(savedCity);
+      if (savedArea) setSelectedArea(savedArea);
+      if (savedType) setOrderType(savedType);
+      setIsOpen(true);
+    };
+
+    window.addEventListener('open-location-modal', handleOpen);
+    return () => {
+      window.removeEventListener('open-location-modal', handleOpen);
+    };
   }, []);
 
   // Run auto-fetch location on open
@@ -145,6 +161,7 @@ export default function LocationModal() {
       localStorage.setItem('fatpizza_user_city', selectedCity);
       localStorage.setItem('fatpizza_user_area', selectedArea);
       localStorage.setItem('fatpizza_order_type', orderType);
+      window.dispatchEvent(new Event('location-updated'));
       setIsOpen(false);
     }
   };
