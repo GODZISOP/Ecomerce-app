@@ -110,15 +110,26 @@ export default function LocationModal() {
                 matchedCity = 'Islamabad';
               }
 
+              let exactAreaMatched = false;
               const areas = CITIES_DATA[matchedCity] || [];
               if (suburb) {
-                matchedArea = areas.find(area => 
+                // Try to find a match in the mock data first
+                const found = areas.find(area => 
                   area.toLowerCase().replace(/[^a-z0-9]/g, '').includes(suburb.toLowerCase().replace(/[^a-z0-9]/g, '')) ||
                   suburb.toLowerCase().replace(/[^a-z0-9]/g, '').includes(area.toLowerCase().replace(/[^a-z0-9]/g, ''))
-                ) || '';
+                );
+                
+                if (found) {
+                  matchedArea = found;
+                  exactAreaMatched = true;
+                } else {
+                  // Real-time dynamic area! If it's not in our mock data, use the real name returned by the API
+                  matchedArea = suburb;
+                  exactAreaMatched = true;
+                }
               }
 
-              if (!matchedArea && areas.length > 0) {
+              if (!exactAreaMatched && areas.length > 0) {
                 matchedArea = areas[0];
               }
             } else {
@@ -126,6 +137,7 @@ export default function LocationModal() {
             }
 
             console.log(`[Location] Matched City: ${matchedCity}, Matched Area: ${matchedArea}`);
+            // If the matched area is a dynamic real-time area, we add it to the state so the dropdown shows it
             setSelectedCity(matchedCity);
             setSelectedArea(matchedArea);
           } catch (error) {
