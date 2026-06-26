@@ -80,16 +80,16 @@ export default function LocationModal() {
         async (pos) => {
           const { latitude, longitude } = pos.coords;
           try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
             if (!response.ok) throw new Error("HTTP error " + response.status);
             const data = await response.json();
             
             let matchedCity = 'Karachi';
             let matchedArea = '';
 
-            if (data && data.address) {
-              const city = data.address.city || data.address.town || data.address.village || data.address.state || '';
-              const suburb = data.address.suburb || data.address.neighbourhood || data.address.residential || data.address.commercial || '';
+            if (data) {
+              const city = data.city || data.principalSubdivision || data.countryName || '';
+              const suburb = data.locality || '';
               
               if (city.toLowerCase().includes('lahore')) {
                 matchedCity = 'Lahore';
