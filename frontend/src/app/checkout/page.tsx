@@ -236,7 +236,7 @@ export default function CheckoutPage() {
       </button>
 
       {/* Main split grid */}
-      <div className="responsive-tab-layout" style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr', gap: '40px' }}>
+      <div className="responsive-tab-layout">
         
         {/* Left Side: Delivery Details Form */}
         <div className="responsive-tab-main">

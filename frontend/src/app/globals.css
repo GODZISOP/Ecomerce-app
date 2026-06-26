@@ -1423,10 +1423,27 @@ body {
   .nav-container {
     height: 70px;
   }
+  .hide-on-tablet {
+    display: none !important;
+  }
+  .shop-layout {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Medium Mobile Devices (768px and below) */
 @media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  
+  .header-location-selector .location-text {
+    display: none !important;
+  }
+  .header-location-selector {
+    padding: 6px !important;
+    margin-left: 10px !important;
+  }
 
   /* Structural elements */
   .product-detail-grid {

@@ -88,7 +88,7 @@ export default function Header() {
             }}>
               <MapPin size={18} color="#f13c0b" />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }} className="location-text">
               <span style={{ 
                 fontSize: '0.8rem', 
                 fontWeight: 700, 
@@ -104,7 +104,7 @@ export default function Header() {
               <span style={{ 
                 fontSize: '0.72rem', 
                 color: '#bbbbbb',
-                maxWidth: '220px',
+                maxWidth: '180px',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -172,10 +172,11 @@ export default function Header() {
 
           {/* Header Actions */}
           <div className="nav-actions">
-            <div className="icon-btn-wrap" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <div className="icon-btn-wrap" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               {/* Language Switcher */}
               {mounted && (
                 <select
+                  className="hide-on-tablet"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as any)}
                   style={{
@@ -197,7 +198,7 @@ export default function Header() {
               )}
 
               {/* Order Now button */}
-              <Link href="/shop" className="btn-primary" style={{ padding: '10px 20px', borderRadius: 'var(--radius-pill)', textDecoration: 'none', background: 'var(--primary)', color: 'white', fontWeight: 800, fontSize: '0.85rem' }}>
+              <Link href="/shop" className="btn-primary hide-on-mobile" style={{ padding: '10px 16px', borderRadius: 'var(--radius-pill)', textDecoration: 'none', background: 'var(--primary)', color: 'white', fontWeight: 800, fontSize: '0.85rem' }}>
                 {t('Order Now', 'آرڈر کریں')}
               </Link>
 
