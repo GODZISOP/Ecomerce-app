@@ -125,10 +125,30 @@ export default function LocationModal() {
         },
         (error) => {
           console.error("Geolocation error:", error);
-          setIsLoading(false);
-          // Fallback to default city/area so the user can easily proceed
-          setSelectedCity('Karachi');
-          setSelectedArea('Karachi University Emp C.H.S');
+          
+          // Try IP-based location fallback so the user doesn't have to rely on GPS
+          fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(ipData => {
+              let matchedCity = 'Karachi';
+              if (ipData && ipData.city) {
+                const cityStr = ipData.city.toLowerCase();
+                if (cityStr.includes('lahore')) {
+                  matchedCity = 'Lahore';
+                } else if (cityStr.includes('islamabad')) {
+                  matchedCity = 'Islamabad';
+                }
+              }
+              setSelectedCity(matchedCity);
+              setSelectedArea(CITIES_DATA[matchedCity]?.[0] || '');
+              setIsLoading(false);
+            })
+            .catch(err => {
+              console.error("IP geolocation failed:", err);
+              setSelectedCity('Karachi');
+              setSelectedArea('Karachi University Emp C.H.S');
+              setIsLoading(false);
+            });
           
           if (isManual) {
             let errorMsg = '';
@@ -140,12 +160,12 @@ export default function LocationModal() {
                 errorMsg = t('Location information is unavailable on this device.', 'اس ڈیوائس پر لوکیشن کی معلومات دستیاب نہیں ہیں۔');
                 break;
               case error.TIMEOUT:
-                errorMsg = t('Location request timed out.', 'لوکیشن حاصل کرنے کا وقت ختم ہو گیا۔');
+                errorMsg = t('Location request timed out. Trying IP-based location...', 'لوکیشن حاصل کرنے کا وقت ختم ہو گیا۔ آئی پی کی بنیاد پر لوکیشن تلاش کی جا رہی ہے...');
                 break;
               default:
                 errorMsg = error.message;
             }
-            alert(`${t('GPS Alert:', 'لوکیشن الرٹ:')} ${errorMsg}\n\n${t('Defaulting to Karachi.', 'کراچی کی ڈیفالٹ لوکیشن منتخب کی جا رہی ہے۔')}`);
+            alert(`${t('GPS Alert:', 'لوکیشن الرٹ:')} ${errorMsg}`);
           }
         },
         { enableHighAccuracy: false, timeout: 10000, maximumAge: 10000 }
