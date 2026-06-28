@@ -87,11 +87,19 @@ export default function CheckoutPage() {
       setAddress(savedArea + ', ');
     }
 
-    // Determine initial coordinates based on saved area
+    // Determine initial coordinates: first check if Cart page map selection exists
+    const savedLat = localStorage.getItem('fatpizza_checkout_lat');
+    const savedLng = localStorage.getItem('fatpizza_checkout_lng');
+    const savedFee = localStorage.getItem('fatpizza_checkout_fee');
+    const savedDist = localStorage.getItem('fatpizza_checkout_distance');
+
     let initialLat = 24.96388;
     let initialLng = 67.12789;
 
-    if (savedArea) {
+    if (savedLat && savedLng) {
+      initialLat = parseFloat(savedLat);
+      initialLng = parseFloat(savedLng);
+    } else if (savedArea) {
       const area = savedArea.toLowerCase();
       if (area.includes('jauhar')) {
         initialLat = 24.9142; initialLng = 67.1234;
@@ -107,9 +115,15 @@ export default function CheckoutPage() {
     }
     
     setMarkerPos({ lat: initialLat, lng: initialLng });
-    const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, initialLat, initialLng);
-    setDistance(dist);
-    updateShippingFeeByDistance(dist);
+    
+    if (savedDist && savedFee) {
+      setDistance(parseFloat(savedDist));
+      setShippingFee(parseInt(savedFee));
+    } else {
+      const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, initialLat, initialLng);
+      setDistance(dist);
+      updateShippingFeeByDistance(dist);
+    }
   }, []);
 
   // Update shipping fee dynamically based on location zones

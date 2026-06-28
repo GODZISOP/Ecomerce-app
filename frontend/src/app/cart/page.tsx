@@ -1,19 +1,159 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, MapPin, Navigation } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the LocationMapComponent to avoid SSR window-is-not-defined errors in Next.js
+const LocationMapComponent = dynamic(
+  () => import('@/components/LocationMapComponent'),
+  { 
+    ssr: false, 
+    loading: () => (
+      <div style={{ 
+        height: '240px', 
+        width: '100%', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        background: 'rgba(255, 255, 255, 0.05)', 
+        borderRadius: 'var(--radius-sm)',
+        border: '1px dashed var(--border-color)',
+        color: 'var(--text-muted)',
+        fontSize: '0.85rem'
+      }}>
+        📍 Loading map layout...
+      </div>
+    ) 
+  }
+);
+
+// Restaurant kitchen coordinates (DHA Phase 5/Gulshan-e-Iqbal hub center)
+const RESTAURANT_COORDS = { lat: 24.96388, lon: 67.12789 };
+
+// Haversine formula to compute distance in kilometers between two coords
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+  return R * c; // Distance in km
+}
 
 export default function CartPage() {
   const router = useRouter();
   const { cart, updateCartQty, removeFromCart, cartSubtotal } = useCart();
   const { t } = useLanguage();
 
-  const shippingFee = cart.length > 0 ? 150 : 0;
-  const grandTotal = cartSubtotal + shippingFee;
+  // Location Map States
+  const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number }>({ lat: 24.96388, lng: 67.12789 });
+  const [distance, setDistance] = useState<number | null>(null);
+  const [shippingFee, setShippingFee] = useState(120);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  const grandTotal = cartSubtotal + (cart.length > 0 ? shippingFee : 0);
+
+  // Load saved location on mount
+  useEffect(() => {
+    setIsMounted(true);
+    const savedCity = localStorage.getItem('fatpizza_user_city');
+    const savedArea = localStorage.getItem('fatpizza_user_area');
+    const savedLat = localStorage.getItem('fatpizza_checkout_lat');
+    const savedLng = localStorage.getItem('fatpizza_checkout_lng');
+    
+    let initialLat = 24.96388;
+    let initialLng = 67.12789;
+
+    if (savedLat && savedLng) {
+      initialLat = parseFloat(savedLat);
+      initialLng = parseFloat(savedLng);
+    } else if (savedArea) {
+      const area = savedArea.toLowerCase();
+      if (area.includes('jauhar')) {
+        initialLat = 24.9142; initialLng = 67.1234;
+      } else if (area.includes('gulshan')) {
+        initialLat = 24.9180; initialLng = 67.0971;
+      } else if (area.includes('scheme 33')) {
+        initialLat = 24.9678; initialLng = 67.1472;
+      } else if (area.includes('saadi')) {
+        initialLat = 24.9575; initialLng = 67.1725;
+      } else if (area.includes('malir')) {
+        initialLat = 24.8922; initialLng = 67.1947;
+      }
+    }
+
+    setMarkerPos({ lat: initialLat, lng: initialLng });
+    const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, initialLat, initialLng);
+    setDistance(dist);
+    updateShippingFeeByDistance(dist, initialLat, initialLng);
+  }, []);
+
+  // Update shipping fee dynamically and sync with localStorage
+  const updateShippingFeeByDistance = (distKm: number, lat: number, lng: number) => {
+    let fee = 150;
+    if (distKm <= 1) {
+      fee = 120;
+    } else if (distKm <= 3) {
+      fee = 150;
+    } else if (distKm <= 6) {
+      fee = 200;
+    } else if (distKm <= 10) {
+      fee = 250;
+    } else if (distKm <= 15) {
+      fee = 350;
+    } else {
+      fee = 500;
+    }
+    setShippingFee(fee);
+    
+    // Save to localStorage so Checkout Page automatically reads the exact same calculations
+    localStorage.setItem('fatpizza_checkout_fee', fee.toString());
+    localStorage.setItem('fatpizza_checkout_distance', distKm.toString());
+    localStorage.setItem('fatpizza_checkout_lat', lat.toString());
+    localStorage.setItem('fatpizza_checkout_lng', lng.toString());
+  };
+
+  // Browser Geolocation / GPS Finder
+  const handleDetectLocation = () => {
+    if (navigator.geolocation) {
+      setIsDetectingLocation(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setMarkerPos({ lat: latitude, lng: longitude });
+          const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, latitude, longitude);
+          setDistance(dist);
+          updateShippingFeeByDistance(dist, latitude, longitude);
+          setIsDetectingLocation(false);
+        },
+        (error) => {
+          console.error("GPS detection error:", error);
+          alert(t('Could not detect location. Please pin manually on map.', 'لوکیشن معلوم نہیں کی جا سکی۔ نقشے پر خود منتخب کریں۔'));
+          setIsDetectingLocation(false);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } else {
+      alert(t('Geolocation is not supported by your browser.', 'آپ کا براؤزر لوکیشن کو سپورٹ نہیں کرتا۔'));
+    }
+  };
+
+  // Map Click update callback
+  const handleLocationChange = (lat: number, lng: number) => {
+    setMarkerPos({ lat, lng });
+    const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, lat, lng);
+    setDistance(dist);
+    updateShippingFeeByDistance(dist, lat, lng);
+  };
 
   const handleQtyChange = (id: number, currentQty: number, change: number) => {
     const nextQty = currentQty + change;
@@ -192,6 +332,101 @@ export default function CartPage() {
                 </Link>
               </div>
             </div>
+
+            {/* Delivery Map Selection Card */}
+            {isMounted && (
+              <div style={{
+                background: 'var(--card-bg)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: 'var(--shadow-sm)',
+                padding: '24px',
+                marginTop: '24px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 900, fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <MapPin size={20} color="var(--primary)" /> {t('Set Delivery Address & Map Pin', 'ڈیلیوری ایڈریس اور لوکیشن منتخب کریں')}
+                    </h3>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                      {t('Select your exact location on the map to calculate accurate delivery charges.', 'ڈیلیوری چارجز کے لیے نقشے پر اپنی درست لوکیشن پن کریں۔')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDetectLocation}
+                    disabled={isDetectingLocation}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'var(--primary)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(241, 60, 11, 0.15)'
+                    }}
+                  >
+                    <Navigation size={12} style={{ transform: 'rotate(45deg)' }} />
+                    {isDetectingLocation ? t('Locating...', 'معلوم کی جا رہی ہے...') : t('Use My GPS', 'موجودہ لوکیشن')}
+                  </button>
+                </div>
+
+                {/* Map Component Container */}
+                <div style={{ 
+                  height: '300px', 
+                  width: '100%', 
+                  borderRadius: 'var(--radius-md)', 
+                  overflow: 'hidden', 
+                  border: '1px solid var(--border-color)', 
+                  zIndex: 1
+                }}>
+                  <LocationMapComponent 
+                    position={markerPos} 
+                    setPosition={setMarkerPos} 
+                    onLocationUpdate={handleLocationChange} 
+                  />
+                </div>
+
+                {/* Dynamic Details Stats */}
+                {distance !== null && (
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '1fr 1fr 1fr', 
+                    gap: '16px', 
+                    marginTop: '16px',
+                    fontSize: '0.8rem',
+                    background: 'var(--background)',
+                    padding: '16px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('Kitchen Distance:', 'کچن سے فاصلہ:')}</span>
+                      <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--foreground)', marginTop: '4px' }}>
+                        {distance.toFixed(2)} km
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('Delivery Charges:', 'ڈیلیوری فیس:')}</span>
+                      <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--primary)', marginTop: '4px' }}>
+                        Rs. {shippingFee}
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('Estimated Delivery:', 'اندازہ وقت ترسیل:')}</span>
+                      <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--foreground)', marginTop: '4px' }}>
+                        {distance <= 1 ? '10 - 20 mins' : distance <= 3 ? '15 - 25 mins' : distance <= 6 ? '25 - 35 mins' : distance <= 12 ? '35 - 50 mins' : '50 - 75 mins'}
+                      </strong>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right panel: order summary checkout card */}
@@ -207,7 +442,14 @@ export default function CartPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
                 <span style={{ color: 'var(--text-muted)' }}>{t('Delivery Fee', 'ڈلیوری فیس')}</span>
-                <span style={{ fontWeight: 700 }}>Rs. {shippingFee}</span>
+                <span style={{ fontWeight: 700 }}>
+                  Rs. {shippingFee}
+                  {distance !== null && (
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', textAlign: 'right', fontWeight: 600 }}>
+                      ({distance.toFixed(1)} km distance)
+                    </span>
+                  )}
+                </span>
               </div>
               <div style={{
                 display: 'flex',
@@ -220,7 +462,7 @@ export default function CartPage() {
                 fontSize: '0.75rem',
                 fontWeight: 800
               }}>
-                🛵 {t('Flat delivery charges applied.', 'فلیٹ ڈلیوری چارجز لاگو ہیں۔')}
+                🛵 {t('Dynamic delivery charges based on map pin.', 'نقشے پر لوکیشن کے مطابق ڈیلیوری چارجز۔')}
               </div>
               
               <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '8px 0' }} />
