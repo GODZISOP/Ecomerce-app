@@ -3,18 +3,55 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck, Truck, ArrowLeft, ClipboardList } from 'lucide-react';
+import { ShieldCheck, Truck, ArrowLeft, ClipboardList, MapPin, Navigation } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { supabase } from '@/lib/supabaseClient';
 import { useLanguage } from '@/context/LanguageContext';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the LocationMapComponent to avoid SSR window-is-not-defined errors in Next.js
+const LocationMapComponent = dynamic(
+  () => import('@/components/LocationMapComponent'),
+  { 
+    ssr: false, 
+    loading: () => (
+      <div style={{ 
+        height: '240px', 
+        width: '100%', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        background: 'rgba(255, 255, 255, 0.05)', 
+        borderRadius: 'var(--radius-sm)',
+        border: '1px dashed var(--border-color)',
+        color: 'var(--text-muted)',
+        fontSize: '0.85rem'
+      }}>
+        📍 Loading map layout...
+      </div>
+    ) 
+  }
+);
+
+// Restaurant kitchen coordinates (DHA Phase 5/Gulshan-e-Iqbal hub center)
+const RESTAURANT_COORDS = { lat: 24.96388, lon: 67.12789 };
+
+// Haversine formula to compute distance in kilometers between two coords
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+  return R * c; // Distance in km
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, cartSubtotal, clearCart } = useCart();
   const { t } = useLanguage();
-
-  const shippingFee = cart.length > 0 ? 150 : 0;
-  const grandTotal = cartSubtotal + shippingFee;
 
   // Form States
   const [name, setName] = useState('');
@@ -23,17 +60,109 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('Karachi');
   
+  // Location Map States
+  const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number }>({ lat: 24.96388, lng: 67.12789 });
+  const [distance, setDistance] = useState<number | null>(null);
+  const [shippingFee, setShippingFee] = useState(120);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+
   // Validation / Loading States
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const grandTotal = cartSubtotal + (cart.length > 0 ? shippingFee : 0);
+
+  // Prefill city and address fields from localStorage on mount
   useEffect(() => {
     setIsMounted(true);
+    const savedCity = localStorage.getItem('fatpizza_user_city');
+    const savedArea = localStorage.getItem('fatpizza_user_area');
+    
+    if (savedCity) {
+      setCity(savedCity);
+    }
+    if (savedArea) {
+      setAddress(savedArea + ', ');
+    }
+
+    // Determine initial coordinates based on saved area
+    let initialLat = 24.96388;
+    let initialLng = 67.12789;
+
+    if (savedArea) {
+      const area = savedArea.toLowerCase();
+      if (area.includes('jauhar')) {
+        initialLat = 24.9142; initialLng = 67.1234;
+      } else if (area.includes('gulshan')) {
+        initialLat = 24.9180; initialLng = 67.0971;
+      } else if (area.includes('scheme 33')) {
+        initialLat = 24.9678; initialLng = 67.1472;
+      } else if (area.includes('saadi')) {
+        initialLat = 24.9575; initialLng = 67.1725;
+      } else if (area.includes('malir')) {
+        initialLat = 24.8922; initialLng = 67.1947;
+      }
+    }
+    
+    setMarkerPos({ lat: initialLat, lng: initialLng });
+    const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, initialLat, initialLng);
+    setDistance(dist);
+    updateShippingFeeByDistance(dist);
   }, []);
 
+  // Update shipping fee dynamically based on location zones
+  const updateShippingFeeByDistance = (distKm: number) => {
+    let fee = 150;
+    if (distKm <= 1) {
+      fee = 120;
+    } else if (distKm <= 3) {
+      fee = 150;
+    } else if (distKm <= 6) {
+      fee = 200;
+    } else if (distKm <= 10) {
+      fee = 250;
+    } else if (distKm <= 15) {
+      fee = 350;
+    } else {
+      fee = 500;
+    }
+    setShippingFee(fee);
+  };
 
+  // Browser Geolocation / GPS Finder
+  const handleDetectLocation = () => {
+    if (navigator.geolocation) {
+      setIsDetectingLocation(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setMarkerPos({ lat: latitude, lng: longitude });
+          const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, latitude, longitude);
+          setDistance(dist);
+          updateShippingFeeByDistance(dist);
+          setIsDetectingLocation(false);
+        },
+        (error) => {
+          console.error("GPS detection error:", error);
+          alert(t('Could not detect location automatically. Please tap your location on the map.', 'لوکیشن معلوم نہیں کی جا سکی۔ براہ کرم نقشے پر اپنی لوکیشن منتخب کریں۔'));
+          setIsDetectingLocation(false);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } else {
+      alert(t('Geolocation is not supported by your browser.', 'آپ کا براؤزر لوکیشن کو سپورٹ نہیں کرتا۔'));
+    }
+  };
+
+  // Handle map click update
+  const handleLocationChange = (lat: number, lng: number) => {
+    setMarkerPos({ lat, lng });
+    const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, lat, lng);
+    setDistance(dist);
+    updateShippingFeeByDistance(dist);
+  };
 
   const validateForm = () => {
     if (name.trim().length < 3) {
@@ -91,6 +220,9 @@ export default function CheckoutPage() {
         requires_prescription: false
       }));
 
+      // Append coordinates at the end of the address text
+      const finalAddress = `${address.trim()} (Coords: ${markerPos.lat.toFixed(5)}, ${markerPos.lng.toFixed(5)})`;
+
       // 3. Write to local backend orders API
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -99,7 +231,7 @@ export default function CheckoutPage() {
           customer_name: name.trim(),
           phone: phone.replace(/[\s-]/g, ''),
           email: email.trim(),
-          address: address.trim(),
+          address: finalAddress,
           city: city,
           items: orderItems,
           subtotal: cartSubtotal,
@@ -116,7 +248,7 @@ export default function CheckoutPage() {
         throw new Error(resData.error || 'Failed to place order');
       }
 
-      // Trigger email notifications
+      // Trigger email/SMS notifications
       try {
         await fetch('/api/notify', {
           method: 'POST',
@@ -130,7 +262,7 @@ export default function CheckoutPage() {
               customer_name: name.trim(),
               phone: phone.replace(/[\s-]/g, ''),
               email: email.trim(),
-              address: address.trim(),
+              address: finalAddress,
               city: city,
               items: orderItems,
               subtotal: cartSubtotal,
@@ -141,7 +273,7 @@ export default function CheckoutPage() {
           })
         });
       } catch (err) {
-        console.error('Failed to send notification email:', err);
+        console.error('Failed to send notification:', err);
       }
 
       setIsSuccess(true);
@@ -241,8 +373,34 @@ export default function CheckoutPage() {
         {/* Left Side: Delivery Details Form */}
         <div className="responsive-tab-main">
           <div className="responsive-card" style={{ background: 'white', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '40px' }}>
+            
+            {/* Guest Checkout Banner */}
+            <div style={{
+              background: 'rgba(16, 185, 129, 0.06)',
+              color: '#059669',
+              border: '1px solid rgba(16, 185, 129, 0.2)',
+              padding: '16px 20px',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.88rem',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'start',
+              gap: '14px',
+              marginBottom: '30px'
+            }}>
+              <ShieldCheck size={22} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <span style={{ display: 'block', fontWeight: 900, fontSize: '0.92rem' }}>
+                  {t('Fast Guest Checkout Active', 'بغیر لاگ ان آرڈر کی سہولت فعال')}
+                </span>
+                <span style={{ fontSize: '0.78rem', color: '#047857', fontWeight: 600, display: 'block', marginTop: '3px', lineHeight: '1.4' }}>
+                  {t('No account registration or login required. Order instantly. Payment is only collected via Cash on Delivery.', 'اکاؤنٹ بنانے یا لاگ ان کرنے کی کوئی ضرورت نہیں۔ آرڈر فوری بک کریں۔ ادائیگی صرف ڈلیوری کے وقت نقد وصول کی جائے گی۔')}
+                </span>
+              </div>
+            </div>
+
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
-              {t('Delivery Information', 'پتہ اور معلومات')}
+              {t('Delivery Information', 'پتہ aur معلومات')}
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '30px' }}>
               {t('Enter accurate delivery details. Cash on Delivery is verified via Phone Call.', 'درست ڈیلیوری کی معلومات درج کریں۔ فون کال کے ذریعے کیش آن ڈیلیوری کی تصدیق کی جاتی ہے۔')}
@@ -264,7 +422,7 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               
               {/* Full Name */}
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -317,23 +475,6 @@ export default function CheckoutPage() {
                 />
               </div>
 
-              {/* Shipping Address */}
-              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
-                  {t('Complete Address', 'گھر کا پتہ')} <span style={{ color: 'red' }}>*</span>
-                </label>
-                <textarea 
-                  className="form-input"
-                  rows={4}
-                  placeholder={t('e.g. House # 42-B, Street 5, Phase 6, DHA', 'مثال کے طور پر: مکان نمبر 42-بی، گلی نمبر 5، فیز 6، ڈی ایچ اے')}
-                  style={{ resize: 'none', fontFamily: 'inherit', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-
               {/* City Selector */}
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
@@ -352,6 +493,127 @@ export default function CheckoutPage() {
                 </select>
               </div>
 
+              {/* Shipping Address */}
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                  {t('Complete Address', 'گھر کا پتہ')} <span style={{ color: 'red' }}>*</span>
+                </label>
+                <textarea 
+                  className="form-input"
+                  rows={4}
+                  placeholder={t('e.g. House # 42-B, Street 5, Phase 6, DHA', 'مثال کے طور پر: مکان نمبر 42-بی، گلی نمبر 5، فیز 6، ڈی ایچ اے')}
+                  style={{ resize: 'none', fontFamily: 'inherit', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
+
+              {/* Dynamic Map Location Selector */}
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '12px', 
+                border: '1px solid var(--border-color)', 
+                borderRadius: 'var(--radius-md)', 
+                padding: '20px', 
+                background: '#fafafa' 
+              }}>
+                <div style={{ display: 'flex', justifySelf: 'space-between', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <label style={{ fontWeight: 900, fontSize: '0.88rem', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPin size={18} color="var(--primary)" /> {t('Select Exact Pin Location', 'نقشے پر اپنی لوکیشن پن کریں')}
+                    </label>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                      {t('Click/Tap the map or use GPS to set your precise coordinates.', 'نقشے پر کلک کریں یا جی پی ایس کے ذریعے لوکیشن حاصل کریں۔')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDetectLocation}
+                    disabled={isDetectingLocation}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'var(--primary)',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(241, 60, 11, 0.15)'
+                    }}
+                  >
+                    <Navigation size={12} style={{ transform: 'rotate(45deg)' }} />
+                    {isDetectingLocation ? t('Locating...', 'معلوم کی جا رہی ہے...') : t('Use My GPS', 'موجودہ لوکیشن')}
+                  </button>
+                </div>
+
+                {/* Map Layout Area */}
+                <div style={{ 
+                  height: '280px', 
+                  width: '100%', 
+                  borderRadius: 'var(--radius-sm)', 
+                  overflow: 'hidden', 
+                  border: '1px solid var(--border-color)', 
+                  marginTop: '6px',
+                  zIndex: 1
+                }}>
+                  <LocationMapComponent 
+                    position={markerPos} 
+                    setPosition={setMarkerPos} 
+                    onLocationUpdate={handleLocationChange} 
+                  />
+                </div>
+
+                {/* Dynamic Distance Details */}
+                {distance !== null && (
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '1fr 1fr', 
+                    gap: '12px', 
+                    marginTop: '4px',
+                    fontSize: '0.78rem',
+                    background: '#ffffff',
+                    padding: '12px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('Kitchen Distance:', 'کچن سے فاصلہ:')}</span>
+                      <span style={{ display: 'block', fontWeight: 800, fontSize: '0.9rem', color: '#1a1a1a', marginTop: '2px' }}>
+                        {distance.toFixed(2)} km
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('Estimated Delivery Time:', 'اندازہ وقت ترسیل:')}</span>
+                      <span style={{ display: 'block', fontWeight: 800, fontSize: '0.9rem', color: '#1a1a1a', marginTop: '2px' }}>
+                        {distance <= 1 ? '10 - 20 mins' : distance <= 3 ? '15 - 25 mins' : distance <= 6 ? '25 - 35 mins' : distance <= 12 ? '35 - 50 mins' : '50 - 75 mins'}
+                      </span>
+                    </div>
+                    
+                    {distance > 15 && (
+                      <div style={{
+                        gridColumn: 'span 2',
+                        background: 'rgba(239, 68, 68, 0.06)',
+                        color: 'var(--status-cancelled)',
+                        border: '1px solid rgba(239, 68, 68, 0.15)',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        lineHeight: '1.4',
+                        fontWeight: 700
+                      }}>
+                        ⚠️ {t('Warning: You are very far from our kitchen (over 15km). Delivery times may vary.', 'انتباہ: آپ ہمارے باورچی خانے سے کافی دور ہیں (15 کلومیٹر سے زیادہ)۔ ڈلیوری کا وقت تبدیل ہو سکتا ہے۔')}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* COD Disclaimer */}
               <div style={{
                 background: 'var(--background)',
@@ -361,8 +623,7 @@ export default function CheckoutPage() {
                 display: 'flex',
                 gap: '16px',
                 alignItems: 'flex-start',
-                marginBottom: '12px',
-                marginTop: '12px'
+                marginTop: '8px'
               }}>
                 <Truck size={24} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
@@ -377,7 +638,7 @@ export default function CheckoutPage() {
                 type="submit" 
                 className="btn-primary"
                 disabled={isSubmitting}
-                style={{ width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1.05rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800, borderRadius: 'var(--radius-sm)' }}
+                style={{ width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1.05rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800, borderRadius: 'var(--radius-sm)', marginTop: '8px' }}
               >
                 {isSubmitting ? t('Processing Order...', 'آرڈر جا رہا ہے...') : t('Confirm Order', 'آرڈر کنفرم کریں')}
               </button>
@@ -416,7 +677,14 @@ export default function CheckoutPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)' }}>{t('Delivery Fee:', 'ڈلیوری فیس:')}</span>
-                <span style={{ fontWeight: 700 }}>Rs. {shippingFee}</span>
+                <span style={{ fontWeight: 700 }}>
+                  Rs. {shippingFee}
+                  {distance !== null && (
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', textAlign: 'right', fontWeight: 600 }}>
+                      ({distance.toFixed(1)} km distance)
+                    </span>
+                  )}
+                </span>
               </div>
               <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '6px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem' }}>

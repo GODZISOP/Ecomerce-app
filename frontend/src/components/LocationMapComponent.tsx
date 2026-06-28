@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 
-// Component to handle map clicks
-const LocationMarker = ({ position, setPosition, onLocationUpdate }: any) => {
+// Component to handle map clicks and drop marker
+const LocationMarker = ({ position, setPosition, onLocationUpdate, icon }: any) => {
   useMapEvents({
     click(e: any) {
       setPosition(e.latlng);
@@ -12,9 +12,18 @@ const LocationMarker = ({ position, setPosition, onLocationUpdate }: any) => {
     },
   });
 
-  return position === null ? null : (
-    <Marker position={position}></Marker>
+  return position === null || !icon ? null : (
+    <Marker position={position} icon={icon}></Marker>
   );
+};
+
+// Component to handle map view auto-centering when props change
+const ChangeMapView = ({ center }: { center: { lat: number; lng: number } }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.setView([center.lat, center.lng], map.getZoom());
+  }, [center.lat, center.lng, map]);
+  return null;
 };
 
 interface LocationMapComponentProps {
@@ -28,21 +37,46 @@ export default function LocationMapComponent({
   setPosition,
   onLocationUpdate
 }: LocationMapComponentProps) {
+  const [mapKey, setMapKey] = React.useState(0);
+
+  useEffect(() => {
+    setMapKey(prev => prev + 1);
+  }, []);
+
+  const customIcon = React.useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    const L = require('leaflet');
+    return new L.Icon({
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+  }, []);
+
   return (
     <MapContainer 
+      key={`map-${mapKey}`}
       center={position} 
-      zoom={13} 
+      zoom={14} 
       style={{ height: '100%', width: '100%' }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <LocationMarker 
-        position={position} 
-        setPosition={setPosition} 
-        onLocationUpdate={onLocationUpdate} 
-      />
+      {customIcon && (
+        <LocationMarker 
+          position={position} 
+          setPosition={setPosition} 
+          onLocationUpdate={onLocationUpdate} 
+          icon={customIcon}
+        />
+      )}
+      <ChangeMapView center={position} />
     </MapContainer>
   );
 }
+

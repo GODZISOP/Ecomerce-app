@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import 'leaflet/dist/leaflet.css';
 import { CartProvider } from '@/context/CartContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AIChatAssistant from '@/components/AIChatAssistant';
 import LocationModal from '@/components/LocationModal';
+
 
 export const metadata: Metadata = {
   title: 'Fatpizza Pakistan | Online Pizza & Burger Delivery',
