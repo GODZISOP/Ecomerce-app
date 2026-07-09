@@ -351,6 +351,26 @@ body {
   color: var(--text-muted);
 }
 
+.form-input {
+  background-color: var(--background);
+  color: var(--foreground);
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--primary) !important;
+}
+
+/* Fix browser autofill background changing to white */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover, 
+.form-input:-webkit-autofill:focus, 
+.form-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--card-bg) inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .btn-primary {
   background: var(--primary);
   color: white;

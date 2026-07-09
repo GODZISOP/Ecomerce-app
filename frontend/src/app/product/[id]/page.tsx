@@ -68,7 +68,7 @@ export default function ProductDetailPage() {
           display: 'grid',
           gridTemplateColumns: '1fr 1.2fr'
         }} className="product-detail-grid">
-          <div style={{ background: '#fcfcfc', height: '400px' }} className="product-detail-img-wrap">
+          <div style={{ background: 'transparent', height: '400px' }} className="product-detail-img-wrap">
             <div className="skeleton-shimmer" style={{ width: '100%', height: '100%' }} />
           </div>
           <div style={{ padding: '50px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -131,7 +131,7 @@ export default function ProductDetailPage() {
         
         {/* Left Column: Image */}
         <div style={{
-          background: '#fcfcfc',
+          background: 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

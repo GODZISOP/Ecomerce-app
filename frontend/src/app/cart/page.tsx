@@ -59,6 +59,7 @@ export default function CartPage() {
   const [shippingFee, setShippingFee] = useState(120);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [hasSetLocation, setHasSetLocation] = useState(false);
 
   const grandTotal = cartSubtotal + (cart.length > 0 ? shippingFee : 0);
 
@@ -70,6 +71,11 @@ export default function CartPage() {
     const savedLat = localStorage.getItem('fatpizza_checkout_lat');
     const savedLng = localStorage.getItem('fatpizza_checkout_lng');
     
+    const locationSet = localStorage.getItem('fatpizza_location_set');
+    if (locationSet === 'true') {
+      setHasSetLocation(true);
+    }
+
     let initialLat = 24.96388;
     let initialLng = 67.12789;
 
@@ -134,6 +140,8 @@ export default function CartPage() {
           setDistance(dist);
           updateShippingFeeByDistance(dist, latitude, longitude);
           setIsDetectingLocation(false);
+          setHasSetLocation(true);
+          localStorage.setItem('fatpizza_location_set', 'true');
         },
         (error) => {
           console.error("GPS detection error:", error);
@@ -147,12 +155,24 @@ export default function CartPage() {
     }
   };
 
+  useEffect(() => {
+    if (isMounted) {
+      const locationSet = localStorage.getItem('fatpizza_location_set');
+      if (locationSet !== 'true') {
+        handleDetectLocation();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted]);
+
   // Map Click update callback
   const handleLocationChange = (lat: number, lng: number) => {
     setMarkerPos({ lat, lng });
     const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, lat, lng);
     setDistance(dist);
     updateShippingFeeByDistance(dist, lat, lng);
+    setHasSetLocation(true);
+    localStorage.setItem('fatpizza_location_set', 'true');
   };
 
   const handleQtyChange = (id: number, currentQty: number, change: number) => {
@@ -473,13 +493,20 @@ export default function CartPage() {
               </div>
             </div>
 
-            <a 
-              href="/checkout"
+            <button
+              onClick={(e) => {
+                if (!hasSetLocation) {
+                  e.preventDefault();
+                  alert(t('Please use GPS or map pin to set your delivery location first!', 'براہ کرم پہلے جی پی ایس یا نقشے سے اپنی ڈیلیوری لوکیشن منتخب کریں!'));
+                } else {
+                  router.push('/checkout');
+                }
+              }}
               className="btn-primary" 
               style={{ display: 'flex', width: '100%', padding: '16px 24px', justifyContent: 'center', fontSize: '1rem', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 800, textDecoration: 'none' }}
             >
               {t('Proceed to Checkout', 'چیک آؤٹ کی طرف جائیں')} <ArrowRight size={18} />
-            </a>
+            </button>
 
             <div style={{
               display: 'flex',

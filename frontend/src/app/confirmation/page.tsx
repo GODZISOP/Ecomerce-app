@@ -219,7 +219,6 @@ function ConfirmationContent() {
               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
                 <div>
                   <span style={{ fontWeight: 800 }}>{t(item.name)}</span>
-                  <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>({t(item.dosage)})</span>
                   <span style={{ color: 'var(--text-muted)', marginLeft: '12px' }}>x{item.quantity}</span>
                 </div>
                 <span style={{ fontWeight: 800 }}>Rs. {item.price_pkr * item.quantity}</span>

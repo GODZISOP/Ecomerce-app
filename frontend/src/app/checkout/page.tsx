@@ -6,32 +6,6 @@ import Link from 'next/link';
 import { ShieldCheck, Truck, ArrowLeft, ClipboardList, MapPin, Navigation } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
-import dynamic from 'next/dynamic';
-
-// Dynamically import the LocationMapComponent to avoid SSR window-is-not-defined errors in Next.js
-const LocationMapComponent = dynamic(
-  () => import('@/components/LocationMapComponent'),
-  { 
-    ssr: false, 
-    loading: () => (
-      <div style={{ 
-        height: '240px', 
-        width: '100%', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        background: 'rgba(255, 255, 255, 0.05)', 
-        borderRadius: 'var(--radius-sm)',
-        border: '1px dashed var(--border-color)',
-        color: 'var(--text-muted)',
-        fontSize: '0.85rem'
-      }}>
-        📍 Loading map layout...
-      </div>
-    ) 
-  }
-);
-
 // Restaurant kitchen coordinates (DHA Phase 5/Gulshan-e-Iqbal hub center)
 const RESTAURANT_COORDS = { lat: 24.96388, lon: 67.12789 };
 
@@ -59,12 +33,14 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('Karachi');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [note, setNote] = useState('');
+  const [changeFor, setChangeFor] = useState('');
   
   // Location Map States
   const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number }>({ lat: 24.96388, lng: 67.12789 });
   const [distance, setDistance] = useState<number | null>(null);
   const [shippingFee, setShippingFee] = useState(120);
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   // Validation / Loading States
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -77,13 +53,28 @@ export default function CheckoutPage() {
   // Prefill city and address fields from localStorage on mount
   useEffect(() => {
     setIsMounted(true);
+    
+    const savedName = localStorage.getItem('fatpizza_user_name');
+    const savedPhone = localStorage.getItem('fatpizza_user_phone');
+    const savedEmail = localStorage.getItem('fatpizza_user_email');
+    const savedWhatsapp = localStorage.getItem('fatpizza_user_whatsapp');
+    const savedNote = localStorage.getItem('fatpizza_user_note');
+    const savedChangeFor = localStorage.getItem('fatpizza_user_change_for');
+    const savedFullAddress = localStorage.getItem('fatpizza_user_address_full');
     const savedCity = localStorage.getItem('fatpizza_user_city');
     const savedArea = localStorage.getItem('fatpizza_user_area');
     
-    if (savedCity) {
-      setCity(savedCity);
-    }
-    if (savedArea) {
+    if (savedName) setName(savedName);
+    if (savedPhone) setPhone(savedPhone);
+    if (savedEmail) setEmail(savedEmail);
+    if (savedWhatsapp) setWhatsapp(savedWhatsapp);
+    if (savedNote) setNote(savedNote);
+    if (savedChangeFor) setChangeFor(savedChangeFor);
+    if (savedCity) setCity(savedCity);
+
+    if (savedFullAddress) {
+      setAddress(savedFullAddress);
+    } else if (savedArea) {
       setAddress(savedArea + ', ');
     }
 
@@ -145,39 +136,6 @@ export default function CheckoutPage() {
     setShippingFee(fee);
   };
 
-  // Browser Geolocation / GPS Finder
-  const handleDetectLocation = () => {
-    if (navigator.geolocation) {
-      setIsDetectingLocation(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setMarkerPos({ lat: latitude, lng: longitude });
-          const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, latitude, longitude);
-          setDistance(dist);
-          updateShippingFeeByDistance(dist);
-          setIsDetectingLocation(false);
-        },
-        (error) => {
-          console.error("GPS detection error:", error);
-          alert(t('Could not detect location automatically. Please tap your location on the map.', 'لوکیشن معلوم نہیں کی جا سکی۔ براہ کرم نقشے پر اپنی لوکیشن منتخب کریں۔'));
-          setIsDetectingLocation(false);
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
-    } else {
-      alert(t('Geolocation is not supported by your browser.', 'آپ کا براؤزر لوکیشن کو سپورٹ نہیں کرتا۔'));
-    }
-  };
-
-  // Handle map click update
-  const handleLocationChange = (lat: number, lng: number) => {
-    setMarkerPos({ lat, lng });
-    const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, lat, lng);
-    setDistance(dist);
-    updateShippingFeeByDistance(dist);
-  };
-
   const validateForm = () => {
     if (name.trim().length < 3) {
       return t('Please enter your full name (At least 3 characters).', 'براہ کرم اپنا پورا نام درج کریں (کم از کم 3 حروف)۔');
@@ -234,8 +192,11 @@ export default function CheckoutPage() {
         requires_prescription: false
       }));
 
-      // Append coordinates at the end of the address text
-      const finalAddress = `${address.trim()} (Coords: ${markerPos.lat.toFixed(5)}, ${markerPos.lng.toFixed(5)})`;
+      // Append coordinates, whatsapp, note, and change amount at the end of the address text
+      const finalAddress = `${address.trim()} (Coords: ${markerPos.lat.toFixed(5)}, ${markerPos.lng.toFixed(5)})` +
+        (whatsapp.trim() ? `\nWhatsApp: ${whatsapp.trim()}` : '') +
+        (note.trim() ? `\nNote: ${note.trim()}` : '') +
+        (changeFor.trim() ? `\nChange Required For: Rs. ${changeFor.trim()}` : '');
 
       // 3. Write to local backend orders API
       const response = await fetch('/api/orders', {
@@ -289,6 +250,16 @@ export default function CheckoutPage() {
       } catch (err) {
         console.error('Failed to send notification:', err);
       }
+
+      // Save user details for autofill next time
+      localStorage.setItem('fatpizza_user_name', name.trim());
+      localStorage.setItem('fatpizza_user_phone', phone.replace(/[\s-]/g, ''));
+      localStorage.setItem('fatpizza_user_whatsapp', whatsapp.replace(/[\s-]/g, ''));
+      localStorage.setItem('fatpizza_user_note', note.trim());
+      localStorage.setItem('fatpizza_user_change_for', changeFor.trim());
+      localStorage.setItem('fatpizza_user_email', email.trim());
+      localStorage.setItem('fatpizza_user_address_full', address.trim());
+      localStorage.setItem('fatpizza_user_city', city);
 
       setIsSuccess(true);
       clearCart();
@@ -386,7 +357,7 @@ export default function CheckoutPage() {
         
         {/* Left Side: Delivery Details Form */}
         <div className="responsive-tab-main">
-          <div className="responsive-card" style={{ background: 'white', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '40px' }}>
+          <div className="responsive-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '40px' }}>
             
             {/* Guest Checkout Banner */}
             <div style={{
@@ -451,7 +422,7 @@ export default function CheckoutPage() {
                   onChange={(e) => setName(e.target.value)}
                   disabled={isSubmitting}
                   required
-                  style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                  style={{ backgroundColor: 'transparent', color: 'var(--foreground)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                 />
               </div>
 
@@ -468,7 +439,23 @@ export default function CheckoutPage() {
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={isSubmitting}
                   required
-                  style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                  style={{ backgroundColor: 'transparent', color: 'var(--foreground)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                />
+              </div>
+
+              {/* WhatsApp Number (Optional) */}
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                  {t('WhatsApp Number', 'واٹس ایپ نمبر')} <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>(Optional / اختیاری)</span>
+                </label>
+                <input 
+                  type="tel" 
+                  className="form-input"
+                  placeholder={t('Same as phone number if empty', 'موبائل نمبر جیسا')}
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: 'transparent', color: 'var(--foreground)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                 />
               </div>
 
@@ -485,7 +472,7 @@ export default function CheckoutPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubmitting}
                   required
-                  style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                  style={{ backgroundColor: 'transparent', color: 'var(--foreground)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                 />
               </div>
 
@@ -499,7 +486,7 @@ export default function CheckoutPage() {
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   disabled={isSubmitting}
-                  style={{ cursor: 'pointer', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                  style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)', cursor: 'pointer', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                 >
                   {cities.map((ct, idx) => (
                     <option key={idx} value={ct}>{ct}</option>
@@ -514,9 +501,9 @@ export default function CheckoutPage() {
                 </label>
                 <textarea 
                   className="form-input"
-                  rows={4}
+                  rows={3}
                   placeholder={t('e.g. House # 42-B, Street 5, Phase 6, DHA', 'مثال کے طور پر: مکان نمبر 42-بی، گلی نمبر 5، فیز 6، ڈی ایچ اے')}
-                  style={{ resize: 'none', fontFamily: 'inherit', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                  style={{ backgroundColor: 'transparent', color: 'var(--foreground)', resize: 'none', fontFamily: 'inherit', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   disabled={isSubmitting}
@@ -524,67 +511,56 @@ export default function CheckoutPage() {
                 />
               </div>
 
-              {/* Dynamic Map Location Selector */}
+              {/* Order Note */}
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                  {t('Order Note', 'آرڈر کی تفصیل / نوٹ')} <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>(Optional / اختیاری)</span>
+                </label>
+                <textarea 
+                  className="form-input"
+                  rows={2}
+                  placeholder={t('e.g. Extra spicy, ring the doorbell', 'مثال کے طور پر: زیادہ مصالحہ، گھنٹی بجائیں')}
+                  style={{ backgroundColor: 'transparent', color: 'var(--foreground)', resize: 'none', fontFamily: 'inherit', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              {/* Cash Change Required */}
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="form-label" style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                  {t('Bring Change For (Rs.)', 'کتنے روپے کا کھلا لانا ہے؟')} <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>(Optional / اختیاری)</span>
+                </label>
+                <input 
+                  type="number" 
+                  className="form-input"
+                  placeholder={t('e.g. 5000', 'مثال کے طور پر: 5000')}
+                  value={changeFor}
+                  onChange={(e) => setChangeFor(e.target.value)}
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: 'transparent', color: 'var(--foreground)', padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                />
+              </div>
+
+
+              {/* Dynamic Distance Details (Read-only from Cart) */}
               <div style={{ 
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: '12px', 
                 border: '1px solid var(--border-color)', 
                 borderRadius: 'var(--radius-md)', 
-                padding: '20px', 
-                background: '#fafafa' 
+                padding: '16px', 
+                background: 'var(--background)' 
               }}>
-                <div style={{ display: 'flex', justifySelf: 'space-between', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                  <div>
-                    <label style={{ fontWeight: 900, fontSize: '0.88rem', color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <MapPin size={18} color="var(--primary)" /> {t('Select Exact Pin Location', 'نقشے پر اپنی لوکیشن پن کریں')}
-                    </label>
-                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-                      {t('Click/Tap the map or use GPS to set your precise coordinates.', 'نقشے پر کلک کریں یا جی پی ایس کے ذریعے لوکیشن حاصل کریں۔')}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleDetectLocation}
-                    disabled={isDetectingLocation}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      background: 'var(--primary)',
-                      color: 'white',
-                      border: 'none',
-                      padding: '8px 14px',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '0.75rem',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(241, 60, 11, 0.15)'
-                    }}
-                  >
-                    <Navigation size={12} style={{ transform: 'rotate(45deg)' }} />
-                    {isDetectingLocation ? t('Locating...', 'معلوم کی جا رہی ہے...') : t('Use My GPS', 'موجودہ لوکیشن')}
-                  </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <MapPin size={18} color="var(--primary)" /> 
+                  <span style={{ fontWeight: 900, fontSize: '0.88rem', color: 'var(--foreground)' }}>
+                    {t('Location Synced from Cart', 'کارٹ سے لوکیشن سنک ہو گئی')}
+                  </span>
                 </div>
 
-                {/* Map Layout Area */}
-                <div style={{ 
-                  height: '280px', 
-                  width: '100%', 
-                  borderRadius: 'var(--radius-sm)', 
-                  overflow: 'hidden', 
-                  border: '1px solid var(--border-color)', 
-                  marginTop: '6px',
-                  zIndex: 1
-                }}>
-                  <LocationMapComponent 
-                    position={markerPos} 
-                    setPosition={setMarkerPos} 
-                    onLocationUpdate={handleLocationChange} 
-                  />
-                </div>
-
-                {/* Dynamic Distance Details */}
                 {distance !== null && (
                   <div style={{ 
                     display: 'grid', 
@@ -592,20 +568,20 @@ export default function CheckoutPage() {
                     gap: '12px', 
                     marginTop: '4px',
                     fontSize: '0.78rem',
-                    background: '#ffffff',
+                    background: 'var(--background)',
                     padding: '12px 14px',
                     borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-color)'
                   }}>
                     <div>
                       <span style={{ color: 'var(--text-muted)' }}>{t('Kitchen Distance:', 'کچن سے فاصلہ:')}</span>
-                      <span style={{ display: 'block', fontWeight: 800, fontSize: '0.9rem', color: '#1a1a1a', marginTop: '2px' }}>
+                      <span style={{ display: 'block', fontWeight: 800, fontSize: '0.9rem', color: 'var(--foreground)', marginTop: '2px' }}>
                         {distance.toFixed(2)} km
                       </span>
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-muted)' }}>{t('Estimated Delivery Time:', 'اندازہ وقت ترسیل:')}</span>
-                      <span style={{ display: 'block', fontWeight: 800, fontSize: '0.9rem', color: '#1a1a1a', marginTop: '2px' }}>
+                      <span style={{ display: 'block', fontWeight: 800, fontSize: '0.9rem', color: 'var(--foreground)', marginTop: '2px' }}>
                         {distance <= 1 ? '10 - 20 mins' : distance <= 3 ? '15 - 25 mins' : distance <= 6 ? '25 - 35 mins' : distance <= 12 ? '35 - 50 mins' : '50 - 75 mins'}
                       </span>
                     </div>
@@ -663,7 +639,7 @@ export default function CheckoutPage() {
 
         {/* Right Side: Basket summary */}
         <div className="responsive-tab-sidebar">
-          <div className="responsive-card summary-card" style={{ background: 'white', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '30px' }}>
+          <div className="responsive-card summary-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '30px' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ClipboardList size={18} color="var(--primary)" /> {t('Basket Summary', 'آرڈر کی تفصیل')} ({cart.length})
             </h3>
@@ -735,7 +711,7 @@ export default function CheckoutPage() {
           left: 0,
           width: '100vw',
           height: '100vh',
-          background: 'rgba(255, 255, 255, 0.85)',
+          background: 'rgba(0, 0, 0, 0.7)',
           backdropFilter: 'blur(10px)',
           zIndex: 99999,
           display: 'flex',

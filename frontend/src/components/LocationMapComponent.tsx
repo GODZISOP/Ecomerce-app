@@ -37,12 +37,6 @@ export default function LocationMapComponent({
   setPosition,
   onLocationUpdate
 }: LocationMapComponentProps) {
-  const [mapKey, setMapKey] = React.useState(0);
-
-  useEffect(() => {
-    setMapKey(prev => prev + 1);
-  }, []);
-
   const customIcon = React.useMemo(() => {
     if (typeof window === 'undefined') return null;
     const L = require('leaflet');
@@ -58,7 +52,6 @@ export default function LocationMapComponent({
 
   return (
     <MapContainer 
-      key={`map-${mapKey}`}
       center={position} 
       zoom={14} 
       style={{ height: '100%', width: '100%' }}

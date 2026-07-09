@@ -44,19 +44,19 @@ export async function POST(req: Request) {
     const requestOrigin = req.headers.get('origin') || 'https://ecom12345.vercel.app';
     const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://ecomerce-app-s357.vercel.app';
 
-    // Build lists of medicines formatted for plain text and HTML
+    // Build lists of items formatted for plain text and HTML
     const itemsListHtml = items.map((item: any) => `
       <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">
-          ${item.name} <span style="font-size: 0.8rem; color: #718096; font-weight: normal;">(${item.dosage})</span>
+        <td style="padding: 10px; border-bottom: 1px solid #333; font-weight: bold; color: white;">
+          ${item.name}
         </td>
-        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">${item.quantity}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: bold;">Rs. ${item.price_pkr * item.quantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #333; text-align: center; color: white;">${item.quantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #333; text-align: right; font-weight: bold; color: white;">Rs. ${item.price_pkr * item.quantity}</td>
       </tr>
     `).join('');
 
     const itemsListText = items.map((item: any) => 
-      `- ${item.name} (${item.dosage}) x${item.quantity} = Rs. ${item.price_pkr * item.quantity}`
+      `- ${item.name} x${item.quantity} = Rs. ${item.price_pkr * item.quantity}`
     ).join('\n');
 
     // Check if SMTP is configured before attempting to send
@@ -64,52 +64,52 @@ export async function POST(req: Request) {
 
     if (type === 'new_order') {
       const adminSubject = `🚨 NAYA ORDER AAYA HAI! [${tracking_code}] - ${customer_name}`;
-      const customerSubject = `💊 MediMart Pakistan - Order Confirmed! [${tracking_code}]`;
+      const customerSubject = `🍕 Fat Pizza - Order Confirmed! [${tracking_code}]`;
 
       // Email template for the Admin (New Order Alert)
       const adminHtml = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #2d3748; line-height: 1.6;">
-          <div style="background: #0d9488; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 1.8rem;">New Order Received!</h1>
-            <p style="color: #e6fffa; margin: 5px 0 0 0; font-weight: bold; font-family: monospace;">TRACKING REF: ${tracking_code}</p>
+          <div style="background: #111111; padding: 24px; text-align: center; border-radius: 8px 8px 0 0; border-bottom: 2px solid #dc2626;">
+            <h1 style="color: white; margin: 0; font-size: 1.8rem;">New Order Received! 🍕</h1>
+            <p style="color: #ef4444; margin: 5px 0 0 0; font-weight: bold; font-family: monospace;">TRACKING REF: ${tracking_code}</p>
           </div>
           
-          <div style="background: #f7fafc; padding: 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
-            <h2 style="color: #0d9488; font-size: 1.2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 0;">
+          <div style="background: #1a1a1a; padding: 24px; border: 1px solid #333; border-top: none; border-radius: 0 0 8px 8px; color: #f3f4f6;">
+            <h2 style="color: #ef4444; font-size: 1.2rem; border-bottom: 2px solid #333; padding-bottom: 8px; margin-top: 0;">
               A to Z Client Details (گاہک کی معلومات)
             </h2>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-              <tr><td style="padding: 6px 0; color: #718096; width: 120px;">Customer Name:</td><td style="padding: 6px 0; font-weight: bold;">${customer_name}</td></tr>
-              <tr><td style="padding: 6px 0; color: #718096;">Phone Number:</td><td style="padding: 6px 0; font-weight: bold; color: #0d9488;">${phone}</td></tr>
-              <tr><td style="padding: 6px 0; color: #718096;">City:</td><td style="padding: 6px 0; font-weight: bold;">${city}</td></tr>
-              <tr><td style="padding: 6px 0; color: #718096;">Address:</td><td style="padding: 6px 0; font-weight: bold;">${address}</td></tr>
-              <tr><td style="padding: 6px 0; color: #718096;">Order Time:</td><td style="padding: 6px 0;">${new Date().toLocaleString('en-PK')}</td></tr>
+              <tr><td style="padding: 6px 0; color: #9ca3af; width: 120px;">Customer Name:</td><td style="padding: 6px 0; font-weight: bold; color: white;">${customer_name}</td></tr>
+              <tr><td style="padding: 6px 0; color: #9ca3af;">Phone Number:</td><td style="padding: 6px 0; font-weight: bold; color: #ef4444;">${phone}</td></tr>
+              <tr><td style="padding: 6px 0; color: #9ca3af;">City:</td><td style="padding: 6px 0; font-weight: bold; color: white;">${city}</td></tr>
+              <tr><td style="padding: 6px 0; color: #9ca3af;">Address:</td><td style="padding: 6px 0; font-weight: bold; color: white;">${address}</td></tr>
+              <tr><td style="padding: 6px 0; color: #9ca3af;">Order Time:</td><td style="padding: 6px 0; color: white;">${new Date().toLocaleString('en-PK')}</td></tr>
             </table>
 
-            <h2 style="color: #0d9488; font-size: 1.2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+            <h2 style="color: #ef4444; font-size: 1.2rem; border-bottom: 2px solid #333; padding-bottom: 8px;">
               Items Summary (آرڈر کی تفصیل)
             </h2>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
               <thead>
-                <tr style="background: #edf2f7;">
-                  <th style="padding: 10px; text-align: left;">Medicine</th>
-                  <th style="padding: 10px; text-align: center; width: 60px;">Qty</th>
-                  <th style="padding: 10px; text-align: right; width: 100px;">Price</th>
+                <tr style="background: #262626;">
+                  <th style="padding: 10px; text-align: left; color: white;">Item</th>
+                  <th style="padding: 10px; text-align: center; width: 60px; color: white;">Qty</th>
+                  <th style="padding: 10px; text-align: right; width: 100px; color: white;">Price</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style="color: #d1d5db;">
                 ${itemsListHtml}
               </tbody>
             </table>
 
-            <div style="background: #e6fffa; padding: 16px; border-radius: 6px; text-align: right;">
-              <div style="font-size: 0.9rem; color: #4a5568;">Subtotal: Rs. ${subtotal}</div>
-              <div style="font-size: 0.9rem; color: #4a5568; margin: 4px 0;">COD Shipping: Rs. ${shipping_fee}</div>
-              <div style="font-size: 1.15rem; font-weight: bold; color: #0d9488;">Total Amount Payable: Rs. ${grand_total}</div>
+            <div style="background: #262626; padding: 16px; border-radius: 6px; text-align: right; border: 1px solid #333;">
+              <div style="font-size: 0.9rem; color: #9ca3af;">Subtotal: Rs. ${subtotal}</div>
+              <div style="font-size: 0.9rem; color: #9ca3af; margin: 4px 0;">COD Shipping: Rs. ${shipping_fee}</div>
+              <div style="font-size: 1.15rem; font-weight: bold; color: #ef4444;">Total Amount Payable: Rs. ${grand_total}</div>
             </div>
 
             <div style="margin-top: 30px; text-align: center;">
-              <a href="${adminUrl}/admin" style="background: #0d9488; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+              <a href="${adminUrl}/admin" style="background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 Manage Order in Admin Panel
               </a>
             </div>
@@ -119,40 +119,40 @@ export async function POST(req: Request) {
 
       // Email template for the Customer
       const customerHtml = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #2d3748; line-height: 1.6;">
-          <div style="background: #0d9488; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 1.6rem;">Order Confirmed! / آرڈر وصول ہو گیا</h1>
-            <p style="color: #e6fffa; margin: 5px 0 0 0; font-weight: bold;">Sada aur Mehfooz delivery - Cash on Delivery</p>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #e5e7eb; line-height: 1.6;">
+          <div style="background: #111111; padding: 24px; text-align: center; border-radius: 8px 8px 0 0; border-bottom: 2px solid #dc2626;">
+            <h1 style="color: white; margin: 0; font-size: 1.6rem;">Order Confirmed! 🍕</h1>
+            <p style="color: #ef4444; margin: 5px 0 0 0; font-weight: bold;">Fresh & Hot - Cash on Delivery</p>
           </div>
           
-          <div style="background: #ffffff; padding: 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+          <div style="background: #1a1a1a; padding: 24px; border: 1px solid #333; border-top: none; border-radius: 0 0 8px 8px;">
             <p>Assalam-o-Alaikum <strong>${customer_name}</strong>,</p>
-            <p>MediMart Pakistan se khareedari ka boht shukriya. Aap ka order system me confirm ho chuka hai. Humare pharma experts dawa verify kar ke jald rawana karein ge.</p>
+            <p>Fat Pizza se khareedari ka boht shukriya. Aap ka order system me confirm ho chuka hai. Humare chefs order tayar kar ke jald rawana karein ge.</p>
             
-            <div style="background: #f7fafc; padding: 16px; border-radius: 6px; margin: 20px 0; border: 1px solid #edf2f7;">
-              <div style="font-size: 0.85rem; color: #718096; font-weight: 700;">TRACKING REF:</div>
-              <div style="font-size: 1.3rem; font-weight: 800; color: #0d9488; font-family: monospace; letter-spacing: 1px; margin-top: 4px;">${tracking_code}</div>
-              <div style="font-size: 0.85rem; color: #718096; margin-top: 10px;"><strong>Delivery Address:</strong> ${address}, ${city}</div>
-              <div style="font-size: 0.85rem; color: #718096; margin-top: 4px;"><strong>Contact Number:</strong> ${phone}</div>
+            <div style="background: #262626; padding: 16px; border-radius: 6px; margin: 20px 0; border: 1px solid #333;">
+              <div style="font-size: 0.85rem; color: #9ca3af; font-weight: 700;">TRACKING REF:</div>
+              <div style="font-size: 1.3rem; font-weight: 800; color: #ef4444; font-family: monospace; letter-spacing: 1px; margin-top: 4px;">${tracking_code}</div>
+              <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 10px;"><strong>Delivery Address:</strong> ${address}, ${city}</div>
+              <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 4px;"><strong>Contact Number:</strong> ${phone}</div>
             </div>
 
-            <h3 style="color: #0d9488; border-bottom: 1px solid #edf2f7; padding-bottom: 8px;">Medicines Bill</h3>
+            <h3 style="color: #ef4444; border-bottom: 1px solid #333; padding-bottom: 8px;">Order Bill</h3>
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9rem;">
               <tbody>
                 ${itemsListHtml}
               </tbody>
             </table>
 
-            <div style="background: #f7fafc; padding: 16px; border-radius: 6px; text-align: right;">
-              <div style="font-size: 0.85rem; color: #718096;">Total COD Amount: <strong>Rs. ${grand_total}</strong></div>
+            <div style="background: #262626; padding: 16px; border-radius: 6px; text-align: right; border: 1px solid #333;">
+              <div style="font-size: 0.85rem; color: #9ca3af;">Total COD Amount: <strong style="color: white;">Rs. ${grand_total}</strong></div>
             </div>
 
-            <p style="font-size: 0.85rem; color: #718096; margin-top: 24px; text-align: center;">
+            <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 24px; text-align: center;">
               Aap apne order ka live status is link par check kar sakte hain:
             </p>
             
             <div style="text-align: center; margin-top: 12px;">
-              <a href="${requestOrigin}/tracking?code=${tracking_code}" style="background: #0d9488; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 0.9rem;">
+              <a href="${requestOrigin}/tracking?code=${tracking_code}" style="background: #dc2626; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 0.9rem;">
                 Track Live Order Status
               </a>
             </div>
@@ -165,7 +165,7 @@ export async function POST(req: Request) {
 
         // 1. Send to Admin
         await transporter.sendMail({
-          from: `"MediMart Pakistan" <${smtpConfig.auth.user}>`,
+          from: `"Fat Pizza" <${smtpConfig.auth.user}>`,
           to: adminNotificationEmail,
           subject: adminSubject,
           text: `Naya order aaya hai!\n\nClient: ${customer_name}\nPhone: ${phone}\nAddress: ${address}, ${city}\n\nItems:\n${itemsListText}\n\nTotal: Rs. ${grand_total}`,
@@ -175,7 +175,7 @@ export async function POST(req: Request) {
         // 2. Send to Customer (if email is provided)
         if (email && email.trim()) {
           await transporter.sendMail({
-            from: `"MediMart Pakistan" <${smtpConfig.auth.user}>`,
+            from: `"Fat Pizza" <${smtpConfig.auth.user}>`,
             to: email.trim(),
             subject: customerSubject,
             text: `Assalam-o-Alaikum ${customer_name},\n\nAap ka order ${tracking_code} confirm ho chuka hai aur prepare ho raha hai. Live details yahan track karein: ${requestOrigin}/tracking?code=${tracking_code}\n\nDelivery Address: ${address}, ${city}\nTotal Bill: Rs. ${grand_total}`,
@@ -208,8 +208,8 @@ export async function POST(req: Request) {
 
           // Send admin email
           const adminMailInfo = await transporter.sendMail({
-            from: `"MediMart Pakistan (Simulated)" <${testAccount.user}>`,
-            to: adminNotificationEmail || 'admin@medimart.com',
+            from: `"Fat Pizza (Simulated)" <${testAccount.user}>`,
+            to: adminNotificationEmail || 'admin@fatpizza.com',
             subject: adminSubject,
             text: `Naya order aaya hai!\n\nClient: ${customer_name}\nPhone: ${phone}\nAddress: ${address}, ${city}\nTotal: Rs. ${grand_total}`,
             html: adminHtml,
@@ -218,7 +218,7 @@ export async function POST(req: Request) {
           let customerMailInfo = null;
           if (email && email.trim()) {
             customerMailInfo = await transporter.sendMail({
-              from: `"MediMart Pakistan" <${testAccount.user}>`,
+              from: `"Fat Pizza" <${testAccount.user}>`,
               to: email.trim(),
               subject: customerSubject,
               text: `Assalam-o-Alaikum ${customer_name},\n\nAap ka order ${tracking_code} confirm ho chuka hai.`,
@@ -235,7 +235,7 @@ export async function POST(req: Request) {
             console.log(`🔗 Customer Tracking Email Preview URL:`);
             console.log(`   ${nodemailer.getTestMessageUrl(customerMailInfo)}`);
           }
-          console.log('🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟\n');
+          console.log('🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟');
 
         } catch (etherealErr: any) {
           console.error('[SMTP] Failed to generate dynamic test email:', etherealErr.message);
@@ -247,17 +247,17 @@ export async function POST(req: Request) {
 
     if (type === 'status_update') {
       const isRx = items.some((i: any) => i.requires_prescription);
-      const subject = `💊 MediMart Pakistan - Order ${status}! [${tracking_code}]`;
+      const subject = `🍕 Fat Pizza - Order ${status}! [${tracking_code}]`;
       
       let statusDescHtml = '';
       let statusDescText = '';
 
       if (status === 'Dispatched') {
         statusDescHtml = `
-          <h2 style="color: #0d9488; font-size: 1.25rem;">Aap ka order Rider ko de diya gaya hai! (On the Way) 🚴</h2>
+          <h2 style="color: #ef4444; font-size: 1.25rem;">Aap ka order Rider ko de diya gaya hai! (On the Way) 🏍️</h2>
           <p>Assalam-o-Alaikum <strong>${customer_name}</strong>,</p>
-          <p>Khushkhabri! Aap ka order <strong>${tracking_code}</strong> verify hone ke baad pack kar ke ride partner ko de diya gaya hai aur deliver hone ke liye rawana ho chuka hai.</p>
-          <p>Humara rider jald hi aap ke address par pohnch kar safe delivery kare ga. Baraye meherbani COD amount <strong>Rs. ${grand_total}</strong> tayyar rakhein.</p>
+          <p>Khushkhabri! Aap ka order <strong>${tracking_code}</strong> verify hone ke baad pack kar ke rider ko de diya gaya hai aur deliver hone ke liye rawana ho chuka hai.</p>
+          <p>Humara rider jald hi aap ke address par pohnch kar safe delivery kare ga. Baraye meherbani COD amount <strong style="color: white;">Rs. ${grand_total}</strong> tayyar rakhein.</p>
         `;
         statusDescText = `Assalam-o-Alaikum ${customer_name},\n\nKhushkhabri! Aap ka order ${tracking_code} dispatch ho chuka hai aur rider ke paas rawana hai. Baraye meherbani Rs. ${grand_total} deliver ke waqt hand over karein.`;
       } else if (status === 'Delivered') {
@@ -265,54 +265,54 @@ export async function POST(req: Request) {
           <h2 style="color: #10b981; font-size: 1.25rem;">Order Delivered Successfully! ✔️</h2>
           <p>Assalam-o-Alaikum <strong>${customer_name}</strong>,</p>
           <p>Humare record ke mutabiq aap ka order <strong>${tracking_code}</strong> aap tak safe tareeqay se pahunch gaya hai aur Cash collect ho gaya hai.</p>
-          <p>Dawa ka sahi aur bar-waqt istemal karein. Kisi bhi medical guidance ya naye orders ke liye humare website aur AI Chat support par rabta karein. Boht shukriya!</p>
+          <p>Pizza enjoy karein! Kisi bhi naye orders ke liye humare website par rabta karein. Boht shukriya!</p>
         `;
         statusDescText = `Assalam-o-Alaikum ${customer_name},\n\nAap ka order ${tracking_code} successfully deliver ho chuka hai. Khareedari ka boht shukriya.`;
       } else if (status === 'Cancelled') {
         statusDescHtml = `
           <h2 style="color: #ef4444; font-size: 1.25rem;">Order Cancelled / منسوخ شدہ</h2>
           <p>Dear Customer,</p>
-          <p>Aap ka order <strong>${tracking_code}</strong> system me phone verification na hone ya medical prescription standard complete na hone ki bina par cancel kar diya gaya hai.</p>
+          <p>Aap ka order <strong>${tracking_code}</strong> system me phone verification na hone ki bina par cancel kar diya gaya hai.</p>
           <p>Agar aap chahein to website par naya order place kar sakte hain ya support team se rabta kar ke details le sakte hain.</p>
         `;
-        statusDescText = `Dear Customer,\n\nAap ka order ${tracking_code} system me cancellation rules (prescription/verification failure) ke tahat cancel ho chuka hai.`;
+        statusDescText = `Dear Customer,\n\nAap ka order ${tracking_code} system me cancellation rules ke tahat cancel ho chuka hai.`;
       } else {
         // Prepare/Pending state
         statusDescHtml = `
-          <h2 style="color: #f59e0b; font-size: 1.25rem;">Order Preparing / آرڈر تیار ہو رہا ہے 📦</h2>
+          <h2 style="color: #f59e0b; font-size: 1.25rem;">Order Preparing / آرڈر تیار ہو رہا ہے 👨‍🍳</h2>
           <p>Assalam-o-Alaikum <strong>${customer_name}</strong>,</p>
-          <p>Humare senior pharmacist aap ke order <strong>${tracking_code}</strong> ki medicine and specifications verify kar ke abhi tayar kar rahe hain.</p>
-          <p>Jald hi aap ko medicine riders ke hawalay karne ki dispatch notification mil jaye gi.</p>
+          <p>Humare chefs aap ke order <strong>${tracking_code}</strong> ko verify kar ke abhi tayar kar rahe hain.</p>
+          <p>Jald hi aap ko delivery riders ke hawalay karne ki dispatch notification mil jaye gi.</p>
         `;
-        statusDescText = `Assalam-o-Alaikum ${customer_name},\n\nAap ka order ${tracking_code} abhi prepare aur verify ho raha hai.`;
+        statusDescText = `Assalam-o-Alaikum ${customer_name},\n\nAap ka order ${tracking_code} abhi prepare ho raha hai.`;
       }
 
       const updateHtml = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #2d3748; line-height: 1.6;">
-          <div style="background: #0d9488; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #e5e7eb; line-height: 1.6;">
+          <div style="background: #111111; padding: 24px; text-align: center; border-radius: 8px 8px 0 0; border-bottom: 2px solid #dc2626;">
             <h1 style="color: white; margin: 0; font-size: 1.6rem;">Status Update / آرڈر کی حالت</h1>
-            <p style="color: #e6fffa; margin: 5px 0 0 0; font-weight: bold; font-family: monospace;">TRACKING REF: ${tracking_code}</p>
+            <p style="color: #ef4444; margin: 5px 0 0 0; font-weight: bold; font-family: monospace;">TRACKING REF: ${tracking_code}</p>
           </div>
           
-          <div style="background: #ffffff; padding: 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px;">
+          <div style="background: #1a1a1a; padding: 24px; border: 1px solid #333; border-top: none; border-radius: 0 0 8px 8px;">
             ${statusDescHtml}
             
-            <div style="background: #f7fafc; padding: 16px; border-radius: 6px; margin: 20px 0; border: 1px solid #edf2f7; text-align: center;">
-              <span style="font-size: 0.85rem; color: #718096; font-weight: 700;">CURRENT STATUS:</span><br/>
+            <div style="background: #262626; padding: 16px; border-radius: 6px; margin: 20px 0; border: 1px solid #333; text-align: center;">
+              <span style="font-size: 0.85rem; color: #9ca3af; font-weight: 700;">CURRENT STATUS:</span><br/>
               <span style="display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: bold; margin-top: 6px; 
-                background: ${status === 'Delivered' ? '#d1fae5' : status === 'Dispatched' ? '#dbeafe' : status === 'Cancelled' ? '#fee2e2' : '#fef3c7'};
-                color: ${status === 'Delivered' ? '#065f46' : status === 'Dispatched' ? '#1e40af' : status === 'Cancelled' ? '#991b1b' : '#92400e'};
+                background: ${status === 'Delivered' ? '#064e3b' : status === 'Dispatched' ? '#1e3a8a' : status === 'Cancelled' ? '#7f1d1d' : '#78350f'};
+                color: ${status === 'Delivered' ? '#34d399' : status === 'Dispatched' ? '#60a5fa' : status === 'Cancelled' ? '#f87171' : '#fbbf24'};
               ">
                 ${status}
               </span>
             </div>
 
-            <p style="font-size: 0.85rem; color: #718096; margin-top: 24px; text-align: center;">
+            <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 24px; text-align: center;">
               Order ki live detail dekhne ke liye tracks link follow karein:
             </p>
             
             <div style="text-align: center; margin-top: 12px;">
-              <a href="${requestOrigin}/tracking?code=${tracking_code}" style="background: #0d9488; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 0.9rem;">
+              <a href="${requestOrigin}/tracking?code=${tracking_code}" style="background: #dc2626; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 0.9rem;">
                 Track Live Order Status
               </a>
             </div>
@@ -325,7 +325,7 @@ export async function POST(req: Request) {
 
         // 1. Send to Admin
         await transporter.sendMail({
-          from: `"MediMart Pakistan" <${smtpConfig.auth.user}>`,
+          from: `"Fat Pizza" <${smtpConfig.auth.user}>`,
           to: adminNotificationEmail, // Alerting or keeping log
           subject: subject,
           text: statusDescText,
@@ -335,7 +335,7 @@ export async function POST(req: Request) {
         // 2. Send to Customer (if email is provided)
         if (email && email.trim()) {
           await transporter.sendMail({
-            from: `"MediMart Pakistan" <${smtpConfig.auth.user}>`,
+            from: `"Fat Pizza" <${smtpConfig.auth.user}>`,
             to: email.trim(),
             subject: subject,
             text: statusDescText,
