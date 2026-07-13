@@ -46,14 +46,20 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // Auto-generate an ID or let Supabase do it if it's SERIAL.
-    // Assuming Supabase will auto-increment if we don't pass 'id' or we pass a new one.
-    // Actually it's safer to not pass ID and let postgres handle it if it's set to Identity/Serial.
+    // Auto-generate an ID manually because Supabase medicines table "id" is not set to auto-increment (SERIAL)
+    const { data: allIds } = await supabase
+      .from('medicines')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+      
+    const nextId = (allIds && allIds.length > 0) ? (allIds[0].id + 1) : 1;
+    
     const { id, ...medicineData } = body;
 
     const { data, error } = await supabase
       .from('medicines')
-      .insert([medicineData])
+      .insert([{ id: nextId, ...medicineData }])
       .select()
       .single();
 

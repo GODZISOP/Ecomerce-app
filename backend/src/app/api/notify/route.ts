@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 
 // SMTP configuration - set these in Vercel Dashboard → Backend Project → Environment Variables
 const smtpConfig = {
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  host: process.env.SMTP_HOST || '',
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false,
   auth: {
