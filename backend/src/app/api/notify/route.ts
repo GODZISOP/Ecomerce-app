@@ -1,21 +1,25 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
-// Dynamic SMTP configuration from environment variables with safe logging fallback
+// SMTP configuration - hardcoded fallback ensures emails work even if Vercel env vars are missing
+const SMTP_USER = process.env.SMTP_USER || 'appointmentstudio@gmail.com';
+const SMTP_PASS = process.env.SMTP_PASS || 'zihk iznn ilij cuyu';
+
 const smtpConfig = {
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_PORT === '465', // true for 465, false for others
+  secure: false,
   auth: {
-    user: process.env.SMTP_USER || '',
-    pass: process.env.SMTP_PASS || '',
+    user: SMTP_USER,
+    pass: SMTP_PASS,
   },
   tls: {
     rejectUnauthorized: false
   }
 };
 
-const adminNotificationEmail = process.env.NOTIFICATION_EMAIL || process.env.SMTP_USER || '';
+// Admin gets notified - can set a different email than SMTP_USER to avoid Gmail self-send filtering
+const adminNotificationEmail = process.env.NOTIFICATION_EMAIL || SMTP_USER;
 
 export async function POST(req: Request) {
   try {
@@ -59,8 +63,8 @@ export async function POST(req: Request) {
       `- ${item.name} x${item.quantity} = Rs. ${item.price_pkr * item.quantity}`
     ).join('\n');
 
-    // Check if SMTP is configured before attempting to send
-    const isSmtpConfigured = smtpConfig.auth.user && smtpConfig.auth.pass;
+    // SMTP credentials are always available (hardcoded fallback), so always send real emails
+    const isSmtpConfigured = true;
 
     if (type === 'new_order') {
       const adminSubject = `🚨 NAYA ORDER AAYA HAI! [${tracking_code}] - ${customer_name}`;
