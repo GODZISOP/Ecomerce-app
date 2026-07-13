@@ -395,12 +395,4 @@ class MockQueryBuilder {
   }
 }
 
-export const supabase = {
-  ...realSupabase,
-  from(table: string) {
-    if (table === 'medicines') {
-      return new MockQueryBuilder(JSON.parse(JSON.stringify(pizzaMenu))) as any;
-    }
-    return realSupabase.from(table);
-  }
-};
+export const supabase = realSupabase;

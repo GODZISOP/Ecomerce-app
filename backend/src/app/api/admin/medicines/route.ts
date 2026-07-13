@@ -32,7 +32,7 @@ export async function GET(req: Request) {
       query = query.or(`name.ilike.%${search}%,generic_name.ilike.%${search}%,description.ilike.%${search}%`);
     }
     
-    const { data: medicines, error } = await query.order('id', { ascending: true });
+    const { data: medicines, error } = await query.order('id', { ascending: true }).limit(500);
     
     if (error) throw error;
     
