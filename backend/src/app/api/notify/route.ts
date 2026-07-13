@@ -1,25 +1,21 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
-// SMTP configuration - hardcoded fallback ensures emails work even if Vercel env vars are missing
-const SMTP_USER = process.env.SMTP_USER || 'appointmentstudio@gmail.com';
-const SMTP_PASS = process.env.SMTP_PASS || 'zihk iznn ilij cuyu';
-
+// SMTP configuration - set these in Vercel Dashboard → Backend Project → Environment Variables
 const smtpConfig = {
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false,
   auth: {
-    user: SMTP_USER,
-    pass: SMTP_PASS,
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
   },
   tls: {
     rejectUnauthorized: false
   }
 };
 
-// Admin gets notified - can set a different email than SMTP_USER to avoid Gmail self-send filtering
-const adminNotificationEmail = process.env.NOTIFICATION_EMAIL || SMTP_USER;
+const adminNotificationEmail = process.env.NOTIFICATION_EMAIL || process.env.SMTP_USER || '';
 
 export async function POST(req: Request) {
   try {
