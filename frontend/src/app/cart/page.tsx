@@ -51,7 +51,7 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
 
 export default function CartPage() {
   const router = useRouter();
-  const { cart, updateCartQty, removeFromCart, cartSubtotal } = useCart();
+  const { cart, addToCart, updateCartQty, removeFromCart, cartSubtotal } = useCart();
   const { t } = useLanguage();
 
   // Location Map States
@@ -231,8 +231,6 @@ export default function CartPage() {
       requires_prescription: false,
       image_url: addon.image_url || 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&h=200&fit=crop'
     };
-    // @ts-ignore
-    useCart().addToCart?.(addonAsItem, 1) || null; // Wait, we already have addToCart in scope!
     addToCart(addonAsItem as any, 1, []);
   };
 
