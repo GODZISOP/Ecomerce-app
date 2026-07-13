@@ -20,6 +20,7 @@ export interface Addon {
   id: number;
   name: string;
   price_pkr: number;
+  image_url?: string;
 }
 
 export interface CartItem extends Medicine {

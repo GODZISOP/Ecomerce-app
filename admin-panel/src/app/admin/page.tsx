@@ -82,7 +82,7 @@ export default function PremiumAdminPanel() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   
-  interface Addon { id: number; name: string; price_pkr: number; }
+  interface Addon { id: number; name: string; price_pkr: number; image_url?: string; }
   const [addonsList, setAddonsList] = useState<Addon[]>([]);
   const [showAddonModal, setShowAddonModal] = useState(false);
   const [editingAddon, setEditingAddon] = useState<Partial<Addon> | null>(null);
@@ -616,25 +616,39 @@ export default function PremiumAdminPanel() {
     }
   };
 
+  // Addon Functions
   const handleSaveAddon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingAddon?.name || !editingAddon?.price_pkr) return;
+    if (!editingAddon) return;
     setIsSavingAddon(true);
     
     try {
       if (editingAddon.id) {
-        const { data } = await supabase.from('addons').update({ name: editingAddon.name, price_pkr: editingAddon.price_pkr }).eq('id', editingAddon.id).select().single();
-        if (data) setAddonsList(prev => prev.map(a => a.id === data.id ? data : a));
+        // Update
+        const { error } = await supabase.from('addons').update({
+          name: editingAddon.name,
+          price_pkr: editingAddon.price_pkr,
+          image_url: editingAddon.image_url
+        }).eq('id', editingAddon.id);
+        if (!error) {
+          setAddonsList(prev => prev.map(a => a.id === editingAddon.id ? editingAddon as Addon : a));
+        }
       } else {
-        const { data } = await supabase.from('addons').insert({ name: editingAddon.name, price_pkr: editingAddon.price_pkr }).select().single();
-        if (data) setAddonsList(prev => [...prev, data]);
+        // Insert
+        const { data, error } = await supabase.from('addons').insert([{
+          name: editingAddon.name,
+          price_pkr: editingAddon.price_pkr,
+          image_url: editingAddon.image_url
+        }]).select();
+        if (data) {
+          setAddonsList(prev => [...prev, data[0]]);
+        }
       }
       setShowAddonModal(false);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSavingAddon(false);
+    } catch (err) {
+      console.error(err);
     }
+    setIsSavingAddon(false);
   };
 
   const deleteAddon = async (id: number) => {
@@ -2170,7 +2184,14 @@ export default function PremiumAdminPanel() {
                   <tr><td colSpan={3} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>No add-ons created yet.</td></tr>
                 ) : addonsList.map(addon => (
                   <tr key={addon.id} style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
-                    <td style={{ padding: '16px', fontWeight: 600 }}>{addon.name}</td>
+                    <td style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', fontWeight: 600 }}>
+                      {addon.image_url ? (
+                        <img src={addon.image_url} alt={addon.name} style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '40px', height: '40px', borderRadius: '4px', background: 'var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={16} color="var(--text-muted)" /></div>
+                      )}
+                      {addon.name}
+                    </td>
                     <td style={{ padding: '16px', color: 'var(--primary)', fontWeight: 800 }}>Rs. {addon.price_pkr}</td>
                     <td style={{ padding: '16px', textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -2198,6 +2219,13 @@ export default function PremiumAdminPanel() {
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>Price (Rs.)</label>
                     <input type="number" value={editingAddon.price_pkr} onChange={e => setEditingAddon({...editingAddon, price_pkr: Number(e.target.value)})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
                   </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>Image URL</label>
+                    <input type="text" placeholder="https://..." value={editingAddon.image_url || ''} onChange={e => setEditingAddon({...editingAddon, image_url: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+                  </div>
+                  {editingAddon.image_url && (
+                    <img src={editingAddon.image_url} alt="Preview" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '6px', marginTop: '4px' }} onError={(e) => e.currentTarget.style.display = 'none'} />
+                  )}
                   <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
                     <button type="button" onClick={() => setShowAddonModal(false)} style={{ flex: 1, padding: '10px', background: 'var(--background)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>Cancel</button>
                     <button type="submit" disabled={isSavingAddon} style={{ flex: 1, padding: '10px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700 }}>{isSavingAddon ? 'Saving...' : 'Save'}</button>

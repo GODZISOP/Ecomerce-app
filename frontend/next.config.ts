@@ -1,14 +1,10 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const rawBackendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 const cleanedBackendUrl = rawBackendUrl.endsWith('/') ? rawBackendUrl.slice(0, -1) : rawBackendUrl;
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
-  turbopack: {
-    root: path.resolve(__dirname),
-  },
   async rewrites() {
     return [
       {

@@ -229,7 +229,7 @@ export default function CartPage() {
       description: 'Extra add-on',
       manufacturer: 'Fatpizza Kitchen',
       requires_prescription: false,
-      image_url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&h=200&fit=crop'
+      image_url: addon.image_url || 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&h=200&fit=crop'
     };
     // @ts-ignore
     useCart().addToCart?.(addonAsItem, 1) || null; // Wait, we already have addToCart in scope!
@@ -449,9 +449,9 @@ export default function CartPage() {
                 </div>
               ) : addons.length > 0 ? (
                 <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-                  gap: '16px' 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '12px' 
                 }}>
                   {addons.map(addon => (
                     <div key={addon.id} 
@@ -460,17 +460,18 @@ export default function CartPage() {
                         position: 'relative',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                         borderRadius: 'var(--radius-md)',
-                        padding: '20px',
+                        padding: '16px',
                         display: 'flex',
-                        flexDirection: 'column',
+                        alignItems: 'center',
                         justifyContent: 'space-between',
                         background: 'rgba(255, 255, 255, 0.02)',
                         overflow: 'hidden',
-                        transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease'
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+                        gap: '16px'
                       }}
                       onMouseOver={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.3)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.2)';
                         e.currentTarget.style.borderColor = 'var(--primary)';
                       }}
                       onMouseOut={(e) => {
@@ -491,20 +492,30 @@ export default function CartPage() {
                         filter: 'blur(20px)'
                       }} />
                       
-                      <div style={{ marginBottom: '16px', zIndex: 1 }}>
-                        <h4 style={{ fontWeight: 800, fontSize: '1.05rem', margin: '0 0 6px 0', color: 'var(--foreground)' }}>{addon.name}</h4>
-                        <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '0.95rem' }}>Rs. {addon.price_pkr}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', zIndex: 1, flex: 1 }}>
+                        {addon.image_url ? (
+                          <div style={{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <img src={addon.image_url} alt={addon.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        ) : (
+                          <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                            <Plus size={24} />
+                          </div>
+                        )}
+                        <div>
+                          <h4 style={{ fontWeight: 800, fontSize: '1.1rem', margin: '0 0 4px 0', color: 'var(--foreground)' }}>{addon.name}</h4>
+                          <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1rem' }}>Rs. {addon.price_pkr}</div>
+                        </div>
                       </div>
                       
                       <button 
                         onClick={() => handleAddStandaloneAddon(addon)}
                         style={{ 
-                          width: '100%', 
-                          padding: '10px', 
+                          padding: '10px 24px', 
                           background: 'linear-gradient(to right, var(--primary), #ff6b3d)', 
                           color: 'white', 
                           border: 'none', 
-                          borderRadius: 'var(--radius-sm)', 
+                          borderRadius: 'var(--radius-pill)', 
                           fontWeight: 800, 
                           cursor: 'pointer',
                           display: 'flex',
@@ -512,12 +523,14 @@ export default function CartPage() {
                           justifyContent: 'center',
                           gap: '6px',
                           zIndex: 1,
-                          transition: 'opacity 0.2s'
+                          transition: 'opacity 0.2s, transform 0.1s'
                         }}
                         onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
                         onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                        onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                        onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                       >
-                        <Plus size={16} strokeWidth={3} /> {t('Add', 'شامل کریں')}
+                        <Plus size={18} strokeWidth={3} /> <span className="hide-on-mobile">{t('Add', 'شامل کریں')}</span>
                       </button>
                     </div>
                   ))}
