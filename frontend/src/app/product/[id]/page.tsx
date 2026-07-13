@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { PizzaItem } from '@/lib/supabaseClient';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
+import AddonsModal from '@/components/AddonsModal';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -19,6 +20,7 @@ export default function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [showAddedToast, setShowAddedToast] = useState(false);
+  const [isAddonsModalOpen, setIsAddonsModalOpen] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -47,9 +49,7 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (item) {
-      addToCart(item as any, quantity);
-      setShowAddedToast(true);
-      setTimeout(() => setShowAddedToast(false), 2500);
+      setIsAddonsModalOpen(true);
     }
   };
 
@@ -347,31 +347,37 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Added Toast */}
-      {showAddedToast && (
-        <div style={{
-          position: 'fixed',
-          bottom: '100px',
-          left: '30px',
-          zIndex: 9999,
-          background: 'var(--accent)',
-          color: 'white',
-          padding: '16px 24px',
-          borderRadius: 'var(--radius-sm)',
-          boxShadow: 'var(--shadow-lg)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          fontSize: '0.9rem',
-          fontWeight: 800,
-          border: '1px solid var(--primary)',
-          animation: 'slideUp 0.25s'
-        }}>
-          <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '50%', padding: '4px' }}>
-            <Check size={14} />
+        {showAddedToast && (
+          <div style={{
+            position: 'fixed',
+            bottom: '40px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'var(--status-delivered)',
+            color: 'white',
+            padding: '12px 24px',
+            borderRadius: 'var(--radius-pill)',
+            fontWeight: 800,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: 'var(--shadow-md)',
+            zIndex: 1000,
+            animation: 'slideUp 0.3s ease-out'
+          }}>
+            <Check size={18} />
+            {t('Added to cart successfully!', 'کامیابی سے کارٹ میں شامل ہو گیا!')}
           </div>
-          <span>{t(`Added **${quantity}x ${item.name}** to your cart!`, `کارٹ میں **${quantity}x ${item.name}** شامل کر دیا گیا!`)}</span>
-        </div>
-      )}
+        )}
+      
+      <AddonsModal medicine={item} isOpen={isAddonsModalOpen} onClose={() => setIsAddonsModalOpen(false)} initialQuantity={quantity} />
+      
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes slideUp {
+          from { transform: translate(-50%, 100%); opacity: 0; }
+          to { transform: translate(-50%, 0); opacity: 1; }
+        }
+      `}} />
     </div>
   );
 }

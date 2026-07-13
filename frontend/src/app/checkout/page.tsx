@@ -645,16 +645,25 @@ export default function CheckoutPage() {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px', maxHeight: '240px', overflowY: 'auto' }}>
-              {cart.map((item) => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
-                  <div style={{ maxWidth: '75%' }}>
-                    <span style={{ fontWeight: 800 }}>{t(item.name)}</span>
-                    <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>x{item.quantity}</span>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t(item.dosage)}</div>
+              {cart.map((item) => {
+                const addonsPrice = (item.addons || []).reduce((sum, a) => sum + a.price_pkr, 0);
+                const itemTotal = (item.price_pkr + addonsPrice) * item.quantity;
+                return (
+                  <div key={item.cartItemId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                    <div style={{ maxWidth: '75%' }}>
+                      <span style={{ fontWeight: 800 }}>{t(item.name)}</span>
+                      <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>x{item.quantity}</span>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t(item.dosage)}</div>
+                      {item.addons && item.addons.length > 0 && (
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          {item.addons.map(a => `+ ${a.name}`).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ fontWeight: 800 }}>Rs. {itemTotal}</span>
                   </div>
-                  <span style={{ fontWeight: 800 }}>Rs. {item.price_pkr * item.quantity}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', marginBottom: '20px' }} />

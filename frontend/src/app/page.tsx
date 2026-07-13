@@ -52,7 +52,6 @@ export default function HomePage() {
 
   const handleAddToCart = (e: React.MouseEvent, item: any) => {
     e.stopPropagation();
-    // Convert PizzaItem format to local context Medicine format (they share identical key properties)
     addToCart(item, 1);
     setShowNotification(item.name);
     setTimeout(() => {
@@ -293,7 +292,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Notification Toast */}
+      {/* Toast Notification */}
       {showNotification && (
         <div style={{
           position: 'fixed',

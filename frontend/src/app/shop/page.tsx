@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, SlidersHorizontal, Plus, Check, ShoppingCart, HelpCircle, Star } from 'lucide-react';
+import { Search, SlidersHorizontal, Plus, Check, ShoppingCart, HelpCircle, Star, History, Loader2, X } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { PizzaItem } from '@/lib/supabaseClient';
 import { useCart } from '@/context/CartContext';
@@ -21,6 +21,9 @@ function ShopContent() {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [menuItems, setMenuItems] = useState<PizzaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDebouncing, setIsDebouncing] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [showNotification, setShowNotification] = useState<string | null>(null);
 
   const { addToCart } = useCart();
@@ -34,6 +37,32 @@ function ShopContent() {
     setSearch(searchParams.get('search') || '');
     setSelectedCategory(searchParams.get('category') || '');
   }, [searchParams]);
+
+  // Load recent searches from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('fatpizza_recent_searches');
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
+
+  // Debounced Live Search implementation
+  useEffect(() => {
+    const currentUrlSearch = searchParams.get('search') || '';
+    if (search !== currentUrlSearch) {
+      setIsDebouncing(true);
+      const handler = setTimeout(() => {
+        updateUrlParams(search, selectedCategory);
+        setIsDebouncing(false);
+      }, 400); // 400ms delay before triggering search
+      
+      return () => clearTimeout(handler);
+    } else {
+      setIsDebouncing(false);
+    }
+  }, [search, selectedCategory, searchParams]);
 
   // Query database based on search query and category
   useEffect(() => {
@@ -70,9 +99,20 @@ function ShopContent() {
     setSearch(e.target.value);
   };
 
+  const saveRecentSearch = (query: string) => {
+    if (!query.trim()) return;
+    const current = [...recentSearches];
+    const filtered = current.filter(s => s.toLowerCase() !== query.trim().toLowerCase());
+    const updated = [query.trim(), ...filtered].slice(0, 5); // Keep latest 5
+    setRecentSearches(updated);
+    localStorage.setItem('fatpizza_recent_searches', JSON.stringify(updated));
+  };
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateUrlParams(search, selectedCategory);
+    saveRecentSearch(search);
+    setIsSearchFocused(false);
   };
 
   const handleCategorySelect = (cat: string) => {
@@ -185,21 +225,90 @@ function ShopContent() {
 
         {/* Product Catalog view */}
         <section>
-          {/* Top Search bar */}
-          <form onSubmit={handleSearchSubmit} style={{ marginBottom: '32px' }} className="hero-search-box">
+          {/* Top Search bar with Professional UX */}
+          <form onSubmit={handleSearchSubmit} style={{ marginBottom: '32px', position: 'relative' }} className="hero-search-box">
             <div className="search-input-wrapper">
-              <Search size={22} color="var(--primary)" />
+              <Search size={22} color="var(--text-muted)" />
               <input 
                 type="text" 
                 className="search-input" 
-                placeholder={t("Search for pizza, burger, pasta, toppings (e.g., Pepperoni, Cheese, Veggie)...", "پیزا، برگر، پاستا یا ٹوپنگز تلاش کریں...")}
+                placeholder={t("Search for pizza, burger, pasta, toppings...", "پیزا، برگر، پاستا یا ٹوپنگز تلاش کریں...")}
                 value={search}
                 onChange={handleSearchChange}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none' }}
               />
+              
+              {/* Dynamic Loading/Clear Icons */}
+              {isDebouncing ? (
+                <Loader2 size={18} color="var(--primary)" style={{ animation: 'spin 1s linear infinite' }} />
+              ) : search ? (
+                <X 
+                  size={18} 
+                  color="var(--text-muted)" 
+                  style={{ cursor: 'pointer' }} 
+                  onClick={() => { setSearch(''); updateUrlParams('', selectedCategory); }} 
+                />
+              ) : null}
             </div>
             <button type="submit" className="btn-primary" style={{ borderRadius: 'var(--radius-sm)' }}>
               {t('Search', 'تلاش کریں')}
             </button>
+
+            {/* Autocomplete & Recent Searches Dropdown */}
+            {isSearchFocused && (recentSearches.length > 0 || !search) && (
+              <div style={{
+                position: 'absolute',
+                top: 'calc(100% + 8px)',
+                left: 0,
+                right: 0,
+                background: 'var(--card-bg)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: 'var(--shadow-xl)',
+                zIndex: 100,
+                padding: '12px 0',
+                overflow: 'hidden'
+              }}>
+                {recentSearches.length > 0 && (
+                  <div style={{ padding: '0 16px 8px 16px', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    {t('Recent Searches', 'حالیہ تلاش')}
+                  </div>
+                )}
+                
+                {recentSearches.map((term, idx) => (
+                  <div 
+                    key={idx} 
+                    onClick={() => {
+                      setSearch(term);
+                      updateUrlParams(term, selectedCategory);
+                      saveRecentSearch(term);
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--background)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <History size={16} color="var(--text-muted)" />
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--foreground)' }}>{term}</span>
+                  </div>
+                ))}
+
+                {recentSearches.length === 0 && !search && (
+                   <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                     <Search size={32} color="var(--border-color)" style={{ margin: '0 auto 12px auto', display: 'block' }} />
+                     {t('Try searching for "Zinger" or "Pizza"', '"زنگر" یا "پیزا" تلاش کرنے کی کوشش کریں')}
+                   </div>
+                )}
+              </div>
+            )}
           </form>
 
           {/* Catalog grid rendering */}
@@ -243,7 +352,7 @@ function ShopContent() {
                 <div 
                   key={item.id} 
                   className="product-card tape-sticker" 
-                  style={{ cursor: 'pointer', background: 'white' }}
+                  style={{ cursor: 'pointer', background: 'var(--card-bg)' }}
                   onClick={() => router.push(`/product/${item.id}`)}
                 >
                   <div className="product-img-wrap" style={{ height: '180px', padding: '0', display: 'block', position: 'relative' }}>

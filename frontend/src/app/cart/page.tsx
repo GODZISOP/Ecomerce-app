@@ -175,14 +175,14 @@ export default function CartPage() {
     localStorage.setItem('fatpizza_location_set', 'true');
   };
 
-  const handleQtyChange = (id: number, currentQty: number, change: number) => {
+  const handleQtyChange = (id: string, currentQty: number, change: number) => {
     const nextQty = currentQty + change;
     if (nextQty >= 1) {
       updateCartQty(id, nextQty);
     }
   };
 
-  const handleRemove = (id: number) => {
+  const handleRemove = (id: string) => {
     removeFromCart(id);
   };
 
@@ -245,10 +245,14 @@ export default function CartPage() {
               boxShadow: 'var(--shadow-sm)',
               overflow: 'hidden'
             }}>
-              {cart.map((item) => (
-                <div key={item.id} style={{
+              {cart.map((item) => {
+                const addonsPrice = (item.addons || []).reduce((sum, a) => sum + a.price_pkr, 0);
+                const itemTotal = (item.price_pkr + addonsPrice) * item.quantity;
+                
+                return (
+                  <div key={item.cartItemId} style={{
                   display: 'grid',
-                  gridTemplateColumns: '80px 1.5fr 1fr 1fr 40px',
+                  gridTemplateColumns: '80px minmax(200px, 1fr) auto auto 40px',
                   gap: '20px',
                   padding: '24px',
                   alignItems: 'center',
@@ -281,6 +285,17 @@ export default function CartPage() {
                       </Link>
                     </h3>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px', lineBreak: 'anywhere' }}>{t(item.generic_name)}</p>
+                    
+                    {item.addons && item.addons.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px', marginBottom: '8px' }}>
+                        {item.addons.map((addon) => (
+                          <span key={addon.id} style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: 'var(--background)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                            + {addon.name} (Rs. {addon.price_pkr})
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, background: 'var(--primary-bg)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px' }}>
                       {t(item.dosage)}
                     </span>
@@ -295,29 +310,28 @@ export default function CartPage() {
                     borderRadius: 'var(--radius-sm)',
                     background: 'var(--background)',
                     padding: '2px',
-                    alignSelf: 'center',
-                    justifySelf: 'center'
+                    width: 'fit-content'
                   }}>
                     <button 
-                      onClick={() => handleQtyChange(item.id, item.quantity, -1)}
+                      onClick={() => handleQtyChange(item.cartItemId, item.quantity, -1)}
                       style={{ width: '28px', height: '28px', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 700 }}
                     >-</button>
                     <span style={{ width: '30px', textAlign: 'center', fontSize: '0.85rem', fontWeight: 700 }}>{item.quantity}</span>
                     <button 
-                      onClick={() => handleQtyChange(item.id, item.quantity, 1)}
+                      onClick={() => handleQtyChange(item.cartItemId, item.quantity, 1)}
                       style={{ width: '28px', height: '28px', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 700 }}
                     >+</button>
                   </div>
 
                   {/* Total price */}
                   <div style={{ textAlign: 'right', justifySelf: 'end' }}>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 900 }}>Rs. {item.price_pkr * item.quantity}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rs. {item.price_pkr} {t('each', 'فی عدد')}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 900 }}>Rs. {itemTotal}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rs. {item.price_pkr + addonsPrice} {t('each', 'فی عدد')}</div>
                   </div>
 
                   {/* Remove button */}
                   <button 
-                    onClick={() => handleRemove(item.id)}
+                    onClick={() => handleRemove(item.cartItemId)}
                     style={{
                       background: 'transparent',
                       border: 'none',
@@ -335,7 +349,8 @@ export default function CartPage() {
                   </button>
 
                 </div>
-              ))}
+                );
+              })}
               
               {/* Back to shop */}
               <div style={{ padding: '20px 24px', background: 'var(--background)' }}>

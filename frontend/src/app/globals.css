@@ -314,7 +314,7 @@ body {
 }
 
 .hero-search-box {
-  background: white;
+  background: var(--card-bg);
   padding: 8px;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);

@@ -67,7 +67,7 @@ export default function PremiumAdminPanel() {
   const [mounted, setMounted] = useState(false);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'medicines' | 'prescriptions' | 'settings' | 'offers'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'medicines' | 'prescriptions' | 'settings' | 'offers' | 'addons'>('dashboard');
 
   // Offers State
   interface Offer { id: number; title: string; description: string; discount_text: string; badge: string; image_url: string; valid_until: string; is_active: boolean; created_at: string; }
@@ -81,6 +81,12 @@ export default function PremiumAdminPanel() {
   // Core Data States
   const [orders, setOrders] = useState<Order[]>([]);
   const [medicines, setMedicines] = useState<Medicine[]>([]);
+  
+  interface Addon { id: number; name: string; price_pkr: number; }
+  const [addonsList, setAddonsList] = useState<Addon[]>([]);
+  const [showAddonModal, setShowAddonModal] = useState(false);
+  const [editingAddon, setEditingAddon] = useState<Partial<Addon> | null>(null);
+  const [isSavingAddon, setIsSavingAddon] = useState(false);
   const [settings, setSettings] = useState<ShopSettings>({
     shippingFee: 150,
     supportPhone: '0300-1234567',
@@ -99,6 +105,7 @@ export default function PremiumAdminPanel() {
   // Loading States
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   const [isLoadingMedicines, setIsLoadingMedicines] = useState(true);
+  const [isLoadingAddons, setIsLoadingAddons] = useState(true);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   // Selection / Modal States
@@ -504,8 +511,12 @@ export default function PremiumAdminPanel() {
       const data = await response.json();
 
       if (data.success) {
-        fetchMedicines();
-        setShowMedicineModal(false);
+        setMedicines(meds || []);
+        setIsLoadingMedicines(false);
+
+        const { data: adds } = await supabase.from('addons').select('*').order('name');
+        setAddonsList(adds || []);
+        setIsLoadingAddons(false);
         setEditingMedicine(null);
         setImageFile(null);
       } else {
@@ -595,6 +606,41 @@ export default function PremiumAdminPanel() {
       alert('Save configuration server error.');
     } finally {
       setIsSavingSettings(false);
+    }
+  };
+
+  const deleteOffer = async (id: number) => {
+    if (confirm('Are you sure you want to delete this offer?')) {
+      await supabase.from('offers').delete().eq('id', id);
+      setOffers(prev => prev.filter(o => o.id !== id));
+    }
+  };
+
+  const handleSaveAddon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAddon?.name || !editingAddon?.price_pkr) return;
+    setIsSavingAddon(true);
+    
+    try {
+      if (editingAddon.id) {
+        const { data } = await supabase.from('addons').update({ name: editingAddon.name, price_pkr: editingAddon.price_pkr }).eq('id', editingAddon.id).select().single();
+        if (data) setAddonsList(prev => prev.map(a => a.id === data.id ? data : a));
+      } else {
+        const { data } = await supabase.from('addons').insert({ name: editingAddon.name, price_pkr: editingAddon.price_pkr }).select().single();
+        if (data) setAddonsList(prev => [...prev, data]);
+      }
+      setShowAddonModal(false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSavingAddon(false);
+    }
+  };
+
+  const deleteAddon = async (id: number) => {
+    if (confirm('Delete this add-on?')) {
+      await supabase.from('addons').delete().eq('id', id);
+      setAddonsList(prev => prev.filter(a => a.id !== id));
     }
   };
 
@@ -747,7 +793,9 @@ export default function PremiumAdminPanel() {
             { id: 'dashboard', label: 'Overview', icon: Activity },
             { id: 'orders', label: 'Orders', icon: ClipboardList },
             { id: 'medicines', label: 'Inventory', icon: ShoppingBag },
+            { id: 'prescriptions', label: 'Rx Verifier', icon: FileText },
             { id: 'offers', label: '🔥 Offers', icon: Sparkles },
+            { id: 'addons', label: 'Add-ons', icon: Plus },
             { id: 'settings', label: 'Settings', icon: Settings }
           ].map((tab) => {
             const Icon = tab.icon;
@@ -774,7 +822,7 @@ export default function PremiumAdminPanel() {
         {/* Top Header */}
         <header style={{ padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', background: 'var(--background)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-            <Activity size={18} /> <span>Dashboards</span> <span style={{ color: 'var(--border-color)' }}>/</span> <span style={{ color: 'var(--foreground)', fontWeight: 600 }}>{activeTab === 'dashboard' ? 'Overview' : activeTab === 'orders' ? 'Orders' : activeTab === 'medicines' ? 'Inventory' : 'Settings'}</span>
+            <Activity size={18} /> <span>Dashboards</span> <span style={{ color: 'var(--border-color)' }}>/</span> <span style={{ color: 'var(--foreground)', fontWeight: 600 }}>{activeTab === 'dashboard' ? 'Overview' : activeTab === 'orders' ? 'Orders' : activeTab === 'medicines' ? 'Inventory' : activeTab === 'prescriptions' ? 'Rx Verifier' : activeTab === 'offers' ? 'Offers' : activeTab === 'addons' ? 'Add-ons' : 'Settings'}</span>
           </div>
           <div style={{ display: 'flex', gap: '16px' }}>
             <button className="icon-btn" style={{ background: 'var(--card-bg)' }}><Search size={20} /></button>
@@ -2029,7 +2077,7 @@ export default function PremiumAdminPanel() {
                     <button onClick={() => { setOfferModalType('edit'); setEditingOffer({ ...offer }); setShowOfferModal(true); }} style={{ flex: 1, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--foreground)', padding: '8px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
                       <Edit size={13} style={{ marginRight: '4px' }} />Edit
                     </button>
-                    <button onClick={async () => { if (!confirm('Delete this offer?')) return; await fetch(`/api/offers?id=${offer.id}`, { method: 'DELETE', headers: { authorization: 'Bearer medimart_session_token_2026_verified' } }); setOffers(prev => prev.filter(o => o.id !== offer.id)); }} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
+                    <button onClick={() => deleteOffer(offer.id)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
                       <Trash2 size={13} />
                     </button>
                     <button onClick={async () => { const updated = { ...offer, is_active: !offer.is_active }; await fetch('/api/offers', { method: 'PUT', headers: { 'Content-Type': 'application/json', authorization: 'Bearer medimart_session_token_2026_verified' }, body: JSON.stringify(updated) }); setOffers(prev => prev.map(o => o.id === offer.id ? updated : o)); }} style={{ background: offer.is_active ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', border: `1px solid ${offer.is_active ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`, color: offer.is_active ? '#ef4444' : '#10b981', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
@@ -2097,6 +2145,70 @@ export default function PremiumAdminPanel() {
       )}
 
       {/* 6. CONFIGURATION STORE SETTINGS TAB */}
+      {activeTab === 'addons' && (
+        <div style={{ padding: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Manage Add-ons</h2>
+            <button onClick={() => { setEditingAddon({ name: '', price_pkr: 0 }); setShowAddonModal(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Plus size={18} /> New Add-on
+            </button>
+          </div>
+
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'var(--background)', borderBottom: '1px solid var(--border-color)', textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  <th style={{ padding: '16px' }}>NAME</th>
+                  <th style={{ padding: '16px' }}>PRICE</th>
+                  <th style={{ padding: '16px', textAlign: 'right' }}>ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoadingAddons ? (
+                  <tr><td colSpan={3} style={{ padding: '32px', textAlign: 'center' }}>Loading...</td></tr>
+                ) : addonsList.length === 0 ? (
+                  <tr><td colSpan={3} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>No add-ons created yet.</td></tr>
+                ) : addonsList.map(addon => (
+                  <tr key={addon.id} style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
+                    <td style={{ padding: '16px', fontWeight: 600 }}>{addon.name}</td>
+                    <td style={{ padding: '16px', color: 'var(--primary)', fontWeight: 800 }}>Rs. {addon.price_pkr}</td>
+                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button onClick={() => { setEditingAddon(addon); setShowAddonModal(true); }} style={{ background: 'var(--background)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '6px', cursor: 'pointer' }}><Edit size={16} /></button>
+                        <button onClick={() => deleteAddon(addon.id)} style={{ background: 'var(--background)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '6px', cursor: 'pointer', color: 'var(--status-cancelled)' }}><Trash2 size={16} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Addon Modal */}
+          {showAddonModal && editingAddon && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+              <div style={{ background: 'var(--card-bg)', padding: '24px', borderRadius: 'var(--radius-lg)', width: '400px' }}>
+                <h3 style={{ marginBottom: '20px' }}>{editingAddon.id ? 'Edit Add-on' : 'New Add-on'}</h3>
+                <form onSubmit={handleSaveAddon} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>Name (e.g., Extra Cheese)</label>
+                    <input type="text" value={editingAddon.name} onChange={e => setEditingAddon({...editingAddon, name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>Price (Rs.)</label>
+                    <input type="number" value={editingAddon.price_pkr} onChange={e => setEditingAddon({...editingAddon, price_pkr: Number(e.target.value)})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                    <button type="button" onClick={() => setShowAddonModal(false)} style={{ flex: 1, padding: '10px', background: 'var(--background)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>Cancel</button>
+                    <button type="submit" disabled={isSavingAddon} style={{ flex: 1, padding: '10px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700 }}>{isSavingAddon ? 'Saving...' : 'Save'}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === 'settings' && (
         <div style={{
           background: 'var(--card-bg)',

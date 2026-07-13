@@ -16,15 +16,23 @@ export interface Medicine {
   image_url: string;
 }
 
+export interface Addon {
+  id: number;
+  name: string;
+  price_pkr: number;
+}
+
 export interface CartItem extends Medicine {
+  cartItemId: string;
   quantity: number;
+  addons?: Addon[];
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (medicine: Medicine, quantity?: number) => void;
-  removeFromCart: (medicineId: number) => void;
-  updateCartQty: (medicineId: number, quantity: number) => void;
+  addToCart: (medicine: Medicine, quantity?: number, addons?: Addon[]) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateCartQty: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
   cartSubtotal: number;
@@ -53,33 +61,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('medimart_cart', JSON.stringify(newCart));
   };
 
-  const addToCart = (medicine: Medicine, quantity: number = 1) => {
-    const existingItemIndex = cart.findIndex((item) => item.id === medicine.id);
+  const addToCart = (medicine: Medicine, quantity: number = 1, addons: Addon[] = []) => {
+    // Generate a unique ID based on the medicine ID and sorted addon IDs
+    const addonIds = addons.map(a => a.id).sort().join('-');
+    const cartItemId = `${medicine.id}-${addonIds}`;
+
+    const existingItemIndex = cart.findIndex((item) => item.cartItemId === cartItemId);
     let newCart = [...cart];
 
     if (existingItemIndex > -1) {
       const newQty = newCart[existingItemIndex].quantity + quantity;
       newCart[existingItemIndex].quantity = Math.min(newQty, medicine.stock);
     } else {
-      newCart.push({ ...medicine, quantity: Math.min(quantity, medicine.stock) });
+      newCart.push({ ...medicine, cartItemId, quantity: Math.min(quantity, medicine.stock), addons });
     }
 
     saveCart(newCart);
   };
 
-  const removeFromCart = (medicineId: number) => {
-    const newCart = cart.filter((item) => item.id !== medicineId);
+  const removeFromCart = (cartItemId: string) => {
+    const newCart = cart.filter((item) => item.cartItemId !== cartItemId);
     saveCart(newCart);
   };
 
-  const updateCartQty = (medicineId: number, quantity: number) => {
+  const updateCartQty = (cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(medicineId);
+      removeFromCart(cartItemId);
       return;
     }
 
     const newCart = cart.map((item) => {
-      if (item.id === medicineId) {
+      if (item.cartItemId === cartItemId) {
         return { ...item, quantity: Math.min(quantity, item.stock) };
       }
       return item;
@@ -93,7 +105,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartSubtotal = cart.reduce((total, item) => total + item.price_pkr * item.quantity, 0);
+  const cartSubtotal = cart.reduce((total, item) => {
+    const addonsTotal = (item.addons || []).reduce((sum, addon) => sum + addon.price_pkr, 0);
+    return total + ((item.price_pkr + addonsTotal) * item.quantity);
+  }, 0);
 
   return (
     <CartContext.Provider
