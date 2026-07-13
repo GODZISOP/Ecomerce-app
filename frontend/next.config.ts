@@ -5,6 +5,7 @@ const rawBackendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3
 const cleanedBackendUrl = rawBackendUrl.endsWith('/') ? rawBackendUrl.slice(0, -1) : rawBackendUrl;
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false,
   turbopack: {
     root: path.resolve(__dirname),
   },
