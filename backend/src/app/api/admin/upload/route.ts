@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
-// Images will be saved to backend/public/uploads/
-const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function checkAuth(req: Request) {
   const authHeader = req.headers.get('authorization');
@@ -18,9 +18,6 @@ export async function POST(req: Request) {
   }
 
   try {
-    // Ensure upload directory exists
-    await fs.mkdir(uploadDir, { recursive: true });
-
     const formData = await req.formData();
     const file = formData.get('file') as File;
 
@@ -42,17 +39,27 @@ export async function POST(req: Request) {
     // Generate unique filename
     const ext = file.name.split('.').pop() || 'jpg';
     const filename = `product_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
-    const filePath = path.join(uploadDir, filename);
 
-    // Save file
     const buffer = Buffer.from(await file.arrayBuffer());
-    await fs.writeFile(filePath, buffer);
 
-    // Return the public URL - this will be served from the backend's public folder
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-    const imageUrl = `${backendUrl}/uploads/${filename}`;
+    // Upload to Supabase Storage Bucket named 'products'
+    const { data, error } = await supabase.storage
+      .from('products')
+      .upload(filename, buffer, {
+        contentType: file.type,
+        upsert: false
+      });
 
-    return NextResponse.json({ success: true, url: imageUrl, filename });
+    if (error) {
+      throw error;
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('products')
+      .getPublicUrl(filename);
+
+    return NextResponse.json({ success: true, url: publicUrl, filename });
   } catch (e: any) {
     console.error('Image upload error:', e);
     return NextResponse.json({ success: false, error: e.message }, { status: 500 });
