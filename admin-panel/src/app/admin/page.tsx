@@ -67,7 +67,16 @@ export default function PremiumAdminPanel() {
   const [mounted, setMounted] = useState(false);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'medicines' | 'prescriptions' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'medicines' | 'prescriptions' | 'settings' | 'offers'>('dashboard');
+
+  // Offers State
+  interface Offer { id: number; title: string; description: string; discount_text: string; badge: string; image_url: string; valid_until: string; is_active: boolean; created_at: string; }
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [isLoadingOffers, setIsLoadingOffers] = useState(false);
+  const [isSavingOffer, setIsSavingOffer] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerModalType, setOfferModalType] = useState<'add' | 'edit'>('add');
+  const [editingOffer, setEditingOffer] = useState<Partial<Offer> | null>(null);
 
   // Core Data States
   const [orders, setOrders] = useState<Order[]>([]);
@@ -101,6 +110,7 @@ export default function PremiumAdminPanel() {
   const [medicineModalType, setMedicineModalType] = useState<'add' | 'edit'>('add');
   const [editingMedicine, setEditingMedicine] = useState<Partial<Medicine> | null>(null);
   const [isMutatingMedicine, setIsMutatingMedicine] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   // File Prescription Workspace States
   const [selectedPrescriptionOrder, setSelectedPrescriptionOrder] = useState<Order | null>(null);
@@ -455,6 +465,33 @@ export default function PremiumAdminPanel() {
     const token = localStorage.getItem('medimart_admin_session');
     
     try {
+      let finalImageUrl = editingMedicine.image_url;
+
+      // Upload image if a new file is selected
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+
+        const uploadRes = await fetch('/api/admin/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        
+        const uploadData = await uploadRes.json();
+        if (uploadData.success) {
+          finalImageUrl = uploadData.url;
+        } else {
+          alert('Image upload failed: ' + uploadData.error);
+          setIsMutatingMedicine(false);
+          return;
+        }
+      }
+
+      const medicineDataToSave = { ...editingMedicine, image_url: finalImageUrl };
+
       const method = medicineModalType === 'add' ? 'POST' : 'PUT';
       const response = await fetch('/api/admin/medicines', {
         method,
@@ -462,7 +499,7 @@ export default function PremiumAdminPanel() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(editingMedicine)
+        body: JSON.stringify(medicineDataToSave)
       });
       const data = await response.json();
 
@@ -470,6 +507,7 @@ export default function PremiumAdminPanel() {
         fetchMedicines();
         setShowMedicineModal(false);
         setEditingMedicine(null);
+        setImageFile(null);
       } else {
         alert('Error saving medicine record: ' + data.error);
       }
@@ -605,10 +643,10 @@ export default function PremiumAdminPanel() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '24px',
-        background: 'radial-gradient(circle at 50% 50%, rgba(13, 148, 136, 0.05) 0%, rgba(255,255,255,0) 80%)'
+        background: 'radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.1) 0%, rgba(17, 17, 17, 0) 80%)'
       }}>
         <div style={{
-          background: 'rgba(255, 255, 255, 0.75)',
+          background: 'var(--card-bg)',
           backdropFilter: 'blur(20px)',
           border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-lg)',
@@ -628,7 +666,7 @@ export default function PremiumAdminPanel() {
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 24px auto',
-            border: '1px solid rgba(13, 148, 136, 0.15)'
+            border: '1px solid rgba(239, 68, 68, 0.15)'
           }}>
             <Lock size={30} />
           </div>
@@ -709,6 +747,7 @@ export default function PremiumAdminPanel() {
             { id: 'dashboard', label: 'Overview', icon: Activity },
             { id: 'orders', label: 'Orders', icon: ClipboardList },
             { id: 'medicines', label: 'Inventory', icon: ShoppingBag },
+            { id: 'offers', label: '🔥 Offers', icon: Sparkles },
             { id: 'settings', label: 'Settings', icon: Settings }
           ].map((tab) => {
             const Icon = tab.icon;
@@ -1953,7 +1992,111 @@ export default function PremiumAdminPanel() {
         </div>
       )}
 
-      {/* 5. CONFIGURATION STORE SETTINGS TAB */}
+      {/* 5. OFFERS MANAGEMENT TAB */}
+      {activeTab === 'offers' && (
+        <div style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>🔥 Offers & Deals</h2>
+              <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.9rem' }}>Manage special offers shown on the customer website.</p>
+            </div>
+            <button onClick={() => { setOfferModalType('add'); setEditingOffer({ title: '', description: '', discount_text: '', badge: 'OFFER', image_url: '', valid_until: '', is_active: true }); setShowOfferModal(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Plus size={16} /> Add New Offer
+            </button>
+          </div>
+
+          {/* Fetch offers on tab open */}
+          {!isLoadingOffers && offers.length === 0 && (
+            <div style={{ textAlign: 'center' }}>
+              <button onClick={async () => { setIsLoadingOffers(true); try { const r = await fetch('/api/offers'); const d = await r.json(); if (d.success) setOffers(d.offers); } catch {} finally { setIsLoadingOffers(false); } }} style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}>Load Offers</button>
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+            {offers.map(offer => (
+              <div key={offer.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden', opacity: offer.is_active ? 1 : 0.5 }}>
+                {offer.image_url && <img src={offer.image_url} alt={offer.title} style={{ width: '100%', height: '160px', objectFit: 'cover' }} />}
+                <div style={{ padding: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <span style={{ background: offer.is_active ? 'var(--primary)' : '#555', color: 'white', fontSize: '0.7rem', fontWeight: 800, padding: '3px 10px', borderRadius: '50px' }}>{offer.badge}</span>
+                    <span style={{ fontSize: '0.75rem', color: offer.is_active ? '#10b981' : '#ef4444', fontWeight: 700 }}>{offer.is_active ? 'Active' : 'Hidden'}</span>
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: '6px' }}>{offer.title}</div>
+                  {offer.discount_text && <div style={{ color: 'var(--primary)', fontSize: '0.82rem', fontWeight: 700, marginBottom: '8px' }}>🏷️ {offer.discount_text}</div>}
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: '0 0 12px', lineHeight: 1.5 }}>{offer.description}</p>
+                  {offer.valid_until && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '12px' }}>📅 Valid until: {new Date(offer.valid_until).toLocaleDateString()}</div>}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => { setOfferModalType('edit'); setEditingOffer({ ...offer }); setShowOfferModal(true); }} style={{ flex: 1, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--foreground)', padding: '8px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
+                      <Edit size={13} style={{ marginRight: '4px' }} />Edit
+                    </button>
+                    <button onClick={async () => { if (!confirm('Delete this offer?')) return; await fetch(`/api/offers?id=${offer.id}`, { method: 'DELETE', headers: { authorization: 'Bearer medimart_session_token_2026_verified' } }); setOffers(prev => prev.filter(o => o.id !== offer.id)); }} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
+                      <Trash2 size={13} />
+                    </button>
+                    <button onClick={async () => { const updated = { ...offer, is_active: !offer.is_active }; await fetch('/api/offers', { method: 'PUT', headers: { 'Content-Type': 'application/json', authorization: 'Bearer medimart_session_token_2026_verified' }, body: JSON.stringify(updated) }); setOffers(prev => prev.map(o => o.id === offer.id ? updated : o)); }} style={{ background: offer.is_active ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', border: `1px solid ${offer.is_active ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`, color: offer.is_active ? '#ef4444' : '#10b981', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
+                      {offer.is_active ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Offer Add/Edit Modal */}
+      {showOfferModal && editingOffer && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h3 style={{ margin: 0, fontWeight: 800 }}>{offerModalType === 'add' ? 'Add New Offer' : 'Edit Offer'}</h3>
+              <button onClick={() => setShowOfferModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--foreground)', cursor: 'pointer', fontSize: '1.3rem' }}>✕</button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setIsSavingOffer(true);
+              try {
+                const method = offerModalType === 'add' ? 'POST' : 'PUT';
+                const r = await fetch('/api/offers', { method, headers: { 'Content-Type': 'application/json', authorization: 'Bearer medimart_session_token_2026_verified' }, body: JSON.stringify(editingOffer) });
+                const d = await r.json();
+                if (d.success) {
+                  if (offerModalType === 'add') setOffers(prev => [...prev, d.offer]);
+                  else setOffers(prev => prev.map(o => o.id === d.offer.id ? d.offer : o));
+                  setShowOfferModal(false);
+                }
+              } catch {}
+              setIsSavingOffer(false);
+            }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {[{label: 'Offer Title *', key: 'title', placeholder: 'e.g. Grand Opening Deal 🎉'}, {label: 'Discount Text', key: 'discount_text', placeholder: 'e.g. Save Rs. 690 or FREE Cheese Sticks'}, {label: 'Image URL', key: 'image_url', placeholder: 'https://...'}, {label: 'Valid Until (optional)', key: 'valid_until', placeholder: '', type: 'date'}].map(f => (
+                <div key={f.key}>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.82rem', marginBottom: '6px', color: 'var(--text-muted)' }}>{f.label}</label>
+                  <input type={f.type || 'text'} value={(editingOffer as any)[f.key] || ''} onChange={e => setEditingOffer(prev => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder} required={f.key === 'title'} style={{ width: '100%', background: 'var(--background)', border: '1px solid var(--border-color)', color: 'var(--foreground)', borderRadius: '8px', padding: '10px 14px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+              ))}
+              <div>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.82rem', marginBottom: '6px', color: 'var(--text-muted)' }}>Description *</label>
+                <textarea value={editingOffer.description || ''} onChange={e => setEditingOffer(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe the offer in detail..." required rows={3} style={{ width: '100%', background: 'var(--background)', border: '1px solid var(--border-color)', color: 'var(--foreground)', borderRadius: '8px', padding: '10px 14px', fontSize: '0.9rem', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.82rem', marginBottom: '6px', color: 'var(--text-muted)' }}>Badge</label>
+                <select value={editingOffer.badge || 'OFFER'} onChange={e => setEditingOffer(prev => ({ ...prev, badge: e.target.value }))} style={{ width: '100%', background: 'var(--background)', border: '1px solid var(--border-color)', color: 'var(--foreground)', borderRadius: '8px', padding: '10px 14px', fontSize: '0.9rem', outline: 'none' }}>
+                  {['OFFER', 'LIMITED', 'BUNDLE', 'HOT', 'NEW', 'SALE'].map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-muted)' }}>Active on Website?</label>
+                <input type="checkbox" checked={editingOffer.is_active !== false} onChange={e => setEditingOffer(prev => ({ ...prev, is_active: e.target.checked }))} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+              </div>
+              {editingOffer.image_url && <img src={editingOffer.image_url} alt="Preview" style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px' }} onError={e => (e.currentTarget.style.display = 'none')} />}
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" onClick={() => setShowOfferModal(false)} style={{ flex: 1, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--foreground)', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}>Cancel</button>
+                <button type="submit" disabled={isSavingOffer} className="btn-primary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>{isSavingOffer ? 'Saving...' : offerModalType === 'add' ? 'Create Offer' : 'Update Offer'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. CONFIGURATION STORE SETTINGS TAB */}
       {activeTab === 'settings' && (
         <div style={{
           background: 'var(--card-bg)',
@@ -2199,7 +2342,7 @@ export default function PremiumAdminPanel() {
       {showMedicineModal && editingMedicine && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '600px' }}>
-            <button className="modal-close" onClick={() => { setShowMedicineModal(false); setEditingMedicine(null); }}>
+            <button className="modal-close" onClick={() => { setShowMedicineModal(false); setEditingMedicine(null); setImageFile(null); }}>
               X
             </button>
 
@@ -2308,16 +2451,30 @@ export default function PremiumAdminPanel() {
                     />
                   </div>
 
-                  {/* Thumbnail link */}
+                  {/* Thumbnail link or Upload */}
                   <div className="form-group">
-                    <label className="form-label">Thumbnail Image URL</label>
-                    <input 
-                      type="text"
-                      className="form-input"
-                      placeholder="https://..."
-                      value={editingMedicine.image_url || ''}
-                      onChange={(e) => setEditingMedicine({ ...editingMedicine, image_url: e.target.value })}
-                    />
+                    <label className="form-label">Image (Upload or URL)</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setImageFile(e.target.files[0]);
+                          }
+                        }}
+                        style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}
+                      />
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>- OR -</span>
+                      <input 
+                        type="text"
+                        className="form-input"
+                        placeholder="Image URL (https://...)"
+                        value={editingMedicine.image_url || ''}
+                        onChange={(e) => setEditingMedicine({ ...editingMedicine, image_url: e.target.value })}
+                      />
+                      {imageFile && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>Selected: {imageFile.name}</span>}
+                    </div>
                   </div>
                 </div>
 
@@ -2344,7 +2501,7 @@ export default function PremiumAdminPanel() {
                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
                   <button
                     type="button"
-                    onClick={() => { setShowMedicineModal(false); setEditingMedicine(null); }}
+                    onClick={() => { setShowMedicineModal(false); setEditingMedicine(null); setImageFile(null); }}
                     style={{
                       flex: 1,
                       background: 'transparent',

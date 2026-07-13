@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "title": "Grand Opening Deal 🎉",
+    "description": "Order any 2 Large Pizzas and get FREE Cheese Sticks worth Rs. 450! Limited time offer for our valued customers.",
+    "discount_text": "FREE Cheese Sticks",
+    "badge": "LIMITED",
+    "image_url": "https://images.unsplash.com/photo-1571066811602-71683a3f680d?w=800&auto=format&fit=crop&q=80",
+    "valid_until": "2026-08-31",
+    "is_active": true,
+    "created_at": "2026-07-13T00:00:00Z"
+  },
+  {
+    "id": 2,
+    "title": "Family Feast Bundle 🍕",
+    "description": "Get 1 Afghani Feast Pizza + 1 Chicken Supreme + 1 Zinger Burger for just Rs. 2,800 instead of Rs. 3,490!",
+    "discount_text": "Save Rs. 690",
+    "badge": "BUNDLE",
+    "image_url": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80",
+    "valid_until": "2026-07-31",
+    "is_active": true,
+    "created_at": "2026-07-13T00:00:00Z"
+  }
+]

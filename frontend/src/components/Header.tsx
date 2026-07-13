@@ -167,6 +167,23 @@ export default function Header() {
                   <span>{t('Track Order', 'آرڈر ٹریک کریں')}</span>
                 </Link>
               </li>
+              <li>
+                <Link 
+                  href="/offers" 
+                  className={`nav-link ${isLinkActive('/offers') ? 'active' : ''}`} 
+                  style={{ 
+                    color: isLinkActive('/offers') ? '#000000' : '#f97316', 
+                    background: isLinkActive('/offers') ? '#f97316' : 'rgba(249,115,22,0.1)',
+                    fontWeight: 800,
+                    textDecoration: 'none',
+                    padding: '8px 18px',
+                    borderRadius: 'var(--radius-pill)',
+                    border: '1px solid rgba(249,115,22,0.3)'
+                  }}
+                >
+                  <span>🔥 {t('Offers', 'آفرز')}</span>
+                </Link>
+              </li>
             </ul>
           </nav>
 
@@ -286,12 +303,23 @@ export default function Header() {
                     <ChevronRight size={16} />
                   </Link>
                 </li>
+                <li>
+                  <Link 
+                    href="/offers" 
+                    className={`mobile-drawer-link ${isLinkActive('/offers') ? 'active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    style={{ color: '#f97316', fontWeight: 800 }}
+                  >
+                    <span>🔥 {t('Offers', 'آفرز')}</span>
+                    <ChevronRight size={16} />
+                  </Link>
+                </li>
               </ul>
             </nav>
 
             <div className="mobile-drawer-footer" style={{ borderTop: '1px solid var(--border-color)' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Flame size={16} /> {t('AI Chat Helper Active', 'اے آئی چیٹ اسسٹنٹ فعال')}
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f97316', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Flame size={16} /> {t('Hot Deals Available!', 'گرم آفرز دیکھیں!')}
               </span>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                 {t('Fatpizza Call Center: +92 300 1234567', 'فیٹ پیزا کال سینٹر: 1234567-300-92+')}

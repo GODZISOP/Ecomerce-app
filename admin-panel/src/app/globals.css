@@ -1041,7 +1041,8 @@ body {
 
 .form-input:focus {
   border-color: var(--primary);
-  background: white;
+  background: var(--background);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
 }
 
 /* Admin Dashboard Elements */
