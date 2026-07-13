@@ -1,23 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
 
 :root {
-  /* HSL Colors */
-  --primary-hue: 20;
-  --primary-sat: 95%;
-  --primary-lightness: 50%;
+  /* Core Colors */
+  --primary: #ef4444; /* Neon Red */
+  --primary-hover: #dc2626;
+  --primary-bg: rgba(239, 68, 68, 0.15);
   
-  --primary: hsl(var(--primary-hue), var(--primary-sat), var(--primary-lightness)); /* Fatpizza Orange */
-  --primary-hover: hsl(var(--primary-hue), var(--primary-sat), calc(var(--primary-lightness) - 8%));
-  --primary-bg: hsl(var(--primary-hue), var(--primary-sat), 94%);
+  --secondary: #b91c1c;
+  --accent: #7f1d1d;
   
-  --secondary: #e65c00;
-  --accent: #2e1a12;
+  /* Backgrounds & Surfaces */
+  --background: #111111; /* Very dark background */
+  --card-bg: #1a1a1a; /* Dark card background */
+  --sidebar-bg: #141414; /* Sidebar background */
   
-  --background: #f4f1ea;
-  --card-bg: #ffffff;
-  --foreground: #1e1b18;
-  --border-color: #e2ded5;
-  --text-muted: #6e675f;
+  /* Text */
+  --foreground: #f3f4f6; /* White-ish text */
+  --border-color: #333333;
+  --text-muted: #9ca3af;
   
   /* Status Colors */
   --status-pending: #f59e0b;
@@ -45,12 +45,13 @@
 }
 
 [data-theme='dark'] {
-  --background: #181512;
-  --card-bg: #221e1a;
-  --foreground: #f4f1ea;
-  --border-color: #322d28;
-  --text-muted: #a3988e;
-  --primary-bg: rgba(230, 92, 0, 0.15);
+  --background: #111111;
+  --card-bg: #1a1a1a;
+  --sidebar-bg: #141414;
+  --foreground: #f3f4f6;
+  --border-color: #333333;
+  --text-muted: #9ca3af;
+  --primary-bg: rgba(239, 68, 68, 0.15);
 }
 
 /* Reset and Global Styles */
@@ -135,7 +136,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 80px;
+  height: 70px;
 }
 
 .logo {
@@ -1287,5 +1288,50 @@ body {
     border-bottom: 1px solid var(--border-color);
     padding: 40px 20px !important;
   }
+}
+
+/* FLOATING WATER WAVES FILL ANIMATION EFFECT ON HOVER */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before, .stat-card::after {
+  content: '';
+  position: absolute;
+  width: 250%;
+  aspect-ratio: 1 / 1;
+  top: 110%;
+  left: 50%;
+  background: rgba(220, 38, 38, 0.45);
+  border-radius: 40%;
+  transition: top 1.5s ease-in-out;
+  z-index: 0;
+  pointer-events: none;
+  margin-left: -125%; 
+}
+
+.stat-card::after {
+  background: rgba(239, 68, 68, 0.3); /* Lighter red for layered wave */
+  border-radius: 43%;
+  animation: waterSpin 5s infinite linear;
+}
+
+.stat-card::before {
+  animation: waterSpin 7s infinite linear;
+}
+
+.stat-card:hover::before, .stat-card:hover::after {
+  top: -20%; /* Fills the card, leaving wavy top edge near the top */
+}
+
+@keyframes waterSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.stat-card > * {
+  position: relative;
+  z-index: 1; /* Ensures text stays above the water */
 }
 

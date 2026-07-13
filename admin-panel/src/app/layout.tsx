@@ -28,12 +28,7 @@ export default function RootLayout({
       </head>
       <body>
         <CartProvider>
-          <Header />
-          <main style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column' }}>
-            {children}
-          </main>
-          <Footer />
-          <AIChatAssistant />
+          {children}
         </CartProvider>
       </body>
     </html>

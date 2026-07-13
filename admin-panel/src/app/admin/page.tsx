@@ -8,6 +8,7 @@ import {
   FileText, RotateCw, ZoomIn, ZoomOut, Check, ArrowRight, Sparkles, TrendingUp
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, AreaChart, Area, PieChart, Pie } from 'recharts';
 
 interface OrderItem {
   id: number;
@@ -124,6 +125,150 @@ export default function PremiumAdminPanel() {
   const [categorySales, setCategorySales] = useState<{ name: string; value: number }[]>([]);
   const [cityBreakdown, setCityBreakdown] = useState<{ name: string; value: number }[]>([]);
   const [dailyVolumes, setDailyVolumes] = useState<{ date: string; count: number; revenue: number }[]>([]);
+
+  // Selected day for interactive graph
+  const [selectedDayStats, setSelectedDayStats] = useState<{ date: string; count: number; revenue: number; cancelled: number } | null>(null);
+
+  // Selected filter for bottom order list
+  const [selectedListFilter, setSelectedListFilter] = useState<string | null>(null);
+
+  // Global Time Filter State
+  const [globalTimeFilter, setGlobalTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_month' | 'this_year' | 'custom_date' | 'custom_month'>('all');
+  const [customDateFilter, setCustomDateFilter] = useState<string>(''); // YYYY-MM-DD
+  const [customMonthFilter, setCustomMonthFilter] = useState<string>(''); // YYYY-MM
+
+  const filteredOrders = React.useMemo(() => {
+    if (globalTimeFilter === 'all') return orders;
+    
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('en-CA');
+    
+    return orders.filter(o => {
+      if (!o.created_at) return false;
+      const orderDate = new Date(o.created_at);
+      const orderDateStr = orderDate.toLocaleDateString('en-CA');
+      
+      if (globalTimeFilter === 'today') {
+        return orderDateStr === todayStr;
+      }
+      if (globalTimeFilter === 'this_week') {
+        const pastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return orderDate >= pastWeek;
+      }
+      if (globalTimeFilter === 'this_month') {
+        return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+      }
+      if (globalTimeFilter === 'this_year') {
+        return orderDate.getFullYear() === now.getFullYear();
+      }
+      if (globalTimeFilter === 'custom_date' && customDateFilter) {
+        return orderDateStr === customDateFilter;
+      }
+      if (globalTimeFilter === 'custom_month' && customMonthFilter) {
+        return orderDateStr.startsWith(customMonthFilter);
+      }
+      
+      return true;
+    });
+  }, [orders, globalTimeFilter, customDateFilter, customMonthFilter]);
+
+  const dynamicStats = React.useMemo(() => {
+    let totalOrders = 0;
+    let pendingOrders = 0;
+    let dispatchedOrders = 0;
+    let deliveredOrders = 0;
+    let cancelledOrders = 0;
+    let totalRevenue = 0;
+    let rxPendingOrders = 0;
+    
+    filteredOrders.forEach(o => {
+      totalOrders++;
+      if (o.status === 'Pending') {
+        pendingOrders++;
+        if (o.items && Array.isArray(o.items) && o.items.some((i: any) => i.requires_prescription)) {
+          rxPendingOrders++;
+        }
+      }
+      if (o.status === 'Dispatched') dispatchedOrders++;
+      if (o.status === 'Delivered') {
+        deliveredOrders++;
+        totalRevenue += (o.grand_total || 0);
+      }
+      if (o.status === 'Cancelled') cancelledOrders++;
+    });
+    
+    return {
+      totalOrders, pendingOrders, dispatchedOrders, deliveredOrders, cancelledOrders, totalRevenue, rxPendingOrders
+    };
+  }, [filteredOrders]);
+
+  const dynamicCategorySales = React.useMemo(() => {
+    const categorySalesMap: Record<string, number> = {};
+    const medicineCategoryMap: Record<string, string> = {};
+    medicines.forEach(m => {
+      medicineCategoryMap[m.name.toLowerCase()] = m.category;
+    });
+    
+    filteredOrders.filter(o => o.status === 'Delivered').forEach(o => {
+      if (o.items && Array.isArray(o.items)) {
+        o.items.forEach((item: any) => {
+          const cat = item.category || medicineCategoryMap[item.name.toLowerCase()] || 'Pizza';
+          const value = (item.price_pkr || 0) * (item.quantity || 1);
+          categorySalesMap[cat] = (categorySalesMap[cat] || 0) + value;
+        });
+      }
+    });
+    return Object.entries(categorySalesMap).map(([name, value]) => ({ name, value }));
+  }, [filteredOrders, medicines]);
+
+  // Client-side grouping of orders by date to cover all history
+  const allDailyVolumes = React.useMemo(() => {
+    const map = new Map<string, { count: number, revenue: number, cancelled: number }>();
+    filteredOrders.forEach(o => {
+      if (!o.created_at) return;
+      const d = new Date(o.created_at);
+      const dateStr = d.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+      if (!map.has(dateStr)) {
+        map.set(dateStr, { count: 0, revenue: 0, cancelled: 0 });
+      }
+      const existing = map.get(dateStr)!;
+      existing.count += 1;
+      if (o.status !== 'Cancelled') {
+        existing.revenue += o.grand_total;
+      } else {
+        existing.cancelled += 1;
+      }
+    });
+    // Sort chronologically
+    const result = Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([date, data]) => ({
+      date,
+      count: data.count,
+      revenue: data.revenue,
+      cancelled: data.cancelled
+    }));
+
+    if (result.length === 1) {
+      const single = result[0];
+      const [year, month, day] = single.date.split('-').map(Number);
+      
+      const prev = new Date(year, month - 1, day - 1);
+      const next = new Date(year, month - 1, day + 1);
+      
+      return [
+        { date: prev.toLocaleDateString('en-CA'), count: 0, revenue: 0, cancelled: 0 },
+        single,
+        { date: next.toLocaleDateString('en-CA'), count: 0, revenue: 0, cancelled: 0 }
+      ];
+    }
+    
+    return result;
+  }, [filteredOrders]);
+
+  const todayOrders = React.useMemo(() => {
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    const todayData = allDailyVolumes.find(d => d.date === todayStr);
+    return todayData ? todayData.count : 0;
+  }, [allDailyVolumes]);
 
   // Check auth session on mount
   useEffect(() => {
@@ -551,337 +696,408 @@ export default function PremiumAdminPanel() {
   }
 
   return (
-    <div className="container" style={{ padding: '30px 24px 80px 24px' }}>
-      
-      {/* Upper header action row */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '40px',
-        flexWrap: 'wrap',
-        gap: '20px',
-        paddingBottom: '20px',
-        borderBottom: '1px solid var(--border-color)'
-      }}>
-        <div>
-          <span style={{ 
-            fontSize: '0.72rem', 
-            fontWeight: 800, 
-            color: 'var(--primary)', 
-            background: 'var(--primary-bg)', 
-            padding: '4px 10px', 
-            borderRadius: 'var(--radius-pill)',
-            textTransform: 'uppercase',
-            letterSpacing: '1px'
-          }}>
-            Fatpizza Kitchen Manager
-          </span>
-          <h1 style={{ fontSize: '2.1rem', fontWeight: 800, letterSpacing: '-0.5px', marginTop: '6px' }}>
-            Fatpizza Admin Panel / ایڈمن ڈیش بورڈ
-          </h1>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
+      {/* Left Sidebar */}
+      <aside style={{ width: '260px', background: 'var(--sidebar-bg)', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid var(--border-color)' }}>
+          <div className="logo-icon"><ShoppingBag size={24} /></div>
+          <div style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--foreground)' }}>Fatpizza</div>
         </div>
- 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-            Session Active
-          </span>
-          <button 
-            onClick={handleLogout}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--border-color)',
-              color: 'var(--status-cancelled)',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-              transition: 'var(--transition-fast)'
-            }}
-          >
-            Lock Terminal
-          </button>
-        </div>
-      </div>
- 
-      {/* Modern Horizontal Navigation Tabs */}
-      <div style={{
-        display: 'flex',
-        gap: '10px',
-        overflowX: 'auto',
-        marginBottom: '32px',
-        paddingBottom: '8px',
-        borderBottom: '1px solid var(--border-color)'
-      }}>
-        {[
-          { id: 'dashboard', label: 'Overview / تجزیات', icon: Activity },
-          { id: 'orders', label: 'Fulfillment Orders / آرڈرز', icon: ClipboardList },
-          { id: 'medicines', label: 'Menu Inventory / مینو ادویات', icon: ShoppingBag },
-          { id: 'settings', label: 'Shop Settings / ترتیبات', icon: Settings }
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
+        <div style={{ padding: '24px 16px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '16px', letterSpacing: '1px', paddingLeft: '12px' }}>DASHBOARDS</div>
+          {[
+            { id: 'dashboard', label: 'Overview', icon: Activity },
+            { id: 'orders', label: 'Orders', icon: ClipboardList },
+            { id: 'medicines', label: 'Inventory', icon: ShoppingBag },
+            { id: 'settings', label: 'Settings', icon: Settings }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} style={{
+                display: 'flex', alignItems: 'center', gap: '12px', width: '100%', padding: '12px 16px', 
                 background: isActive ? 'var(--primary)' : 'transparent',
-                color: isActive ? 'white' : 'var(--foreground)',
-                border: 'none',
-                padding: '12px 20px',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'var(--transition-fast)',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              <Icon size={18} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
- 
-      {/* TAB CONTENT SPACES */}
-      
+                color: isActive ? '#ffffff' : 'var(--text-muted)',
+                border: 'none', borderRadius: '8px', fontWeight: isActive ? 700 : 600, cursor: 'pointer', marginBottom: '4px',
+                textAlign: 'left', transition: 'var(--transition-fast)'
+              }}>
+                <Icon size={18} />
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflowY: 'auto' }}>
+        
+        {/* Top Header */}
+        <header style={{ padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', background: 'var(--background)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+            <Activity size={18} /> <span>Dashboards</span> <span style={{ color: 'var(--border-color)' }}>/</span> <span style={{ color: 'var(--foreground)', fontWeight: 600 }}>{activeTab === 'dashboard' ? 'Overview' : activeTab === 'orders' ? 'Orders' : activeTab === 'medicines' ? 'Inventory' : 'Settings'}</span>
+          </div>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <button className="icon-btn" style={{ background: 'var(--card-bg)' }}><Search size={20} /></button>
+            <button className="icon-btn" onClick={handleLogout} title="Lock Terminal" style={{ background: 'var(--card-bg)', color: 'var(--status-cancelled)' }}><Lock size={20} /></button>
+          </div>
+        </header>
+
+        <div style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
       {/* 1. DASHBOARD TAB */}
       {activeTab === 'dashboard' && (
-        <div>
-          {/* Info stats metric cards grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-            {/* Sales revenue */}
-            <div className="stat-card" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div className="stat-icon" style={{ background: '#d1fae5', color: '#065f46', flexShrink: 0 }}>
-                <TrendingUp size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Delivered Sales</div>
-                {isLoadingOrders ? (
-                  <div className="skeleton-shimmer" style={{ width: '80px', height: '24px', borderRadius: '4px', marginTop: '4px' }} />
-                ) : (
-                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--foreground)' }}>Rs. {stats.totalRevenue}</div>
-                )}
-              </div>
-            </div>
- 
-            {/* Total Orders */}
-            <div className="stat-card" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div className="stat-icon" style={{ background: '#dbeafe', color: '#1e40af', flexShrink: 0 }}>
-                <ClipboardList size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Invoices</div>
-                {isLoadingOrders ? (
-                  <div className="skeleton-shimmer" style={{ width: '50px', height: '24px', borderRadius: '4px', marginTop: '4px' }} />
-                ) : (
-                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--foreground)' }}>{stats.totalOrders}</div>
-                )}
-              </div>
-            </div>
- 
-            {/* Pending Verifications */}
-            <div className="stat-card" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div className="stat-icon" style={{ background: '#fef3c7', color: '#92400e', flexShrink: 0 }}>
-                <Clock size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Pending Verify</div>
-                {isLoadingOrders ? (
-                  <div className="skeleton-shimmer" style={{ width: '50px', height: '24px', borderRadius: '4px', marginTop: '4px' }} />
-                ) : (
-                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--foreground)' }}>{stats.pendingOrders}</div>
-                )}
-              </div>
-            </div>
- 
-            {/* Cancelled orders */}
-            <div className="stat-card" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div className="stat-icon" style={{ background: '#fee2e2', color: '#ef4444', flexShrink: 0 }}>
-                <XCircle size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cancelled Orders</div>
-                {isLoadingOrders ? (
-                  <div className="skeleton-shimmer" style={{ width: '50px', height: '24px', borderRadius: '4px', marginTop: '4px' }} />
-                ) : (
-                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--foreground)' }}>{stats.cancelledOrders}</div>
-                )}
-              </div>
-            </div>
- 
-            {/* Low stock catalog alert */}
-            <div className="stat-card" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div className="stat-icon" style={{ background: '#fee2e2', color: '#991b1b', flexShrink: 0 }}>
-                <AlertCircle size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Low Stock Items</div>
-                {isLoadingMedicines ? (
-                  <div className="skeleton-shimmer" style={{ width: '50px', height: '24px', borderRadius: '4px', marginTop: '4px' }} />
-                ) : (
-                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--foreground)' }}>{stats.lowStockMedicines}</div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Visual vector CSS-based analytic graphs */}
-          <div className="admin-dashboard-graphs">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          
+          {/* TIME FILTER HEADER */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', background: 'var(--card-bg)', padding: '16px 24px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <div style={{ fontWeight: 700, color: 'var(--text-muted)' }}>Date Range:</div>
+            <select 
+              value={globalTimeFilter}
+              onChange={(e) => setGlobalTimeFilter(e.target.value as any)}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)', cursor: 'pointer', outline: 'none' }}
+            >
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="this_week">Last 7 Days</option>
+              <option value="this_month">This Month</option>
+              <option value="this_year">This Year</option>
+              <option value="custom_month">Specific Month</option>
+              <option value="custom_date">Specific Date</option>
+            </select>
             
-            {/* Sales Volume chart */}
-            <div style={{
-              background: 'var(--card-bg)',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '30px',
-              boxShadow: 'var(--shadow-sm)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Daily Order Count Chart</h3>
-                <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700 }}>Last 7 Days</span>
-              </div>
-
-              {isLoadingOrders ? (
-                <div>
-                  <div style={{ display: 'flex', height: '200px', alignItems: 'flex-end', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)', width: '100%' }}>
-                    {[35, 70, 50, 85, 55, 80, 45].map((h, i) => (
-                      <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '12%', height: '100%', justifyContent: 'flex-end' }}>
-                        <div className="skeleton-shimmer" style={{ width: '14px', height: '12px', marginBottom: '6px' }} />
-                        <div className="skeleton-shimmer" style={{ width: '32px', height: `${h}%`, borderRadius: '6px 6px 0 0' }} />
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 10px 0 10px' }}>
-                    {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                      <div key={i} className="skeleton-shimmer" style={{ width: '35px', height: '10px' }} />
-                    ))}
-                  </div>
-                </div>
-              ) : dailyVolumes.length === 0 ? (
-                <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                  Aap ki database records load ho rahi hain...
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div style={{ display: 'flex', height: '200px', alignItems: 'flex-end', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
-                    {dailyVolumes.map((item, idx) => {
-                      const maxVal = Math.max(...dailyVolumes.map(d => d.count), 4);
-                      const heightPercent = `${(item.count / maxVal) * 100}%`;
-                      return (
-                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: `${100 / dailyVolumes.length}%`, height: '100%', justifyContent: 'flex-end' }}>
-                          <span style={{ fontSize: '0.72rem', fontWeight: 700, marginBottom: '6px' }}>{item.count}</span>
-                          <div style={{
-                            width: '32px',
-                            height: heightPercent,
-                            background: 'linear-gradient(to top, var(--primary), var(--secondary))',
-                            borderRadius: '6px 6px 0 0',
-                            transition: 'all 0.5s ease',
-                            cursor: 'pointer'
-                          }} title={`Orders: ${item.count} | Sales: Rs.${item.revenue}`} />
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 10px' }}>
-                    {dailyVolumes.map((item, idx) => (
-                      <span key={idx} style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>{item.date}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Category breakdown bar charts */}
-            <div style={{
-              background: 'var(--card-bg)',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '30px',
-              boxShadow: 'var(--shadow-sm)'
-            }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '24px' }}>Top Sales by Category</h3>
-              
-              {isLoadingOrders ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {[75, 45, 60, 30].map((w, i) => (
-                    <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <div className="skeleton-shimmer" style={{ width: '80px', height: '12px' }} />
-                        <div className="skeleton-shimmer" style={{ width: '60px', height: '12px' }} />
-                      </div>
-                      <div style={{ width: '100%', height: '8px', background: 'var(--background)', borderRadius: '10px', overflow: 'hidden' }}>
-                        <div className="skeleton-shimmer" style={{ width: `${w}%`, height: '100%' }} />
-                      </div>
-                    </div>
+            {globalTimeFilter === 'custom_date' && (
+              <input 
+                type="date" 
+                value={customDateFilter}
+                onChange={(e) => setCustomDateFilter(e.target.value)}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }}
+              />
+            )}
+            
+            {globalTimeFilter === 'custom_month' && (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <select
+                  value={customMonthFilter.split('-')[1] || ''}
+                  onChange={(e) => {
+                    const year = customMonthFilter.split('-')[0] || new Date().getFullYear().toString();
+                    const month = e.target.value;
+                    if (month) setCustomMonthFilter(`${year}-${month}`);
+                    else setCustomMonthFilter('');
+                  }}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="">Select Month</option>
+                  <option value="01">January</option>
+                  <option value="02">February</option>
+                  <option value="03">March</option>
+                  <option value="04">April</option>
+                  <option value="05">May</option>
+                  <option value="06">June</option>
+                  <option value="07">July</option>
+                  <option value="08">August</option>
+                  <option value="09">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+                <select
+                  value={customMonthFilter.split('-')[0] || ''}
+                  onChange={(e) => {
+                    const month = customMonthFilter.split('-')[1] || (new Date().getMonth() + 1).toString().padStart(2, '0');
+                    const year = e.target.value;
+                    if (year) setCustomMonthFilter(`${year}-${month}`);
+                    else setCustomMonthFilter('');
+                  }}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="">Year</option>
+                  {[2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => (
+                    <option key={y} value={y}>{y}</option>
                   ))}
-                </div>
-              ) : categorySales.length === 0 ? (
-                <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                  Aap ki completed revenue statistics load ho rahi hain...
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {categorySales.slice(0, 5).map((item, idx) => {
-                    const totalSalesVal = categorySales.reduce((s, c) => s + c.value, 0);
-                    const pct = totalSalesVal > 0 ? (item.value / totalSalesVal) * 100 : 0;
-                    return (
-                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700 }}>
-                          <span>{item.name}</span>
-                          <span>Rs. {item.value} ({pct.toFixed(0)}%)</span>
-                        </div>
-                        <div style={{ width: '100%', height: '8px', background: 'var(--background)', borderRadius: '10px', overflow: 'hidden' }}>
-                          <div style={{
-                            width: `${pct}%`,
-                            height: '100%',
-                            background: 'var(--primary)',
-                            borderRadius: '10px'
-                          }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                </select>
+              </div>
+            )}
+            
+            <div style={{ marginLeft: 'auto', fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>
+              {filteredOrders.length} Orders Found
             </div>
           </div>
 
-          {/* Cities breakdown section */}
-          <div style={{
-            background: 'var(--card-bg)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '30px',
-            boxShadow: 'var(--shadow-sm)'
-          }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '20px' }}>Active Shipping Cities</h3>
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              {cityBreakdown.map((city, idx) => (
-                <div key={idx} style={{
-                  background: 'var(--background)',
-                  border: '1px solid var(--border-color)',
-                  padding: '12px 20px',
-                  borderRadius: 'var(--radius-md)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}>
-                  <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem' }}>{city.value}</span>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>{city.name}</span>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Orders dispatched</span>
-                  </div>
-                </div>
-              ))}
+          {/* TOP METRIC CARDS */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+            {/* Delivered Sales (Net Revenue) */}
+            <div 
+              className="stat-card" 
+              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
+            >
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Net revenue</div>
+              {isLoadingOrders ? (
+                <div className="skeleton-shimmer" style={{ width: '120px', height: '32px', borderRadius: '4px' }} />
+              ) : (
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>Rs. {dynamicStats.totalRevenue.toLocaleString()}</div>
+              )}
+              <div style={{ fontSize: '0.8rem', color: '#10b981', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <TrendingUp size={14} /> <span>All-time completed</span>
+              </div>
+            </div>
+
+            {/* Today's Orders */}
+            <div 
+              className="stat-card" 
+              onClick={() => {
+                setSelectedListFilter('today');
+                const todayStr = new Date().toLocaleDateString('en-CA');
+                const todayData = allDailyVolumes.find(d => d.date === todayStr);
+                if (todayData) {
+                  setSelectedDayStats(todayData);
+                } else {
+                  setSelectedDayStats({ date: todayStr, count: 0, revenue: 0, cancelled: 0 });
+                }
+              }}
+              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'today' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'today' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
+            >
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Today's Orders</div>
+              {isLoadingOrders ? (
+                <div className="skeleton-shimmer" style={{ width: '80px', height: '32px', borderRadius: '4px' }} />
+              ) : (
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>{todayOrders}</div>
+              )}
+              <div style={{ fontSize: '0.8rem', color: 'var(--primary)', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>View list 👇</span>
+              </div>
+            </div>
+
+            {/* Total Invoices */}
+            <div 
+              className="stat-card" 
+              onClick={() => setSelectedListFilter('total')}
+              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'total' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'total' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
+            >
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Total Invoices</div>
+              {isLoadingOrders ? (
+                <div className="skeleton-shimmer" style={{ width: '80px', height: '32px', borderRadius: '4px' }} />
+              ) : (
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>{dynamicStats.totalOrders}</div>
+              )}
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>View list 👇</span>
+              </div>
+            </div>
+
+            {/* Cancelled Orders */}
+            <div 
+              className="stat-card"
+              onClick={() => setSelectedListFilter('cancelled')}
+              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'cancelled' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'cancelled' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
+            >
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Cancelled Orders</div>
+              {isLoadingOrders ? (
+                <div className="skeleton-shimmer" style={{ width: '80px', height: '32px', borderRadius: '4px' }} />
+              ) : (
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>{dynamicStats.cancelledOrders}</div>
+              )}
+              <div style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>View list 👇</span>
+              </div>
             </div>
           </div>
+
+          {/* MIDDLE CHARTS ROW */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px' }}>
+            
+            {/* Sales Overview Donut Chart */}
+            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Sales Overview</h3>
+              </div>
+              <div style={{ height: '240px', position: 'relative' }}>
+                {dynamicCategorySales.length === 0 ? (
+                  <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>No data</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={dynamicCategorySales}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {dynamicCategorySales.map((entry, index) => {
+                          const colors = ['var(--primary)', '#b91c1c', '#7f1d1d', '#fca5a5', '#450a0a'];
+                          return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                        })}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                        itemStyle={{ color: 'var(--foreground)' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+                {dynamicCategorySales.length > 0 && (
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>Rs.{categorySales.reduce((a,b)=>a+b.value,0)}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total Sales</div>
+                  </div>
+                )}
+              </div>
+              
+              <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {categorySales.slice(0,4).map((c, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>• {c.name}</span>
+                    <span style={{ fontWeight: 700 }}>Rs. {c.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Total Profit Area Chart */}
+            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>Daily Order Count</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>All Time</span>
+              </div>
+              
+              <div style={{ height: '300px' }}>
+                {allDailyVolumes.length === 0 ? (
+                  <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>No chart data</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={allDailyVolumes} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} onClick={(e: any) => {
+                      if (e && e.activePayload && e.activePayload.length > 0) {
+                        const data = e.activePayload[0].payload;
+                        setSelectedDayStats(data);
+                        setSelectedListFilter(data.date);
+                      }
+                    }}>
+                      <defs>
+                        <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                      <XAxis dataKey="date" tick={{ fontSize: 12, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                      <Tooltip 
+                        contentStyle={{ background: 'var(--sidebar-bg)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                        itemStyle={{ color: 'var(--foreground)' }}
+                      />
+                      <Area type="monotone" dataKey="count" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          </div>
+
+
+          {/* DYNAMIC ORDER LIST SECTION */}
+          {selectedListFilter && (
+            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--primary)', borderRadius: '12px', padding: '24px', position: 'relative' }}>
+              <button 
+                onClick={() => { setSelectedListFilter(null); setSelectedDayStats(null); }}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                <XCircle size={24} />
+              </button>
+              
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '16px', textTransform: 'capitalize' }}>
+                {selectedListFilter === 'today' ? "Today's" : 
+                 (selectedListFilter === 'delivered' || selectedListFilter === 'cancelled' || selectedListFilter === 'total') ? selectedListFilter :
+                 `Orders on ${new Date(selectedListFilter).toLocaleDateString()}`} List
+              </h3>
+
+              {selectedDayStats && (selectedListFilter === selectedDayStats.date || selectedListFilter === 'today') && (
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                  <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)', flex: 1, minWidth: '120px' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Revenue</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#10b981' }}>Rs. {selectedDayStats.revenue.toLocaleString()}</div>
+                  </div>
+                  <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.2)', flex: 1, minWidth: '120px' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Orders</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#3b82f6' }}>{selectedDayStats.count}</div>
+                  </div>
+                  <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)', flex: 1, minWidth: '120px' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Cancelled Orders</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ef4444' }}>{selectedDayStats.cancelled}</div>
+                  </div>
+                </div>
+              )}
+              
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>Tracking Code</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>Date & Time</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>Customer Name</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>Status</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const todayStr = new Date().toLocaleDateString('en-CA');
+                      const filtered = filteredOrders.filter(o => {
+                        if (selectedListFilter === 'today') {
+                          if (!o.created_at) return false;
+                          return new Date(o.created_at).toLocaleDateString('en-CA') === todayStr;
+                        }
+                        if (selectedListFilter === 'delivered') return o.status === 'Delivered';
+                        if (selectedListFilter === 'cancelled') return o.status === 'Cancelled';
+                        if (selectedListFilter === 'total') return true;
+                        
+                        if (selectedListFilter && selectedListFilter.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                          if (!o.created_at) return false;
+                          return new Date(o.created_at).toLocaleDateString('en-CA') === selectedListFilter;
+                        }
+                        return true;
+                      });
+
+                      if (filtered.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                              Koi orders available nahi hain.
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      return filtered.map((o) => (
+                        <tr key={o.id} style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--background)' }}>
+                          <td style={{ padding: '16px', fontWeight: 700, color: 'var(--primary)' }}>{o.tracking_code}</td>
+                          <td style={{ padding: '16px' }}>{new Date(o.created_at).toLocaleString()}</td>
+                          <td style={{ padding: '16px', fontWeight: 600 }}>{o.customer_name}</td>
+                          <td style={{ padding: '16px' }}>
+                            <span style={{
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              background: o.status === 'Cancelled' ? 'rgba(239, 68, 68, 0.15)' : 
+                                         o.status === 'Delivered' ? 'rgba(16, 185, 129, 0.15)' : 'var(--primary-bg)',
+                              color: o.status === 'Cancelled' ? '#ef4444' : 
+                                     o.status === 'Delivered' ? '#10b981' : 'var(--primary)',
+                            }}>
+                              {o.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px', fontWeight: 800 }}>Rs. {o.grand_total}</td>
+                        </tr>
+                      ));
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
         </div>
       )}
@@ -2159,6 +2375,8 @@ export default function PremiumAdminPanel() {
         </div>
       )}
 
+        </div>
+      </main>
     </div>
   );
 }
