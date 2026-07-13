@@ -7,7 +7,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { PizzaItem } from '@/lib/supabaseClient';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
-import AddonsModal from '@/components/AddonsModal';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -20,7 +19,6 @@ export default function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [showAddedToast, setShowAddedToast] = useState(false);
-  const [isAddonsModalOpen, setIsAddonsModalOpen] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -49,7 +47,9 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (item) {
-      setIsAddonsModalOpen(true);
+      addToCart(item, quantity, []);
+      setShowAddedToast(true);
+      setTimeout(() => setShowAddedToast(false), 3000);
     }
   };
 
@@ -370,7 +370,6 @@ export default function ProductDetailPage() {
           </div>
         )}
       
-      <AddonsModal medicine={item} isOpen={isAddonsModalOpen} onClose={() => setIsAddonsModalOpen(false)} initialQuantity={quantity} />
       
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes slideUp {

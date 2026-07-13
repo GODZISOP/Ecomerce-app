@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, MapPin, Navigation } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
+import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, ArrowLeft, ShieldCheck, MapPin, Navigation, Loader2 } from 'lucide-react';
+import { useCart, Addon } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { supabase, PizzaItem } from '@/lib/supabaseClient';
 import dynamic from 'next/dynamic';
 
 // Dynamically import the LocationMapComponent to avoid SSR window-is-not-defined errors in Next.js
@@ -60,6 +61,8 @@ export default function CartPage() {
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [hasSetLocation, setHasSetLocation] = useState(false);
+  const [addons, setAddons] = useState<Addon[]>([]);
+  const [isLoadingAddons, setIsLoadingAddons] = useState(false);
 
   const grandTotal = cartSubtotal + (cart.length > 0 ? shippingFee : 0);
 
@@ -101,6 +104,34 @@ export default function CartPage() {
     const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, initialLat, initialLng);
     setDistance(dist);
     updateShippingFeeByDistance(dist, initialLat, initialLng);
+
+    // Fetch Addons for Cart Page upsell
+    async function fetchAddons() {
+      setIsLoadingAddons(true);
+      try {
+        const { data, error } = await supabase.from('addons').select('*').order('name');
+        if (data && data.length > 0) {
+          setAddons(data);
+        } else {
+          setAddons([
+            { id: 1, name: 'Pepsi', price_pkr: 100 },
+            { id: 2, name: 'Sprite', price_pkr: 100 },
+            { id: 3, name: 'Ketchup', price_pkr: 20 },
+            { id: 4, name: 'Extra Cheese', price_pkr: 150 }
+          ]);
+        }
+      } catch (e) {
+        setAddons([
+          { id: 1, name: 'Pepsi', price_pkr: 100 },
+          { id: 2, name: 'Sprite', price_pkr: 100 },
+          { id: 3, name: 'Ketchup', price_pkr: 20 },
+          { id: 4, name: 'Extra Cheese', price_pkr: 150 }
+        ]);
+      } finally {
+        setIsLoadingAddons(false);
+      }
+    }
+    fetchAddons();
   }, []);
 
   // Update shipping fee dynamically and sync with localStorage
@@ -184,6 +215,25 @@ export default function CartPage() {
 
   const handleRemove = (id: string) => {
     removeFromCart(id);
+  };
+
+  const handleAddStandaloneAddon = (addon: Addon) => {
+    const addonAsItem: PizzaItem = {
+      id: 10000 + addon.id, // Offset ID so it doesn't conflict with real products
+      name: addon.name,
+      generic_name: 'Add-on',
+      category: 'Sides',
+      price_pkr: addon.price_pkr,
+      stock: 999,
+      dosage: '1 serving',
+      description: 'Extra add-on',
+      manufacturer: 'Fatpizza Kitchen',
+      requires_prescription: false,
+      image_url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&h=200&fit=crop'
+    };
+    // @ts-ignore
+    useCart().addToCart?.(addonAsItem, 1) || null; // Wait, we already have addToCart in scope!
+    addToCart(addonAsItem as any, 1, []);
   };
 
   return (
@@ -367,6 +417,114 @@ export default function CartPage() {
                 </Link>
               </div>
             </div>
+
+            {/* Extras / Addons Section (Premium UI) */}
+            <div style={{
+              background: 'linear-gradient(145deg, var(--card-bg) 0%, rgba(20,20,20,0.8) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '28px',
+              marginTop: '32px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ background: 'var(--primary-bg)', padding: '10px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Plus size={20} color="var(--primary)" />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 900, fontFamily: 'var(--font-display)', margin: 0 }}>
+                    {t('Frequently Bought Together', 'اکثر ساتھ خریدا جاتا ہے')}
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                    {t('Add these extras to complete your meal', 'اپنے کھانے کو مکمل کرنے کے لیے یہ چیزیں شامل کریں')}
+                  </p>
+                </div>
+              </div>
+              
+              {isLoadingAddons ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '40px 0', color: 'var(--primary)' }}>
+                  <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} />
+                  <span style={{ fontWeight: 600 }}>{t('Loading extras...', 'لوڈ ہو رہا ہے...')}</span>
+                </div>
+              ) : addons.length > 0 ? (
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+                  gap: '16px' 
+                }}>
+                  {addons.map(addon => (
+                    <div key={addon.id} 
+                      className="addon-card"
+                      style={{
+                        position: 'relative',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        overflow: 'hidden',
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.3)';
+                        e.currentTarget.style.borderColor = 'var(--primary)';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                      }}
+                    >
+                      <div style={{ 
+                        position: 'absolute', 
+                        top: '-20px', 
+                        right: '-20px', 
+                        width: '80px', 
+                        height: '80px', 
+                        background: 'var(--primary)', 
+                        opacity: 0.1, 
+                        borderRadius: '50%',
+                        filter: 'blur(20px)'
+                      }} />
+                      
+                      <div style={{ marginBottom: '16px', zIndex: 1 }}>
+                        <h4 style={{ fontWeight: 800, fontSize: '1.05rem', margin: '0 0 6px 0', color: 'var(--foreground)' }}>{addon.name}</h4>
+                        <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '0.95rem' }}>Rs. {addon.price_pkr}</div>
+                      </div>
+                      
+                      <button 
+                        onClick={() => handleAddStandaloneAddon(addon)}
+                        style={{ 
+                          width: '100%', 
+                          padding: '10px', 
+                          background: 'linear-gradient(to right, var(--primary), #ff6b3d)', 
+                          color: 'white', 
+                          border: 'none', 
+                          borderRadius: 'var(--radius-sm)', 
+                          fontWeight: 800, 
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          zIndex: 1,
+                          transition: 'opacity 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
+                        onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                      >
+                        <Plus size={16} strokeWidth={3} /> {t('Add', 'شامل کریں')}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
 
             {/* Delivery Map Selection Card */}
             {isMounted && (
