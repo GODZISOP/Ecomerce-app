@@ -656,7 +656,7 @@ export default function PremiumAdminPanel() {
   };
 
   // Filter Computations
-  const filteredOrdersList = orders.filter(ord => {
+  const filteredOrdersList = filteredOrders.filter(ord => {
     const term = orderSearch.toLowerCase();
     const matchSearch = !orderSearch.trim() || 
       ord.customer_name.toLowerCase().includes(term) ||
@@ -923,22 +923,7 @@ export default function PremiumAdminPanel() {
 
           {/* TOP METRIC CARDS */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-            {/* Delivered Sales (Net Revenue) */}
-            <div 
-              className="stat-card" 
-              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
-            >
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Net revenue</div>
-              {isLoadingOrders ? (
-                <div className="skeleton-shimmer" style={{ width: '120px', height: '32px', borderRadius: '4px' }} />
-              ) : (
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>Rs. {dynamicStats.totalRevenue.toLocaleString()}</div>
-              )}
-              <div style={{ fontSize: '0.8rem', color: '#10b981', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <TrendingUp size={14} /> <span>All-time completed</span>
-              </div>
-            </div>
-
+            
             {/* Filtered Orders */}
             <div 
               className="stat-card" 
@@ -946,10 +931,10 @@ export default function PremiumAdminPanel() {
                 setSelectedListFilter('filtered');
                 setSelectedDayStats(null);
               }}
-              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'filtered' || selectedListFilter === 'today' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'filtered' || selectedListFilter === 'today' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
+              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'filtered' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'filtered' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
             >
               <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
-                {globalTimeFilter === 'today' ? "Today's Orders" : globalTimeFilter === 'all' ? "All Orders" : "Filtered Orders"}
+                {globalTimeFilter === 'today' ? "Today's Orders" : globalTimeFilter === 'all' ? "All-Time Orders" : "Filtered Orders"}
               </div>
               {isLoadingOrders ? (
                 <div className="skeleton-shimmer" style={{ width: '80px', height: '32px', borderRadius: '4px' }} />
@@ -961,30 +946,52 @@ export default function PremiumAdminPanel() {
               </div>
             </div>
 
-            {/* Total Invoices */}
+            {/* Filtered Net Revenue */}
             <div 
               className="stat-card" 
-              onClick={() => setSelectedListFilter('total')}
-              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'total' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'total' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
+              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
             >
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Total Invoices</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
+                {globalTimeFilter === 'today' ? "Today's Revenue" : globalTimeFilter === 'all' ? "All-Time Revenue" : "Filtered Revenue"}
+              </div>
+              {isLoadingOrders ? (
+                <div className="skeleton-shimmer" style={{ width: '120px', height: '32px', borderRadius: '4px' }} />
+              ) : (
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>Rs. {dynamicStats.totalRevenue.toLocaleString()}</div>
+              )}
+              <div style={{ fontSize: '0.8rem', color: '#10b981', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>Completed orders only</span>
+              </div>
+            </div>
+
+            {/* Filtered Invoices (Non-cancelled) */}
+            <div 
+              className="stat-card" 
+              onClick={() => setSelectedListFilter('invoices')}
+              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'invoices' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'invoices' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
+            >
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
+                {globalTimeFilter === 'today' ? "Today's Invoices" : globalTimeFilter === 'all' ? "All-Time Invoices" : "Filtered Invoices"}
+              </div>
               {isLoadingOrders ? (
                 <div className="skeleton-shimmer" style={{ width: '80px', height: '32px', borderRadius: '4px' }} />
               ) : (
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>{orders.length}</div>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>{dynamicStats.totalOrders - dynamicStats.cancelledOrders}</div>
               )}
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>View list 👇</span>
               </div>
             </div>
 
-            {/* Cancelled Orders */}
+            {/* Filtered Cancelled Orders */}
             <div 
               className="stat-card"
               onClick={() => setSelectedListFilter('cancelled')}
               style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'cancelled' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'cancelled' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
             >
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Cancelled Orders</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
+                {globalTimeFilter === 'today' ? "Today's Cancelled" : globalTimeFilter === 'all' ? "All-Time Cancelled" : "Filtered Cancelled"}
+              </div>
               {isLoadingOrders ? (
                 <div className="skeleton-shimmer" style={{ width: '80px', height: '32px', borderRadius: '4px' }} />
               ) : (
@@ -1102,9 +1109,10 @@ export default function PremiumAdminPanel() {
               </button>
               
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '16px', textTransform: 'capitalize' }}>
-                {selectedListFilter === 'today' ? "Today's" : 
+                {selectedListFilter === 'invoices' ? "Invoices" :
+                 selectedListFilter === 'cancelled' ? "Cancelled" :
                  selectedListFilter === 'filtered' ? "Filtered" :
-                 (selectedListFilter === 'delivered' || selectedListFilter === 'cancelled' || selectedListFilter === 'total') ? selectedListFilter :
+                 (selectedListFilter === 'delivered' || selectedListFilter === 'total') ? selectedListFilter :
                  `Orders on ${new Date(selectedListFilter).toLocaleDateString()}`} List
               </h3>
 
@@ -1139,15 +1147,12 @@ export default function PremiumAdminPanel() {
                   <tbody>
                     {(() => {
                       const todayStr = new Date().toLocaleDateString('en-CA');
-                      const baseOrders = selectedListFilter === 'total' ? orders : filteredOrders;
+                      const baseOrders = filteredOrders;
                       const filtered = baseOrders.filter(o => {
                         if (selectedListFilter === 'filtered') return true;
-                        if (selectedListFilter === 'today') {
-                          if (!o.created_at) return false;
-                          return new Date(o.created_at).toLocaleDateString('en-CA') === todayStr;
-                        }
-                        if (selectedListFilter === 'delivered') return o.status === 'Delivered';
+                        if (selectedListFilter === 'invoices') return o.status !== 'Cancelled';
                         if (selectedListFilter === 'cancelled') return o.status === 'Cancelled';
+                        if (selectedListFilter === 'delivered') return o.status === 'Delivered';
                         if (selectedListFilter === 'total') return true;
                         
                         if (selectedListFilter && selectedListFilter.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -1238,8 +1243,70 @@ export default function PremiumAdminPanel() {
               />
             </div>
 
-            {/* Category selection */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Date Filter */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Date:</span>
+                <select 
+                  value={globalTimeFilter}
+                  onChange={(e) => setGlobalTimeFilter(e.target.value as any)}
+                  style={{ padding: '6px 12px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)', cursor: 'pointer', outline: 'none', fontSize: '0.85rem' }}
+                >
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="this_week">Last 7 Days</option>
+                  <option value="this_month">This Month</option>
+                  <option value="this_year">This Year</option>
+                  <option value="custom_month">Specific Month</option>
+                  <option value="custom_date">Specific Date</option>
+                </select>
+                
+                {globalTimeFilter === 'custom_date' && (
+                  <input 
+                    type="date" 
+                    value={customDateFilter}
+                    onChange={(e) => setCustomDateFilter(e.target.value)}
+                    style={{ padding: '6px 12px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', fontSize: '0.85rem' }}
+                  />
+                )}
+                
+                {globalTimeFilter === 'custom_month' && (
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <select
+                      value={customMonthFilter.split('-')[1] || ''}
+                      onChange={(e) => {
+                        const year = customMonthFilter.split('-')[0] || new Date().getFullYear().toString();
+                        const month = e.target.value;
+                        if (month) setCustomMonthFilter(`${year}-${month}`);
+                        else setCustomMonthFilter('');
+                      }}
+                      style={{ padding: '6px 12px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                    >
+                      <option value="">Month</option>
+                      <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option>
+                      <option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option>
+                      <option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option>
+                      <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                    </select>
+                    <select
+                      value={customMonthFilter.split('-')[0] || ''}
+                      onChange={(e) => {
+                        const month = customMonthFilter.split('-')[1] || (new Date().getMonth() + 1).toString().padStart(2, '0');
+                        const year = e.target.value;
+                        if (year) setCustomMonthFilter(`${year}-${month}`);
+                        else setCustomMonthFilter('');
+                      }}
+                      style={{ padding: '6px 12px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)', outline: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                    >
+                      <option value="">Year</option>
+                      {[2023, 2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Category selection */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {['All', 'Pending', 'Dispatched', 'Delivered', 'Cancelled'].map((status) => (
                 <button
                   key={status}
@@ -1259,6 +1326,7 @@ export default function PremiumAdminPanel() {
                   {status}
                 </button>
               ))}
+            </div>
             </div>
           </div>
 
