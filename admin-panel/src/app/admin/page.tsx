@@ -77,6 +77,7 @@ export default function PremiumAdminPanel() {
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [offerModalType, setOfferModalType] = useState<'add' | 'edit'>('add');
   const [editingOffer, setEditingOffer] = useState<Partial<Offer> | null>(null);
+  const [offerImageFile, setOfferImageFile] = useState<File | null>(null);
 
   // Core Data States
   const [orders, setOrders] = useState<Order[]>([]);
@@ -150,7 +151,7 @@ export default function PremiumAdminPanel() {
   const [selectedListFilter, setSelectedListFilter] = useState<string | null>(null);
 
   // Global Time Filter State
-  const [globalTimeFilter, setGlobalTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_month' | 'this_year' | 'custom_date' | 'custom_month'>('all');
+  const [globalTimeFilter, setGlobalTimeFilter] = useState<'all' | 'today' | 'this_week' | 'this_month' | 'this_year' | 'custom_date' | 'custom_month'>('today');
   const [customDateFilter, setCustomDateFilter] = useState<string>(''); // YYYY-MM-DD
   const [customMonthFilter, setCustomMonthFilter] = useState<string>(''); // YYYY-MM
 
@@ -942,26 +943,22 @@ export default function PremiumAdminPanel() {
               </div>
             </div>
 
-            {/* Today's Orders */}
+            {/* Filtered Orders */}
             <div 
               className="stat-card" 
               onClick={() => {
-                setSelectedListFilter('today');
-                const todayStr = new Date().toLocaleDateString('en-CA');
-                const todayData = allDailyVolumes.find(d => d.date === todayStr);
-                if (todayData) {
-                  setSelectedDayStats(todayData);
-                } else {
-                  setSelectedDayStats({ date: todayStr, count: 0, revenue: 0, cancelled: 0 });
-                }
+                setSelectedListFilter('filtered');
+                setSelectedDayStats(null);
               }}
-              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'today' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'today' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
+              style={{ display: 'flex', flexDirection: 'column', padding: '24px', background: selectedListFilter === 'filtered' || selectedListFilter === 'today' ? 'var(--primary-bg)' : 'var(--card-bg)', border: selectedListFilter === 'filtered' || selectedListFilter === 'today' ? '1px solid var(--primary)' : '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)' }}
             >
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Today's Orders</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
+                {globalTimeFilter === 'today' ? "Today's Orders" : globalTimeFilter === 'all' ? "All Orders" : "Filtered Orders"}
+              </div>
               {isLoadingOrders ? (
                 <div className="skeleton-shimmer" style={{ width: '80px', height: '32px', borderRadius: '4px' }} />
               ) : (
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>{todayOrders}</div>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>{dynamicStats.totalOrders}</div>
               )}
               <div style={{ fontSize: '0.8rem', color: 'var(--primary)', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>View list 👇</span>
@@ -978,7 +975,7 @@ export default function PremiumAdminPanel() {
               {isLoadingOrders ? (
                 <div className="skeleton-shimmer" style={{ width: '80px', height: '32px', borderRadius: '4px' }} />
               ) : (
-                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>{dynamicStats.totalOrders}</div>
+                <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--foreground)' }}>{orders.length}</div>
               )}
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>View list 👇</span>
@@ -1110,6 +1107,7 @@ export default function PremiumAdminPanel() {
               
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '16px', textTransform: 'capitalize' }}>
                 {selectedListFilter === 'today' ? "Today's" : 
+                 selectedListFilter === 'filtered' ? "Filtered" :
                  (selectedListFilter === 'delivered' || selectedListFilter === 'cancelled' || selectedListFilter === 'total') ? selectedListFilter :
                  `Orders on ${new Date(selectedListFilter).toLocaleDateString()}`} List
               </h3>
@@ -1145,7 +1143,9 @@ export default function PremiumAdminPanel() {
                   <tbody>
                     {(() => {
                       const todayStr = new Date().toLocaleDateString('en-CA');
-                      const filtered = filteredOrders.filter(o => {
+                      const baseOrders = selectedListFilter === 'total' ? orders : filteredOrders;
+                      const filtered = baseOrders.filter(o => {
+                        if (selectedListFilter === 'filtered') return true;
                         if (selectedListFilter === 'today') {
                           if (!o.created_at) return false;
                           return new Date(o.created_at).toLocaleDateString('en-CA') === todayStr;
@@ -2062,7 +2062,7 @@ export default function PremiumAdminPanel() {
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>🔥 Offers & Deals</h2>
               <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.9rem' }}>Manage special offers shown on the customer website.</p>
             </div>
-            <button onClick={() => { setOfferModalType('add'); setEditingOffer({ title: '', description: '', discount_text: '', badge: 'OFFER', image_url: '', valid_until: '', is_active: true }); setShowOfferModal(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button onClick={() => { setOfferModalType('add'); setEditingOffer({ title: '', description: '', discount_text: '', badge: 'OFFER', image_url: '', valid_until: '', is_active: true }); setOfferImageFile(null); setShowOfferModal(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Plus size={16} /> Add New Offer
             </button>
           </div>
@@ -2088,7 +2088,7 @@ export default function PremiumAdminPanel() {
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: '0 0 12px', lineHeight: 1.5 }}>{offer.description}</p>
                   {offer.valid_until && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '12px' }}>📅 Valid until: {new Date(offer.valid_until).toLocaleDateString()}</div>}
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => { setOfferModalType('edit'); setEditingOffer({ ...offer }); setShowOfferModal(true); }} style={{ flex: 1, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--foreground)', padding: '8px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
+                    <button onClick={() => { setOfferModalType('edit'); setEditingOffer({ ...offer }); setOfferImageFile(null); setShowOfferModal(true); }} style={{ flex: 1, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--foreground)', padding: '8px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
                       <Edit size={13} style={{ marginRight: '4px' }} />Edit
                     </button>
                     <button onClick={() => deleteOffer(offer.id)} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
@@ -2117,8 +2117,29 @@ export default function PremiumAdminPanel() {
               e.preventDefault();
               setIsSavingOffer(true);
               try {
+                let finalImageUrl = editingOffer.image_url;
+                if (offerImageFile) {
+                  const formData = new FormData();
+                  formData.append('file', offerImageFile);
+                  const uploadRes = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer medimart_session_token_2026_verified` },
+                    body: formData
+                  });
+                  const uploadData = await uploadRes.json();
+                  if (uploadData.success) {
+                    finalImageUrl = uploadData.url;
+                  } else {
+                    alert('Image upload failed: ' + uploadData.error);
+                    setIsSavingOffer(false);
+                    return;
+                  }
+                }
+
+                const payload = { ...editingOffer, image_url: finalImageUrl };
+
                 const method = offerModalType === 'add' ? 'POST' : 'PUT';
-                const r = await fetch('/api/offers', { method, headers: { 'Content-Type': 'application/json', authorization: 'Bearer medimart_session_token_2026_verified' }, body: JSON.stringify(editingOffer) });
+                const r = await fetch('/api/offers', { method, headers: { 'Content-Type': 'application/json', authorization: 'Bearer medimart_session_token_2026_verified' }, body: JSON.stringify(payload) });
                 const d = await r.json();
                 if (d.success) {
                   if (offerModalType === 'add') setOffers(prev => [...prev, d.offer]);
@@ -2128,12 +2149,30 @@ export default function PremiumAdminPanel() {
               } catch {}
               setIsSavingOffer(false);
             }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {[{label: 'Offer Title *', key: 'title', placeholder: 'e.g. Grand Opening Deal 🎉'}, {label: 'Discount Text', key: 'discount_text', placeholder: 'e.g. Save Rs. 690 or FREE Cheese Sticks'}, {label: 'Image URL', key: 'image_url', placeholder: 'https://...'}, {label: 'Valid Until (optional)', key: 'valid_until', placeholder: '', type: 'date'}].map(f => (
+              {[{label: 'Offer Title *', key: 'title', placeholder: 'e.g. Grand Opening Deal 🎉'}, {label: 'Discount Text', key: 'discount_text', placeholder: 'e.g. Save Rs. 690 or FREE Cheese Sticks'}, {label: 'Valid Until (optional)', key: 'valid_until', placeholder: '', type: 'date'}].map(f => (
                 <div key={f.key}>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.82rem', marginBottom: '6px', color: 'var(--text-muted)' }}>{f.label}</label>
                   <input type={f.type || 'text'} value={(editingOffer as any)[f.key] || ''} onChange={e => setEditingOffer(prev => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder} required={f.key === 'title'} style={{ width: '100%', background: 'var(--background)', border: '1px solid var(--border-color)', color: 'var(--foreground)', borderRadius: '8px', padding: '10px 14px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
               ))}
+              <div>
+                <label style={{ display: 'block', fontWeight: 700, fontSize: '0.82rem', marginBottom: '6px', color: 'var(--text-muted)' }}>Offer Poster Image (Local Upload)</label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={e => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      setOfferImageFile(e.target.files[0]);
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        setEditingOffer(prev => ({ ...prev, image_url: e.target?.result as string }));
+                      };
+                      reader.readAsDataURL(e.target.files[0]);
+                    }
+                  }} 
+                  style={{ width: '100%', background: 'var(--background)', border: '1px solid var(--border-color)', color: 'var(--foreground)', borderRadius: '8px', padding: '10px 14px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} 
+                />
+              </div>
               <div>
                 <label style={{ display: 'block', fontWeight: 700, fontSize: '0.82rem', marginBottom: '6px', color: 'var(--text-muted)' }}>Description *</label>
                 <textarea value={editingOffer.description || ''} onChange={e => setEditingOffer(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe the offer in detail..." required rows={3} style={{ width: '100%', background: 'var(--background)', border: '1px solid var(--border-color)', color: 'var(--foreground)', borderRadius: '8px', padding: '10px 14px', fontSize: '0.9rem', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
@@ -2148,7 +2187,12 @@ export default function PremiumAdminPanel() {
                 <label style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-muted)' }}>Active on Website?</label>
                 <input type="checkbox" checked={editingOffer.is_active !== false} onChange={e => setEditingOffer(prev => ({ ...prev, is_active: e.target.checked }))} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
               </div>
-              {editingOffer.image_url && <img src={editingOffer.image_url} alt="Preview" style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px' }} onError={e => (e.currentTarget.style.display = 'none')} />}
+              {editingOffer.image_url && (
+                <div style={{ padding: '16px', background: 'var(--background)', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.82rem', marginBottom: '8px', color: 'var(--text-muted)' }}>Poster Preview</label>
+                  <img src={editingOffer.image_url} alt="Preview" style={{ width: '100%', maxHeight: '250px', objectFit: 'contain', borderRadius: '8px', background: '#000' }} onError={e => (e.currentTarget.style.display = 'none')} />
+                </div>
+              )}
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button type="button" onClick={() => setShowOfferModal(false)} style={{ flex: 1, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--foreground)', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}>Cancel</button>
                 <button type="submit" disabled={isSavingOffer} className="btn-primary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>{isSavingOffer ? 'Saving...' : offerModalType === 'add' ? 'Create Offer' : 'Update Offer'}</button>
