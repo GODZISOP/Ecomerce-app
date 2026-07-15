@@ -8,6 +8,19 @@ import { PizzaItem } from '@/lib/supabaseClient';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 
+export interface Offer {
+  id: number;
+  title: string;
+  description: string;
+  discount_text: string;
+  price_pkr?: number;
+  badge: string;
+  image_url: string;
+  valid_until: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 function ShopContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,6 +33,7 @@ function ShopContent() {
   const [search, setSearch] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [menuItems, setMenuItems] = useState<PizzaItem[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDebouncing, setIsDebouncing] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -84,6 +98,21 @@ function ShopContent() {
         
         if (data) {
           setMenuItems(data);
+        }
+
+        // Fetch Offers if no specific category is selected (or if we want them always)
+        if (!selectedCategory || selectedCategory === 'All') {
+          try {
+            const res = await fetch('/api/offers');
+            const offersData = await res.json();
+            if (offersData?.success) {
+              setOffers(offersData.offers.filter((o: Offer) => o.is_active));
+            }
+          } catch (e) {
+            console.error('Error fetching offers', e);
+          }
+        } else {
+          setOffers([]); // Clear offers when filtering by category
         }
       } catch (e) {
         console.error('Error fetching menu catalog:', e);
@@ -320,7 +349,7 @@ function ShopContent() {
                 </div>
               ))}
             </div>
-          ) : menuItems.length === 0 ? (
+          ) : menuItems.length === 0 && offers.length === 0 ? (
             <div style={{ 
               background: 'var(--card-bg)', 
               border: '1px solid var(--border-color)', 
@@ -347,7 +376,119 @@ function ShopContent() {
               </button>
             </div>
           ) : (
-            <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+            <div>
+              {/* Offers Section */}
+              {offers.length > 0 && (
+                <div style={{ marginBottom: '40px' }}>
+                  <h2 style={{ 
+                    fontSize: '2rem', 
+                    fontWeight: 900, 
+                    marginBottom: '20px', 
+                    borderBottom: '3px solid var(--primary)', 
+                    display: 'inline-block', 
+                    paddingBottom: '8px' 
+                  }}>
+                    {t('Special Offers', 'خاص آفرز')}
+                  </h2>
+                  <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                    {offers.map((offer) => (
+                      <div 
+                        key={`offer-${offer.id}`} 
+                        className="product-card" 
+                        style={{ 
+                          cursor: 'pointer', 
+                          background: 'var(--card-bg)', 
+                          border: '1px solid var(--border-color)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          height: '100%',
+                          overflow: 'hidden'
+                        }}
+                        onClick={() => router.push(`/offers/${offer.id}`)}
+                      >
+                        <div className="product-img-wrap" style={{ height: '200px', padding: '0', display: 'block', position: 'relative' }}>
+                          <img 
+                            src={offer.image_url} 
+                            alt={offer.title} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                        
+                        <div className="product-content" style={{ padding: '16px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                          <h3 className="product-name" style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '8px', textTransform: 'uppercase' }}>{offer.title}</h3>
+                          
+                          {offer.price_pkr ? (
+                            <div style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '12px', color: 'var(--foreground)' }}>
+                              PKR {offer.price_pkr}.00
+                            </div>
+                          ) : (
+                            <div style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '12px', color: 'var(--primary)' }}>
+                              View Details
+                            </div>
+                          )}
+
+                          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: 1.5, flexGrow: 1 }}>
+                            {offer.discount_text || offer.description}
+                          </p>
+                          
+                          <button 
+                            className="btn-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Will handle add to cart from detail page or directly here
+                              router.push(`/offers/${offer.id}`);
+                            }}
+                            style={{ 
+                              width: '100%', 
+                              padding: '12px', 
+                              background: 'var(--primary)', 
+                              color: 'white', 
+                              border: 'none', 
+                              borderRadius: 'var(--radius-sm)',
+                              fontWeight: 800,
+                              fontSize: '1rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              cursor: 'pointer',
+                              marginTop: 'auto'
+                            }}
+                          >
+                            <span style={{ 
+                              background: 'white', 
+                              color: 'var(--primary)', 
+                              borderRadius: '50%', 
+                              width: '20px', 
+                              height: '20px', 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center' 
+                            }}>
+                              <Plus size={14} strokeWidth={3} />
+                            </span>
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Regular Menu Items Section */}
+              {menuItems.length > 0 && (
+                <div>
+                  <h2 style={{ 
+                    fontSize: '2rem', 
+                    fontWeight: 900, 
+                    marginBottom: '20px', 
+                    display: offers.length > 0 ? 'block' : 'none' 
+                  }}>
+                    {t('Menu', 'مینو')}
+                  </h2>
+                  <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+              {/* Render Regular Menu Items */}
               {menuItems.map((item) => (
                 <div 
                   key={item.id} 
@@ -387,6 +528,9 @@ function ShopContent() {
                   </div>
                 </div>
               ))}
+                </div>
+              </div>
+              )}
             </div>
           )}
         </section>

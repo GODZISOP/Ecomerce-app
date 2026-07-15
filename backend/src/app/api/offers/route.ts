@@ -32,6 +32,7 @@ export async function POST(req: Request) {
       title: body.title || '',
       description: body.description || '',
       discount_text: body.discount_text || '',
+      price_pkr: body.price_pkr || 0,
       badge: body.badge || 'OFFER',
       image_url: body.image_url || '',
       valid_until: body.valid_until || null,

@@ -70,7 +70,7 @@ export default function PremiumAdminPanel() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'medicines' | 'prescriptions' | 'settings' | 'offers' | 'addons'>('dashboard');
 
   // Offers State
-  interface Offer { id: number; title: string; description: string; discount_text: string; badge: string; image_url: string; valid_until: string; is_active: boolean; created_at: string; }
+  interface Offer { id: number; title: string; description: string; discount_text: string; price_pkr?: number; badge: string; image_url: string; valid_until: string; is_active: boolean; created_at: string; }
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isLoadingOffers, setIsLoadingOffers] = useState(false);
   const [isSavingOffer, setIsSavingOffer] = useState(false);
@@ -2058,7 +2058,7 @@ export default function PremiumAdminPanel() {
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0 }}>🔥 Offers & Deals</h2>
               <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.9rem' }}>Manage special offers shown on the customer website.</p>
             </div>
-            <button onClick={() => { setOfferModalType('add'); setEditingOffer({ title: '', description: '', discount_text: '', badge: 'OFFER', image_url: '', valid_until: '', is_active: true }); setOfferImageFile(null); setShowOfferModal(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button onClick={() => { setOfferModalType('add'); setEditingOffer({ title: '', description: '', discount_text: '', price_pkr: 0, badge: 'OFFER', image_url: '', valid_until: '', is_active: true }); setOfferImageFile(null); setShowOfferModal(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Plus size={16} /> Add New Offer
             </button>
           </div>
@@ -2081,6 +2081,7 @@ export default function PremiumAdminPanel() {
                   </div>
                   <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: '6px' }}>{offer.title}</div>
                   {offer.discount_text && <div style={{ color: 'var(--primary)', fontSize: '0.82rem', fontWeight: 700, marginBottom: '8px' }}>🏷️ {offer.discount_text}</div>}
+                  {offer.price_pkr ? <div style={{ color: 'var(--status-delivered)', fontSize: '0.9rem', fontWeight: 800, marginBottom: '8px' }}>Rs. {offer.price_pkr}</div> : null}
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: '0 0 12px', lineHeight: 1.5 }}>{offer.description}</p>
                   {offer.valid_until && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '12px' }}>📅 Valid until: {new Date(offer.valid_until).toLocaleDateString()}</div>}
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -2145,7 +2146,7 @@ export default function PremiumAdminPanel() {
               } catch {}
               setIsSavingOffer(false);
             }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {[{label: 'Offer Title *', key: 'title', placeholder: 'e.g. Grand Opening Deal 🎉'}, {label: 'Discount Text', key: 'discount_text', placeholder: 'e.g. Save Rs. 690 or FREE Cheese Sticks'}, {label: 'Valid Until (optional)', key: 'valid_until', placeholder: '', type: 'date'}].map(f => (
+              {[{label: 'Offer Title *', key: 'title', placeholder: 'e.g. Grand Opening Deal 🎉'}, {label: 'Discount Text', key: 'discount_text', placeholder: 'e.g. Save Rs. 690 or FREE Cheese Sticks'}, {label: 'Price (PKR)', key: 'price_pkr', placeholder: 'e.g. 1500', type: 'number'}, {label: 'Valid Until (optional)', key: 'valid_until', placeholder: '', type: 'date'}].map(f => (
                 <div key={f.key}>
                   <label style={{ display: 'block', fontWeight: 700, fontSize: '0.82rem', marginBottom: '6px', color: 'var(--text-muted)' }}>{f.label}</label>
                   <input type={f.type || 'text'} value={(editingOffer as any)[f.key] || ''} onChange={e => setEditingOffer(prev => ({ ...prev, [f.key]: e.target.value }))} placeholder={f.placeholder} required={f.key === 'title'} style={{ width: '100%', background: 'var(--background)', border: '1px solid var(--border-color)', color: 'var(--foreground)', borderRadius: '8px', padding: '10px 14px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
