@@ -512,14 +512,10 @@ export default function PremiumAdminPanel() {
       const data = await response.json();
 
       if (data.success) {
-        setMedicines(meds || []);
-        setIsLoadingMedicines(false);
-
-        const { data: adds } = await supabase.from('addons').select('*').order('name');
-        setAddonsList(adds || []);
-        setIsLoadingAddons(false);
+        fetchMedicines();
         setEditingMedicine(null);
         setImageFile(null);
+        setShowMedicineModal(false);
       } else {
         alert('Error saving medicine record: ' + data.error);
       }
