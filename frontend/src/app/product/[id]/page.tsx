@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { PizzaItem } from '@/lib/supabaseClient';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
+import AddonsModal from '@/components/AddonsModal';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -16,6 +17,8 @@ export default function ProductDetailPage() {
   const { t } = useLanguage();
 
   const [item, setItem] = useState<PizzaItem | null>(null);
+  const [pizzaSizes, setPizzaSizes] = useState<PizzaItem[]>([]);
+  const [isAddonsModalOpen, setIsAddonsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [showAddedToast, setShowAddedToast] = useState(false);
@@ -34,6 +37,22 @@ export default function ProductDetailPage() {
 
         if (data) {
           setItem(data);
+          
+          if (data.category === 'Pizza') {
+            const baseNameMatch = data.name.match(/^(.*?)(?: - |$)/);
+            const baseName = baseNameMatch ? baseNameMatch[1] : data.name;
+            
+            const { data: variantsData } = await supabase
+              .from('medicines')
+              .select('*')
+              .ilike('name', `${baseName}%`)
+              .eq('category', 'Pizza')
+              .order('price_pkr', { ascending: true });
+              
+            if (variantsData && variantsData.length > 0) {
+              setPizzaSizes(variantsData);
+            }
+          }
         }
       } catch (e) {
         console.error('Error fetching food details:', e);
@@ -47,9 +66,7 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (item) {
-      addToCart(item, quantity, []);
-      setShowAddedToast(true);
-      setTimeout(() => setShowAddedToast(false), 3000);
+      setIsAddonsModalOpen(true);
     }
   };
 
@@ -194,6 +211,37 @@ export default function ProductDetailPage() {
               🔥 {t('Freshly Baked', 'تازہ پکا ہوا')}
             </span>
           </div>
+
+          {/* Size Options */}
+          {item.category === 'Pizza' && pizzaSizes.length > 1 && (
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '10px' }}>{t('Select Size', 'سائز منتخب کریں')}:</h3>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {pizzaSizes.map(variant => (
+                  <button
+                    key={variant.id}
+                    onClick={() => {
+                      setItem(variant);
+                      setQuantity(1);
+                      window.history.replaceState(null, '', `/product/${variant.id}`);
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 'var(--radius-sm)',
+                      fontWeight: 800,
+                      border: item.id === variant.id ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                      background: item.id === variant.id ? 'var(--primary-bg)' : 'transparent',
+                      color: item.id === variant.id ? 'var(--primary)' : 'var(--foreground)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {variant.dosage}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Price panel */}
           <div style={{
@@ -370,6 +418,15 @@ export default function ProductDetailPage() {
           </div>
         )}
       
+      {/* Addons Modal */}
+      {isAddonsModalOpen && item && (
+        <AddonsModal 
+          isOpen={isAddonsModalOpen}
+          onClose={() => setIsAddonsModalOpen(false)}
+          medicine={item}
+          initialQuantity={quantity}
+        />
+      )}
       
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes slideUp {

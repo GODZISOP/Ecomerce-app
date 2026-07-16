@@ -303,6 +303,8 @@ export default function PremiumAdminPanel() {
       fetchOrders();
       fetchMedicines();
       fetchSettings();
+      fetchOffers();
+      fetchAddons();
     }
   }, [isAuthenticated]);
 
@@ -332,7 +334,7 @@ export default function PremiumAdminPanel() {
   async function fetchMedicines() {
     setIsLoadingMedicines(true);
     try {
-      const { data, error } = await supabase.from('medicines').select('*');
+      const { data, error } = await supabase.from('medicines').select('*').order('id', { ascending: false });
       if (!error && data) {
         setMedicines(data as any);
       }
@@ -340,6 +342,35 @@ export default function PremiumAdminPanel() {
       console.error('Error fetching medicines:', e);
     } finally {
       setIsLoadingMedicines(false);
+    }
+  }
+
+  async function fetchAddons() {
+    setIsLoadingAddons(true);
+    try {
+      const response = await fetch('/api/admin/addons');
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setAddonsList(data);
+      }
+    } catch (e) {
+      console.error('Error fetching addons:', e);
+    } finally {
+      setIsLoadingAddons(false);
+    }
+  }
+
+  async function fetchOffers() {
+    setIsLoadingOffers(true);
+    try {
+      const { data, error } = await supabase.from('offers').select('*').order('created_at', { ascending: false });
+      if (!error && data) {
+        setOffers(data);
+      }
+    } catch (e) {
+      console.error('Error fetching offers:', e);
+    } finally {
+      setIsLoadingOffers(false);
     }
   }
 
@@ -549,6 +580,92 @@ export default function PremiumAdminPanel() {
     }
   };
 
+  // CRUD Actions: Addons Table
+  const handleSaveAddon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAddon?.name || !editingAddon?.price_pkr) {
+      alert('Zaroori fields empty hain!');
+      return;
+    }
+
+    setIsSavingAddon(true);
+    const token = localStorage.getItem('medimart_admin_session');
+    
+    try {
+      let finalImageUrl = editingAddon.image_url;
+
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+
+        const uploadRes = await fetch('/api/admin/upload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        
+        const uploadData = await uploadRes.json();
+        if (uploadData.success) {
+          finalImageUrl = uploadData.url;
+        } else {
+          alert('Image upload failed: ' + uploadData.error);
+          setIsSavingAddon(false);
+          return;
+        }
+      }
+
+      const addonDataToSave = { name: editingAddon.name, price_pkr: Number(editingAddon.price_pkr), image_url: finalImageUrl || null };
+
+      let error = null;
+      let updateRes = null;
+      if (editingAddon.id) {
+        updateRes = await supabase.from('addons').update(addonDataToSave).eq('id', editingAddon.id).select();
+        error = updateRes.error;
+      } else {
+        updateRes = await supabase.from('addons').insert([addonDataToSave]).select();
+        error = updateRes.error;
+      }
+
+      if (!error) {
+        fetchAddons();
+        setEditingAddon(null);
+        setImageFile(null);
+        setShowAddonModal(false);
+      } else {
+        alert('Error saving addon: ' + error.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Save operation fail.');
+    } finally {
+      setIsSavingAddon(false);
+    }
+  };
+
+  const deleteAddon = async (id: number) => {
+    if (!window.confirm('Kya aap waqai is addon ko delete karna chahte hain?')) return;
+    
+    const token = localStorage.getItem('medimart_admin_session');
+    try {
+      const response = await fetch(`/api/admin/addons?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.success || response.ok) {
+        fetchAddons();
+      } else {
+        alert('Delete operation error: ' + data.error);
+      }
+    } catch (err) {
+      alert('Delete operation fail.');
+    }
+  };
+
   // Prescription Reviewer Workflows
   const handleVerifyPrescription = async (orderId: string, approve: boolean) => {
     setIsVerifyingPrescription(true);
@@ -613,47 +730,7 @@ export default function PremiumAdminPanel() {
     }
   };
 
-  // Addon Functions
-  const handleSaveAddon = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingAddon) return;
-    setIsSavingAddon(true);
-    
-    try {
-      if (editingAddon.id) {
-        // Update
-        const { error } = await supabase.from('addons').update({
-          name: editingAddon.name,
-          price_pkr: editingAddon.price_pkr,
-          image_url: editingAddon.image_url
-        }).eq('id', editingAddon.id);
-        if (!error) {
-          setAddonsList(prev => prev.map(a => a.id === editingAddon.id ? editingAddon as Addon : a));
-        }
-      } else {
-        // Insert
-        const { data, error } = await supabase.from('addons').insert([{
-          name: editingAddon.name,
-          price_pkr: editingAddon.price_pkr,
-          image_url: editingAddon.image_url
-        }]).select();
-        if (data) {
-          setAddonsList(prev => [...prev, data[0]]);
-        }
-      }
-      setShowAddonModal(false);
-    } catch (err) {
-      console.error(err);
-    }
-    setIsSavingAddon(false);
-  };
 
-  const deleteAddon = async (id: number) => {
-    if (confirm('Delete this add-on?')) {
-      await supabase.from('addons').delete().eq('id', id);
-      setAddonsList(prev => prev.filter(a => a.id !== id));
-    }
-  };
 
   // Filter Computations
   const filteredOrdersList = filteredOrders.filter(ord => {
@@ -916,8 +993,18 @@ export default function PremiumAdminPanel() {
               </div>
             )}
             
-            <div style={{ marginLeft: 'auto', fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>
-              {filteredOrders.length} Orders Found
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <button 
+                onClick={() => { fetchOrders(); fetchMedicines(); }}
+                className="btn-primary" 
+                style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <RotateCw size={16} />
+                Refresh
+              </button>
+              <div style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>
+                {filteredOrders.length} Orders Found
+              </div>
             </div>
           </div>
 
@@ -1244,6 +1331,14 @@ export default function PremiumAdminPanel() {
             </div>
 
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button 
+                onClick={() => fetchOrders()}
+                className="btn-primary" 
+                style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <RotateCw size={16} />
+                Refresh
+              </button>
               {/* Date Filter */}
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Date:</span>
@@ -2207,7 +2302,7 @@ export default function PremiumAdminPanel() {
                 const r = await fetch('/api/offers', { method, headers: { 'Content-Type': 'application/json', authorization: 'Bearer medimart_session_token_2026_verified' }, body: JSON.stringify(payload) });
                 const d = await r.json();
                 if (d.success) {
-                  if (offerModalType === 'add') setOffers(prev => [...prev, d.offer]);
+                  if (offerModalType === 'add') setOffers(prev => [d.offer, ...prev]);
                   else setOffers(prev => prev.map(o => o.id === d.offer.id ? d.offer : o));
                   setShowOfferModal(false);
                 }
@@ -2322,21 +2417,39 @@ export default function PremiumAdminPanel() {
                 <form onSubmit={handleSaveAddon} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>Name (e.g., Extra Cheese)</label>
-                    <input type="text" value={editingAddon.name} onChange={e => setEditingAddon({...editingAddon, name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+                    <input type="text" value={editingAddon.name} onChange={e => setEditingAddon({...editingAddon, name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)' }} />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>Price (Rs.)</label>
-                    <input type="number" value={editingAddon.price_pkr} onChange={e => setEditingAddon({...editingAddon, price_pkr: Number(e.target.value)})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+                    <input type="number" value={editingAddon.price_pkr} onChange={e => setEditingAddon({...editingAddon, price_pkr: Number(e.target.value)})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)' }} />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>Image URL</label>
-                    <input type="text" placeholder="https://..." value={editingAddon.image_url || ''} onChange={e => setEditingAddon({...editingAddon, image_url: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} />
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>Image (Upload or URL)</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setImageFile(e.target.files[0]);
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setEditingAddon(prev => prev ? ({ ...prev, image_url: ev.target?.result as string }) : prev);
+                            };
+                            reader.readAsDataURL(e.target.files[0]);
+                          }
+                        }}
+                        style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}
+                      />
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>- OR -</span>
+                      <input type="text" placeholder="https://..." value={editingAddon.image_url || ''} onChange={e => setEditingAddon({...editingAddon, image_url: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--background)', color: 'var(--foreground)' }} />
+                    </div>
                   </div>
                   {editingAddon.image_url && (
                     <img src={editingAddon.image_url} alt="Preview" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '6px', marginTop: '4px' }} onError={(e) => e.currentTarget.style.display = 'none'} />
                   )}
                   <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                    <button type="button" onClick={() => setShowAddonModal(false)} style={{ flex: 1, padding: '10px', background: 'var(--background)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>Cancel</button>
+                    <button type="button" onClick={() => setShowAddonModal(false)} style={{ flex: 1, padding: '10px', background: 'var(--background)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--foreground)' }}>Cancel</button>
                     <button type="submit" disabled={isSavingAddon} style={{ flex: 1, padding: '10px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700 }}>{isSavingAddon ? 'Saving...' : 'Save'}</button>
                   </div>
                 </form>
@@ -2558,15 +2671,15 @@ export default function PremiumAdminPanel() {
               </div>
 
               {/* Status change actions quickly inside invoice modal */}
-              <div style={{ background: '#f4f8f6', padding: '16px', borderRadius: 'var(--radius-md)', display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--foreground)' }}>Update Fulfillment:</span>
+              <div style={{ background: 'var(--background)', border: '1px solid var(--border-color)', padding: '16px', borderRadius: 'var(--radius-md)', display: 'flex', justifyItems: 'center', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)' }}>Update Fulfillment:</span>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {['Pending', 'Dispatched', 'Delivered', 'Cancelled'].map((st) => (
                     <button
                       key={st}
                       onClick={() => handleOrderStatusChange(selectedOrder.id, st as any)}
                       style={{
-                        background: selectedOrder.status === st ? 'var(--primary)' : 'white',
+                        background: selectedOrder.status === st ? 'var(--primary)' : 'var(--card-bg)',
                         color: selectedOrder.status === st ? 'white' : 'var(--foreground)',
                         border: '1px solid var(--border-color)',
                         padding: '6px 12px',
@@ -2645,6 +2758,8 @@ export default function PremiumAdminPanel() {
                       <option value="Sandwich">Sandwich</option>
                       <option value="Pasta">Pasta</option>
                       <option value="Sides">Sides</option>
+                      <option value="Deals">Deals</option>
+                      <option value="Beverages">Beverages</option>
                     </select>
                   </div>
 

@@ -68,7 +68,8 @@ export default function OfferDetailPage() {
         price_pkr: offer.price_pkr || 0,
         image_url: offer.image_url,
         manufacturer: 'Fatpizza Kitchen',
-        is_active: true
+        is_active: true,
+        stock: 999
       };
       
       addToCart(cartItem as any, quantity, []);

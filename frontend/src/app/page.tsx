@@ -6,6 +6,20 @@ import { useRouter } from 'next/navigation';
 import { Search, ChevronRight, Check, Plus, Star, ShieldCheck, Heart, User, Flame } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { PizzaItem } from '@/lib/supabaseClient';
+
+export interface Offer {
+  id: number;
+  title: string;
+  description: string;
+  discount_text: string;
+  price_pkr?: number;
+  badge: string;
+  image_url: string;
+  valid_until: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -14,6 +28,8 @@ export default function HomePage() {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [featuredItems, setFeaturedItems] = useState<PizzaItem[]>([]);
+  const [dealsItems, setDealsItems] = useState<PizzaItem[]>([]);
+  const [specialOffers, setSpecialOffers] = useState<Offer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState<string | null>(null);
@@ -28,10 +44,28 @@ export default function HomePage() {
         const { data } = await supabase
           .from('medicines')
           .select('*')
-          .in('id', [1, 2, 4, 12, 13, 14, 15, 17, 20]); // Veggie, Cheese, Supreme, Kabab Chaska, Zinger, Creamy Pizza, Pepperoni, Beef Burger, Pasta
+          .eq('category', 'Pizza')
+          .order('id', { ascending: false })
+          .limit(8);
           
         if (data) {
           setFeaturedItems(data);
+        }
+
+        // Fetch deals (latest 4)
+        const { data: dealsData } = await supabase
+          .from('medicines')
+          .select('*')
+          .eq('category', 'Deals')
+          .order('id', { ascending: false })
+          .limit(4);
+        if (dealsData) setDealsItems(dealsData);
+
+        // Fetch offers (latest 4 active)
+        const res = await fetch('/api/offers');
+        const offersData = await res.json();
+        if (offersData?.success) {
+          setSpecialOffers(offersData.offers.filter((o: any) => o.is_active).slice(0, 4));
         }
       } catch (e) {
         console.error('Error fetching featured menu:', e);
@@ -64,7 +98,9 @@ export default function HomePage() {
     { name: 'Burger', emoji: '🍔' },
     { name: 'Sandwich', emoji: '🥪' },
     { name: 'Pasta', emoji: '🍝' },
-    { name: 'Sides', emoji: '🍟' }
+    { name: 'Sides', emoji: '🍟' },
+    { name: 'Deals', emoji: '🏷️' },
+    { name: 'Beverages', emoji: '🥤' }
   ];
 
   const chefs = [
@@ -214,6 +250,139 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Latest Deals Section */}
+      {dealsItems.length > 0 && (
+        <section className="container">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '30px', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <h2 className="section-title" style={{ fontFamily: 'var(--font-display)', marginBottom: '8px', textAlign: 'left' }}>{t('Latest Deals', 'تازہ ترین ڈیلز')}</h2>
+              <p className="section-subtitle" style={{ margin: 0, textAlign: 'left' }}>{t('Unbeatable value for your cravings', 'آپ کی پسند کے لیے بہترین ڈیلز')}</p>
+            </div>
+            <Link href="/shop?category=Deals" className="btn-primary" style={{ padding: '10px 20px', borderRadius: 'var(--radius-pill)', textDecoration: 'none', background: 'var(--card-bg)', color: 'var(--foreground)', border: '2px solid var(--border-color)', fontSize: '0.9rem', fontWeight: 700 }}>
+              {t('View All Deals', 'تمام ڈیلز دیکھیں')}
+            </Link>
+          </div>
+          <div className="product-grid">
+            {dealsItems.map((item) => (
+              <div 
+                key={item.id} 
+                className="product-card tape-sticker" 
+                style={{ cursor: 'pointer', background: 'var(--card-bg)' }}
+                onClick={() => router.push(`/product/${item.id}`)}
+              >
+                <div className="product-img-wrap" style={{ background: '#fcfcfc', borderBottom: '1px solid var(--border-color)', height: '220px', padding: '0', display: 'block', position: 'relative' }}>
+                  <img 
+                    src={item.image_url} 
+                    alt={item.name} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--primary)', color: 'white', fontSize: '0.8rem', fontWeight: 800, padding: '4px 10px', borderRadius: 'var(--radius-sm)' }}>
+                    Rs. {item.price_pkr}
+                  </div>
+                </div>
+
+                <div className="product-content" style={{ padding: '20px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>{t(item.category, item.category === 'Pizza' ? 'پیزا' : item.category === 'Burger' ? 'برگر' : item.category === 'Sandwich' ? 'سینڈوچ' : item.category === 'Pasta' ? 'پاستا' : item.category === 'Sides' ? 'سائیڈز' : item.category)}</span>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginTop: '4px', color: 'var(--foreground)' }}>{t(item.name)}</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px', minHeight: '38px', lineBreak: 'anywhere' }}>
+                    {t(item.generic_name)}
+                  </p>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '12px' }}>
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} size={14} fill="#f59e0b" color="#f59e0b" />
+                    ))}
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginLeft: '4px' }}>5.0</span>
+                  </div>
+
+                  <div className="product-footer" style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>{t(item.dosage)}</span>
+                    <button 
+                      className="btn-icon-add" 
+                      onClick={(e) => handleAddToCart(e, item)}
+                      style={{ background: 'var(--primary)', color: 'white', borderRadius: '50%' }}
+                    >
+                      <Plus size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Special Offers Section */}
+      {specialOffers.length > 0 && (
+        <section className="container">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '30px', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <h2 className="section-title" style={{ fontFamily: 'var(--font-display)', marginBottom: '8px', textAlign: 'left' }}>{t('Special Offers', 'خاص آفرز')}</h2>
+              <p className="section-subtitle" style={{ margin: 0, textAlign: 'left' }}>{t('Limited time exclusive discounts', 'محدود مدت کے لیے خصوصی رعایتیں')}</p>
+            </div>
+            <Link href="/offers" className="btn-primary" style={{ padding: '10px 20px', borderRadius: 'var(--radius-pill)', textDecoration: 'none', background: 'var(--card-bg)', color: 'var(--foreground)', border: '2px solid var(--border-color)', fontSize: '0.9rem', fontWeight: 700 }}>
+              {t('View All Offers', 'تمام آفرز دیکھیں')}
+            </Link>
+          </div>
+          <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            {specialOffers.map((offer) => (
+              <div 
+                key={`offer-${offer.id}`} 
+                className="product-card" 
+                style={{ 
+                  cursor: 'pointer', 
+                  background: 'var(--card-bg)', 
+                  border: '1px solid var(--border-color)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%',
+                  overflow: 'hidden'
+                }}
+                onClick={() => router.push(`/offers/${offer.id}`)}
+              >
+                <div className="product-img-wrap" style={{ height: '200px', padding: '0', display: 'block', position: 'relative' }}>
+                  <img 
+                    src={offer.image_url} 
+                    alt={offer.title} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  {offer.badge && (
+                    <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'var(--primary)', color: 'white', fontSize: '0.7rem', fontWeight: 800, padding: '4px 10px', borderRadius: 'var(--radius-sm)' }}>
+                      {offer.badge}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="product-content" style={{ padding: '16px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                  <h3 className="product-name" style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '8px', textTransform: 'uppercase' }}>{offer.title}</h3>
+                  
+                  {offer.price_pkr ? (
+                    <div style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '12px', color: 'var(--foreground)' }}>
+                      PKR {offer.price_pkr}.00
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '12px', color: 'var(--primary)' }}>
+                      View Details
+                    </div>
+                  )}
+
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: 1.5, flexGrow: 1 }}>
+                    {offer.discount_text || offer.description}
+                  </p>
+                  
+                  <button 
+                    className="btn-primary" 
+                    style={{ width: '100%', padding: '12px', fontSize: '0.95rem', justifyContent: 'center' }}
+                  >
+                    {t('Get Offer', 'آفر حاصل کریں')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 3. Ways To Enjoy Section (Matching Reference layout) */}
       <section className="container">

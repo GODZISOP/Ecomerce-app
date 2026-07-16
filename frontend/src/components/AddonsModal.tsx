@@ -160,8 +160,19 @@ export default function AddonsModal({ isOpen, onClose, medicine, initialQuantity
                         type="checkbox" 
                         checked={isSelected}
                         onChange={() => toggleAddon(addon)}
-                        style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }}
+                        style={{ width: '18px', height: '18px', accentColor: 'var(--primary)', flexShrink: 0 }}
                       />
+                      {addon.image_url ? (
+                        <img 
+                          src={addon.image_url} 
+                          alt={addon.name} 
+                          style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', background: 'var(--card-bg)' }} 
+                        />
+                      ) : (
+                        <div style={{ width: '40px', height: '40px', borderRadius: '6px', background: 'var(--card-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                          +
+                        </div>
+                      )}
                       <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{addon.name}</span>
                     </div>
                     <span style={{ fontWeight: 700 }}>+Rs. {addon.price_pkr}</span>

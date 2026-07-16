@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 // Get all addons
 export async function GET(request: Request) {
   try {
-    const { data, error } = await supabase.from('addons').select('*').order('name');
+    const { data, error } = await supabase.from('addons').select('*').order('id', { ascending: false });
     if (error) {
       console.error('Error fetching addons:', error);
       // Fallback for when the table doesn't exist yet
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, price_pkr } = body;
+    const { name, price_pkr, image_url } = body;
     
     if (!name || price_pkr === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase
       .from('addons')
-      .insert([{ name, price_pkr: Number(price_pkr) }])
+      .insert([{ name, price_pkr: Number(price_pkr), image_url }])
       .select()
       .single();
 
@@ -76,7 +76,7 @@ export async function DELETE(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, name, price_pkr } = body;
+    const { id, name, price_pkr, image_url } = body;
 
     if (!id || !name || price_pkr === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -84,7 +84,7 @@ export async function PUT(request: Request) {
 
     const { data, error } = await supabase
       .from('addons')
-      .update({ name, price_pkr: Number(price_pkr) })
+      .update({ name, price_pkr: Number(price_pkr), image_url })
       .eq('id', id)
       .select()
       .single();

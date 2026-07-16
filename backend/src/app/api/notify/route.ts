@@ -45,19 +45,49 @@ export async function POST(req: Request) {
     const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://ecomerce-app-s357.vercel.app';
 
     // Build lists of items formatted for plain text and HTML
-    const itemsListHtml = items.map((item: any) => `
+    const itemsListHtml = items.map((item: any) => {
+      const isOffer = typeof item.id === 'string' && item.id.startsWith('offer-');
+      const itemTypeLabel = isOffer ? '(OFFER)' : (item.dosage ? `(${item.dosage})` : '');
+      return `
       <tr>
         <td style="padding: 10px; border-bottom: 1px solid #333; font-weight: bold; color: white;">
-          ${item.name}
+          ${item.name} <span style="color: #9ca3af; font-size: 0.8rem; font-weight: normal; margin-left: 4px;">${itemTypeLabel}</span>
         </td>
-        <td style="padding: 10px; border-bottom: 1px solid #333; text-align: center; color: white;">${item.quantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #333; text-align: center; color: white;">x${item.quantity}</td>
         <td style="padding: 10px; border-bottom: 1px solid #333; text-align: right; font-weight: bold; color: white;">Rs. ${item.price_pkr * item.quantity}</td>
       </tr>
-    `).join('');
+      `;
+    }).join('');
 
-    const itemsListText = items.map((item: any) => 
-      `- ${item.name} x${item.quantity} = Rs. ${item.price_pkr * item.quantity}`
-    ).join('\n');
+    const itemsListText = items.map((item: any) => {
+      const isOffer = typeof item.id === 'string' && item.id.startsWith('offer-');
+      const itemTypeLabel = isOffer ? '(OFFER)' : (item.dosage ? `(${item.dosage})` : '');
+      return `- ${item.name} ${itemTypeLabel} x${item.quantity} = Rs. ${item.price_pkr * item.quantity}`;
+    }).join('\n');
+
+    const invoiceHtml = `
+            <h3 style="color: #ef4444; font-size: 1.2rem; border-bottom: 2px solid #333; padding-bottom: 8px;">
+              Items Summary (آرڈر کی تفصیل)
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+              <thead>
+                <tr style="background: #262626;">
+                  <th style="padding: 10px; text-align: left; color: white;">Item</th>
+                  <th style="padding: 10px; text-align: center; width: 60px; color: white;">Qty</th>
+                  <th style="padding: 10px; text-align: right; width: 100px; color: white;">Price</th>
+                </tr>
+              </thead>
+              <tbody style="color: #d1d5db;">
+                ${itemsListHtml}
+              </tbody>
+            </table>
+
+            <div style="background: #262626; padding: 16px; border-radius: 6px; text-align: right; border: 1px solid #333;">
+              <div style="font-size: 0.9rem; color: #9ca3af;">Subtotal: Rs. ${subtotal}</div>
+              <div style="font-size: 0.9rem; color: #9ca3af; margin: 4px 0;">COD Shipping: Rs. ${shipping_fee}</div>
+              <div style="font-size: 1.15rem; font-weight: bold; color: #ef4444;">Total Amount Payable: Rs. ${grand_total}</div>
+            </div>
+    `;
 
     // SMTP credentials are always available (hardcoded fallback), so always send real emails
     const isSmtpConfigured = true;
@@ -86,27 +116,7 @@ export async function POST(req: Request) {
               <tr><td style="padding: 6px 0; color: #9ca3af;">Order Time:</td><td style="padding: 6px 0; color: white;">${new Date().toLocaleString('en-PK')}</td></tr>
             </table>
 
-            <h2 style="color: #ef4444; font-size: 1.2rem; border-bottom: 2px solid #333; padding-bottom: 8px;">
-              Items Summary (آرڈر کی تفصیل)
-            </h2>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-              <thead>
-                <tr style="background: #262626;">
-                  <th style="padding: 10px; text-align: left; color: white;">Item</th>
-                  <th style="padding: 10px; text-align: center; width: 60px; color: white;">Qty</th>
-                  <th style="padding: 10px; text-align: right; width: 100px; color: white;">Price</th>
-                </tr>
-              </thead>
-              <tbody style="color: #d1d5db;">
-                ${itemsListHtml}
-              </tbody>
-            </table>
-
-            <div style="background: #262626; padding: 16px; border-radius: 6px; text-align: right; border: 1px solid #333;">
-              <div style="font-size: 0.9rem; color: #9ca3af;">Subtotal: Rs. ${subtotal}</div>
-              <div style="font-size: 0.9rem; color: #9ca3af; margin: 4px 0;">COD Shipping: Rs. ${shipping_fee}</div>
-              <div style="font-size: 1.15rem; font-weight: bold; color: #ef4444;">Total Amount Payable: Rs. ${grand_total}</div>
-            </div>
+            ${invoiceHtml}
 
             <div style="margin-top: 30px; text-align: center;">
               <a href="${adminUrl}/admin" style="background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
@@ -136,16 +146,7 @@ export async function POST(req: Request) {
               <div style="font-size: 0.85rem; color: #9ca3af; margin-top: 4px;"><strong>Contact Number:</strong> ${phone}</div>
             </div>
 
-            <h3 style="color: #ef4444; border-bottom: 1px solid #333; padding-bottom: 8px;">Order Bill</h3>
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9rem;">
-              <tbody>
-                ${itemsListHtml}
-              </tbody>
-            </table>
-
-            <div style="background: #262626; padding: 16px; border-radius: 6px; text-align: right; border: 1px solid #333;">
-              <div style="font-size: 0.85rem; color: #9ca3af;">Total COD Amount: <strong style="color: white;">Rs. ${grand_total}</strong></div>
-            </div>
+            ${invoiceHtml}
 
             <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 24px; text-align: center;">
               Aap apne order ka live status is link par check kar sakte hain:
@@ -296,6 +297,8 @@ export async function POST(req: Request) {
           
           <div style="background: #1a1a1a; padding: 24px; border: 1px solid #333; border-top: none; border-radius: 0 0 8px 8px;">
             ${statusDescHtml}
+            
+            ${invoiceHtml}
             
             <div style="background: #262626; padding: 16px; border-radius: 6px; margin: 20px 0; border: 1px solid #333; text-align: center;">
               <span style="font-size: 0.85rem; color: #9ca3af; font-weight: 700;">CURRENT STATUS:</span><br/>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Search, SlidersHorizontal, Plus, Check, ShoppingCart, HelpCircle, Star, History, Loader2, X } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { PizzaItem } from '@/lib/supabaseClient';
@@ -43,7 +44,7 @@ function ShopContent() {
   const { addToCart } = useCart();
 
   const categories = [
-    'All', 'Pizza', 'Burger', 'Sandwich', 'Pasta', 'Sides'
+    'All', 'Pizza', 'Burger', 'Sandwich', 'Pasta', 'Sides', 'Deals', 'Beverages'
   ];
 
   // Update states if URL query changes
@@ -94,10 +95,26 @@ function ShopContent() {
           query = query.or(`name.ilike.%${searchQuery}%,generic_name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`);
         }
 
-        const { data } = await query.order('name', { ascending: true });
+        const { data } = await query.order('id', { ascending: false });
         
         if (data) {
-          setMenuItems(data);
+          const groupedData: typeof data = [];
+          const seenPizzas = new Set();
+          
+          data.forEach(item => {
+            if (item.category === 'Pizza') {
+              const baseNameMatch = item.name.match(/^(.*?)(?: - |$)/);
+              const baseName = baseNameMatch ? baseNameMatch[1] : item.name;
+              if (!seenPizzas.has(baseName)) {
+                seenPizzas.add(baseName);
+                groupedData.push(item);
+              }
+            } else {
+              groupedData.push(item);
+            }
+          });
+          
+          setMenuItems(groupedData);
         }
 
         // Fetch Offers if no specific category is selected (or if we want them always)
@@ -226,7 +243,7 @@ function ShopContent() {
                   }}
                   className="category-filter-btn"
                 >
-                  <span>{t(cat === 'All' ? 'All Items' : `${cat}s`, cat === 'All' ? 'تمام کھانے' : cat === 'Pizza' ? 'پیزا' : cat === 'Burger' ? 'برگر' : cat === 'Sandwich' ? 'سینڈوچ' : cat === 'Pasta' ? 'پاستا' : cat === 'Sides' ? 'سائیڈز' : cat)}</span>
+                  <span>{t(cat === 'All' ? 'All Items' : (cat.endsWith('s') ? cat : `${cat}s`), cat === 'All' ? 'تمام کھانے' : cat === 'Pizza' ? 'پیزا' : cat === 'Burger' ? 'برگر' : cat === 'Sandwich' ? 'سینڈوچ' : cat === 'Pasta' ? 'پاستا' : cat === 'Sides' ? 'سائیڈز' : cat)}</span>
                   {isActive && <span style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%' }}></span>}
                 </button>
               );
@@ -378,20 +395,18 @@ function ShopContent() {
           ) : (
             <div>
               {/* Offers Section */}
-              {offers.length > 0 && (
+              {offers.length > 0 && (!selectedCategory || selectedCategory === 'All') && (
                 <div style={{ marginBottom: '40px' }}>
-                  <h2 style={{ 
-                    fontSize: '2rem', 
-                    fontWeight: 900, 
-                    marginBottom: '20px', 
-                    borderBottom: '3px solid var(--primary)', 
-                    display: 'inline-block', 
-                    paddingBottom: '8px' 
-                  }}>
-                    {t('Special Offers', 'خاص آفرز')}
-                  </h2>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '3px solid var(--primary)', paddingBottom: '8px' }}>
+                    <h2 style={{ fontSize: '2rem', fontWeight: 900, margin: 0 }}>
+                      {t('Special Offers', 'خاص آفرز')}
+                    </h2>
+                    <Link href="/offers" className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.85rem', textDecoration: 'none' }}>
+                      {t('View All', 'سب دیکھیں')}
+                    </Link>
+                  </div>
                   <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-                    {offers.map((offer) => (
+                    {offers.slice(0, 4).map((offer) => (
                       <div 
                         key={`offer-${offer.id}`} 
                         className="product-card" 
@@ -476,20 +491,78 @@ function ShopContent() {
                 </div>
               )}
 
+              {/* Deals Section */}
+              {(!selectedCategory || selectedCategory === 'All') && menuItems.filter(item => item.category === 'Deals').length > 0 && (
+                <div style={{ marginBottom: '40px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '3px solid var(--primary)', paddingBottom: '8px' }}>
+                    <h2 style={{ fontSize: '2rem', fontWeight: 900, margin: 0 }}>
+                      {t('Latest Deals', 'تازہ ترین ڈیلز')}
+                    </h2>
+                    <button 
+                      onClick={() => handleCategorySelect('Deals')} 
+                      className="btn-primary" 
+                      style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+                      {t('View All', 'سب دیکھیں')}
+                    </button>
+                  </div>
+                  <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+                    {menuItems.filter(item => item.category === 'Deals').slice(0, 4).map((item) => (
+                      <div 
+                        key={`deal-${item.id}`} 
+                        className="product-card tape-sticker" 
+                        style={{ cursor: 'pointer', background: 'var(--card-bg)' }}
+                        onClick={() => router.push(`/product/${item.id}`)}
+                      >
+                        <div className="product-img-wrap" style={{ height: '180px', padding: '0', display: 'block', position: 'relative' }}>
+                          <img 
+                            src={item.image_url} 
+                            alt={item.name} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                        
+                        <div className="product-content" style={{ padding: '16px' }}>
+                          <span className="product-category" style={{ fontSize: '0.7rem' }}>{t(item.category, 'ڈیلز')}</span>
+                          <h3 className="product-name" style={{ fontSize: '1.1rem', fontWeight: 800 }}>{t(item.name)}</h3>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', minHeight: '38px', lineBreak: 'anywhere' }}>
+                            {t(item.generic_name)}
+                          </p>
+                          <span className="product-dosage" style={{ fontSize: '0.75rem', padding: '2px 8px', marginBottom: '12px' }}>{t(item.dosage)}</span>
+                          
+                          <div className="product-footer">
+                            <div className="product-price">
+                              <span className="price-val" style={{ fontSize: '1.2rem', fontWeight: 900 }}>Rs. {item.price_pkr}</span>
+                            </div>
+                            <button 
+                              className="btn-icon-add" 
+                              onClick={(e) => handleAddToCart(e, item)}
+                              title="Add to Cart"
+                              style={{ width: '36px', height: '36px', background: 'var(--primary)', color: 'white', borderRadius: '50%' }}
+                            >
+                              <Plus size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Regular Menu Items Section */}
-              {menuItems.length > 0 && (
+              {menuItems.filter(item => (!selectedCategory || selectedCategory === 'All') ? item.category !== 'Deals' : true).length > 0 && (
                 <div>
                   <h2 style={{ 
                     fontSize: '2rem', 
                     fontWeight: 900, 
                     marginBottom: '20px', 
-                    display: offers.length > 0 ? 'block' : 'none' 
+                    display: (offers.length > 0 || ((!selectedCategory || selectedCategory === 'All') && menuItems.filter(item => item.category === 'Deals').length > 0)) ? 'block' : 'none' 
                   }}>
                     {t('Menu', 'مینو')}
                   </h2>
                   <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
               {/* Render Regular Menu Items */}
-              {menuItems.map((item) => (
+              {menuItems.filter(item => (!selectedCategory || selectedCategory === 'All') ? item.category !== 'Deals' : true).map((item) => (
                 <div 
                   key={item.id} 
                   className="product-card tape-sticker" 

@@ -14,7 +14,7 @@ function checkAuth(req: Request) {
 
 export async function GET() {
   try {
-    const { data: offers, error } = await supabase.from('offers').select('*').order('created_at', { ascending: false });
+    const { data: offers, error } = await supabase.from('offers').select('*').order('id', { ascending: false });
     if (error) throw error;
     return NextResponse.json({ success: true, offers: offers || [] });
   } catch (e: any) {
