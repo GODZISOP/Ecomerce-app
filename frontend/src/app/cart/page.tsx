@@ -137,9 +137,7 @@ export default function CartPage() {
   // Update shipping fee dynamically and sync with localStorage
   const updateShippingFeeByDistance = (distKm: number, lat: number, lng: number) => {
     let fee = 150;
-    if (distKm <= 1) {
-      fee = 120;
-    } else if (distKm <= 3) {
+    if (distKm <= 3) {
       fee = 150;
     } else if (distKm <= 6) {
       fee = 200;

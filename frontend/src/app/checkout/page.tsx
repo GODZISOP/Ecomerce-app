@@ -120,9 +120,7 @@ export default function CheckoutPage() {
   // Update shipping fee dynamically based on location zones
   const updateShippingFeeByDistance = (distKm: number) => {
     let fee = 150;
-    if (distKm <= 1) {
-      fee = 120;
-    } else if (distKm <= 3) {
+    if (distKm <= 3) {
       fee = 150;
     } else if (distKm <= 6) {
       fee = 200;
