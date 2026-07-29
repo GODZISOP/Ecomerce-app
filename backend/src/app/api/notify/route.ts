@@ -42,8 +42,8 @@ export async function POST(req: Request) {
       status
     } = order;
 
-    // Dynamically detect URLs using request origin, fallback to Vercel URLs
-    const requestOrigin = req.headers.get('origin') || 'https://ecom12345.vercel.app';
+    // Always use live website URL in emails so customers can actually click the tracking link
+    const requestOrigin = process.env.FRONTEND_URL || 'https://ecomerce-app-woi1.vercel.app';
     const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://ecomerce-app-s357.vercel.app';
 
     // Build lists of items formatted for plain text and HTML
