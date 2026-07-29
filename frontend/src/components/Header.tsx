@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingCart, Menu, X, ChevronRight, Pizza, Flame, MapPin, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronRight, Flame, MapPin, ChevronDown } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -46,17 +47,14 @@ export default function Header() {
         <div className="container nav-container" style={{ height: '90px' }}>
           {/* Pizza Logo */}
           <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
-            <div className="logo-icon" style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%' }}>
-              <Pizza size={24} strokeWidth={2.5} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '1.7rem', fontWeight: 900, color: 'white', fontFamily: 'var(--font-display)', letterSpacing: '0.5px' }}>
-                Fat<span style={{ color: 'var(--primary)' }}>pizza</span>
-              </span>
-              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '2px', marginTop: '-4px' }}>
-                {t('Fresh & Hot', 'تازہ اور گرم')}
-              </span>
-            </div>
+            <Image
+              src="/fat-pizza-logo.png"
+              alt="Fat Pizza Logo"
+              width={100}
+              height={100}
+              style={{ borderRadius: '50%', objectFit: 'contain' }}
+              priority
+            />
           </Link>
 
           {/* Location Selector */}
@@ -249,14 +247,13 @@ export default function Header() {
           <div className="mobile-drawer" style={{ background: '#0d0d0e', color: 'white', borderLeft: '1px solid var(--border-color)' }}>
             <div className="mobile-drawer-header" style={{ borderBottom: '1px solid var(--border-color)' }}>
               <Link href="/" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="logo-icon" style={{ background: 'var(--primary)', color: 'white' }}>
-                  <Pizza size={22} strokeWidth={2.5} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white', fontFamily: 'var(--font-display)' }}>
-                    Fat<span style={{ color: 'var(--primary)' }}>pizza</span>
-                  </span>
-                </div>
+                <Image
+                  src="/fat-pizza-logo.png"
+                  alt="Fat Pizza Logo"
+                  width={80}
+                  height={80}
+                  style={{ borderRadius: '50%', objectFit: 'contain' }}
+                />
               </Link>
               <button 
                 className="mobile-drawer-close"
