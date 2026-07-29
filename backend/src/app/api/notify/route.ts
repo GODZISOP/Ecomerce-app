@@ -15,10 +15,12 @@ const smtpConfig = {
   }
 };
 
-const adminNotificationEmail = process.env.NOTIFICATION_EMAIL || process.env.SMTP_USER || '';
 
 export async function POST(req: Request) {
   try {
+    // Admin notification email — updated to new inbox
+    const adminNotificationEmail = 'appointmentstudio38@gmail.com';
+
     const body = await req.json();
     const { type, order } = body;
 
