@@ -50,7 +50,13 @@ export default function ProductDetailPage() {
               .order('price_pkr', { ascending: true });
               
             if (variantsData && variantsData.length > 0) {
-              setPizzaSizes(variantsData);
+              const uniqueDosages = new Set();
+              const uniqueVariants = variantsData.filter((v: any) => {
+                if (uniqueDosages.has(v.dosage)) return false;
+                uniqueDosages.add(v.dosage);
+                return true;
+              });
+              setPizzaSizes(uniqueVariants);
             }
           }
         }

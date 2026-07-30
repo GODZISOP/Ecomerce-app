@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Pizza, Phone, MapPin, Mail } from 'lucide-react';
+import Image from 'next/image';
+import { Phone, MapPin, Mail } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function Footer() {
@@ -21,13 +22,14 @@ export default function Footer() {
           
           {/* Logo & Call to Action */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-              <div style={{ background: 'var(--primary)', color: 'white', padding: '8px', borderRadius: '50%' }}>
-                <Pizza size={22} />
-              </div>
-              <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'white', fontFamily: 'var(--font-display)' }}>
-                Fat<span style={{ color: 'var(--primary)' }}>pizza</span>
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+              <Image
+                src="/fat-pizza-logo.png"
+                alt="Fat Pizza Logo"
+                width={80}
+                height={80}
+                style={{ borderRadius: '50%', objectFit: 'contain' }}
+              />
             </div>
             <p style={{ fontSize: '0.85rem', color: '#c7bfae', marginBottom: '20px', lineHeight: 1.6 }}>
               {t("It's Not Just A Pizza, An Experience. Handcrafted with passion, baked to perfection in a wood-fired oven and delivered with a touch of art.", "یہ صرف پیزا نہیں ہے، ایک یادگار تجربہ ہے۔ محبت سے تیار کردہ، لکڑی کے تندور میں پکا ہوا، اور فنی نفاست کے ساتھ پہنچایا گیا۔")}

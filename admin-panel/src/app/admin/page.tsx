@@ -119,6 +119,8 @@ export default function PremiumAdminPanel() {
   const [editingMedicine, setEditingMedicine] = useState<Partial<Medicine> | null>(null);
   const [isMutatingMedicine, setIsMutatingMedicine] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [pizzaPrices, setPizzaPrices] = useState({ small: 0, regular: 0, large: 0 });
+  const [pizzaIds, setPizzaIds] = useState({ small: 0, regular: 0, large: 0 });
 
   // File Prescription Workspace States
   const [selectedPrescriptionOrder, setSelectedPrescriptionOrder] = useState<Order | null>(null);
@@ -495,8 +497,18 @@ export default function PremiumAdminPanel() {
   // CRUD Actions: Medicines Table
   const handleSaveMedicine = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingMedicine?.name || !editingMedicine?.category || !editingMedicine?.price_pkr) {
+    if (!editingMedicine?.name || !editingMedicine?.category) {
       alert('Zaroori fields empty hain!');
+      return;
+    }
+
+    if (editingMedicine.category === 'Pizza') {
+      if (!pizzaPrices.small && !pizzaPrices.regular && !pizzaPrices.large) {
+        alert('Kam az kam ek size ki price zaroor likhen!');
+        return;
+      }
+    } else if (!editingMedicine?.price_pkr) {
+      alert('Price zaroori hai!');
       return;
     }
 
@@ -529,26 +541,99 @@ export default function PremiumAdminPanel() {
         }
       }
 
-      const medicineDataToSave = { ...editingMedicine, image_url: finalImageUrl };
-
       const method = medicineModalType === 'add' ? 'POST' : 'PUT';
-      const response = await fetch('/api/admin/medicines', {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(medicineDataToSave)
-      });
-      const data = await response.json();
 
-      if (data.success) {
-        fetchMedicines();
-        setEditingMedicine(null);
-        setImageFile(null);
-        setShowMedicineModal(false);
+      if (editingMedicine.category === 'Pizza') {
+        const sizes = [
+          { sizeName: 'Small 6 Inch', price: pizzaPrices.small, id: pizzaIds.small },
+          { sizeName: 'Regular 9 Inch', price: pizzaPrices.regular, id: pizzaIds.regular },
+          { sizeName: 'Large 12 Inch', price: pizzaPrices.large, id: pizzaIds.large }
+        ];
+
+        let hasError = false;
+        const baseNameMatch = editingMedicine.name?.match(/^(.*?)(?: - |$)/);
+        const baseName = baseNameMatch ? baseNameMatch[1] : editingMedicine.name;
+
+        for (const size of sizes) {
+          if (size.price > 0) {
+            const medicineDataToSave: any = { 
+              ...editingMedicine, 
+              name: `${baseName} - ${size.sizeName}`,
+              dosage: size.sizeName,
+              price_pkr: size.price,
+              image_url: finalImageUrl 
+            };
+            
+            let methodToUse = method;
+            if (medicineModalType === 'edit' && size.id !== 0) {
+              medicineDataToSave.id = size.id;
+              methodToUse = 'PUT';
+            } else if (medicineModalType === 'edit' && size.id === 0) {
+              methodToUse = 'POST';
+              delete medicineDataToSave.id;
+            } else if (medicineModalType === 'add') {
+              methodToUse = 'POST';
+              delete medicineDataToSave.id;
+            }
+
+            const response = await fetch('/api/admin/medicines', {
+              method: methodToUse,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(medicineDataToSave)
+            });
+            const data = await response.json();
+            if (!data.success) {
+              hasError = true;
+              alert(`Error saving ${size.sizeName}: ` + data.error);
+            }
+          } else if (size.id !== 0) {
+            // Delete the variant if the admin set its price to 0 and it exists
+            const response = await fetch(`/api/admin/medicines?id=${size.id}`, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            const data = await response.json();
+            if (!data.success) {
+              hasError = true;
+              alert(`Error deleting ${size.sizeName}: ` + data.error);
+            }
+          }
+        }
+        
+        if (!hasError) {
+          fetchMedicines();
+          setEditingMedicine(null);
+          setImageFile(null);
+          setPizzaPrices({ small: 0, regular: 0, large: 0 });
+          setPizzaIds({ small: 0, regular: 0, large: 0 });
+          setShowMedicineModal(false);
+        }
       } else {
-        alert('Error saving medicine record: ' + data.error);
+        const medicineDataToSave = { ...editingMedicine, image_url: finalImageUrl };
+
+        const response = await fetch('/api/admin/medicines', {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(medicineDataToSave)
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          fetchMedicines();
+          setEditingMedicine(null);
+          setImageFile(null);
+          setShowMedicineModal(false);
+        } else {
+          alert('Error saving medicine record: ' + data.error);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -745,17 +830,37 @@ export default function PremiumAdminPanel() {
     return matchSearch && matchStatus;
   });
 
-  const filteredMedicinesList = medicines.filter(med => {
-    const term = medicineSearch.toLowerCase();
-    const matchSearch = !medicineSearch.trim() ||
-      med.name.toLowerCase().includes(term) ||
-      med.generic_name.toLowerCase().includes(term) ||
-      med.manufacturer.toLowerCase().includes(term) ||
-      med.category.toLowerCase().includes(term);
+  const filteredMedicinesList = React.useMemo(() => {
+    const filtered = medicines.filter(med => {
+      const term = medicineSearch.toLowerCase();
+      const matchSearch = !medicineSearch.trim() ||
+        med.name.toLowerCase().includes(term) ||
+        med.generic_name.toLowerCase().includes(term) ||
+        med.manufacturer.toLowerCase().includes(term) ||
+        med.category.toLowerCase().includes(term);
 
-    const matchCategory = medicineCategoryFilter === 'All' || med.category === medicineCategoryFilter;
-    return matchSearch && matchCategory;
-  });
+      const matchCategory = medicineCategoryFilter === 'All' || med.category === medicineCategoryFilter;
+      return matchSearch && matchCategory;
+    });
+
+    const groupedData: typeof filtered = [];
+    const seenPizzas = new Set();
+    
+    filtered.forEach(item => {
+      if (item.category === 'Pizza') {
+        const baseNameMatch = item.name.match(/^(.*?)(?: - |$)/);
+        const baseName = baseNameMatch ? baseNameMatch[1] : item.name;
+        if (!seenPizzas.has(baseName)) {
+          seenPizzas.add(baseName);
+          groupedData.push({ ...item, name: baseName });
+        }
+      } else {
+        groupedData.push(item);
+      }
+    });
+
+    return groupedData;
+  }, [medicines, medicineSearch, medicineCategoryFilter]);
 
   const pendingPrescriptionOrders = orders.filter(
     o => o.status === 'Pending' && o.items.some(i => i.requires_prescription)
@@ -1643,13 +1748,16 @@ export default function PremiumAdminPanel() {
                     generic_name: '',
                     category: 'Pizza',
                     price_pkr: 0,
-                    stock: 50,
+                    stock: 100,
                     dosage: '',
                     description: '',
-                    manufacturer: '',
+                    manufacturer: 'Fatpizza Kitchen',
                     requires_prescription: false,
                     image_url: ''
                   });
+                  setPizzaPrices({ small: 0, regular: 0, large: 0 });
+                  setPizzaIds({ small: 0, regular: 0, large: 0 });
+                  setImageFile(null);
                   setShowMedicineModal(true);
                 }}
                 className="btn-primary"
@@ -1781,7 +1889,27 @@ export default function PremiumAdminPanel() {
                           <button
                             onClick={() => {
                               setMedicineModalType('edit');
-                              setEditingMedicine(med);
+                              if (med.category === 'Pizza') {
+                                const baseNameMatch = med.name.match(/^(.*?)(?: - |$)/);
+                                const baseName = baseNameMatch ? baseNameMatch[1] : med.name;
+                                const variants = medicines.filter(m => m.category === 'Pizza' && m.name.toLowerCase().startsWith(baseName.toLowerCase()));
+                                
+                                const newPrices = { small: 0, regular: 0, large: 0 };
+                                const newIds = { small: 0, regular: 0, large: 0 };
+                                variants.forEach(v => {
+                                  const d = v.dosage.toLowerCase();
+                                  if (d.includes('small') || d.includes('6 inch')) { newPrices.small = v.price_pkr; newIds.small = v.id; }
+                                  else if (d.includes('regular') || d.includes('medium') || d.includes('9 inch')) { newPrices.regular = v.price_pkr; newIds.regular = v.id; }
+                                  else if (d.includes('large') || d.includes('12 inch')) { newPrices.large = v.price_pkr; newIds.large = v.id; }
+                                });
+                                setPizzaPrices(newPrices);
+                                setPizzaIds(newIds);
+                                setEditingMedicine({ ...med, name: baseName });
+                              } else {
+                                setEditingMedicine(med);
+                                setPizzaPrices({ small: 0, regular: 0, large: 0 });
+                                setPizzaIds({ small: 0, regular: 0, large: 0 });
+                              }
                               setShowMedicineModal(true);
                             }}
                             style={{
@@ -2703,8 +2831,8 @@ export default function PremiumAdminPanel() {
       {/* II. ADD/EDIT MEDICINE FORM DIALOG MODAL */}
       {showMedicineModal && editingMedicine && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '600px' }}>
-            <button className="modal-close" onClick={() => { setShowMedicineModal(false); setEditingMedicine(null); setImageFile(null); }}>
+          <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <button className="modal-close" onClick={() => { setShowMedicineModal(false); setEditingMedicine(null); setImageFile(null); setPizzaPrices({ small: 0, regular: 0, large: 0 }); setPizzaIds({ small: 0, regular: 0, large: 0 }); }}>
               X
             </button>
 
@@ -2763,18 +2891,41 @@ export default function PremiumAdminPanel() {
                     </select>
                   </div>
 
-                  {/* Price */}
-                  <div className="form-group">
-                    <label className="form-label">Price (PKR) <span style={{ color: 'red' }}>*</span></label>
-                    <input 
-                      type="number"
-                      className="form-input"
-                      value={editingMedicine.price_pkr || 0}
-                      onChange={(e) => setEditingMedicine({ ...editingMedicine, price_pkr: Number(e.target.value) })}
-                      required
-                    />
-                  </div>
+                  {/* Price (For non-pizza items) */}
+                  {editingMedicine.category !== 'Pizza' && (
+                    <div className="form-group">
+                      <label className="form-label">Price (PKR) <span style={{ color: 'red' }}>*</span></label>
+                      <input 
+                        type="number"
+                        className="form-input"
+                        value={editingMedicine.price_pkr || 0}
+                        onChange={(e) => setEditingMedicine({ ...editingMedicine, price_pkr: Number(e.target.value) })}
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
+
+                {/* Price (For Pizza items only - standalone so it doesn't break grid) */}
+                {editingMedicine.category === 'Pizza' && (
+                  <div className="form-group" style={{ marginBottom: '16px' }}>
+                    <label className="form-label">Pizza Prices (PKR) <span style={{ color: 'red' }}>*</span></label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '0.8rem', color: '#555' }}>Small</label>
+                        <input type="number" className="form-input" value={pizzaPrices.small || ''} onChange={(e) => setPizzaPrices({...pizzaPrices, small: Number(e.target.value)})} placeholder="e.g. 500" />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.8rem', color: '#555' }}>Regular</label>
+                        <input type="number" className="form-input" value={pizzaPrices.regular || ''} onChange={(e) => setPizzaPrices({...pizzaPrices, regular: Number(e.target.value)})} placeholder="e.g. 800" />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '0.8rem', color: '#555' }}>Large</label>
+                        <input type="number" className="form-input" value={pizzaPrices.large || ''} onChange={(e) => setPizzaPrices({...pizzaPrices, large: Number(e.target.value)})} placeholder="e.g. 1200" />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   {/* Stock count */}
@@ -2865,8 +3016,8 @@ export default function PremiumAdminPanel() {
                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
                   <button
                     type="button"
-                    onClick={() => { setShowMedicineModal(false); setEditingMedicine(null); setImageFile(null); }}
-                    style={{
+                    onClick={() => { setShowMedicineModal(false); setEditingMedicine(null); setImageFile(null); setPizzaPrices({ small: 0, regular: 0, large: 0 }); setPizzaIds({ small: 0, regular: 0, large: 0 }); }}
+                     style={{
                       flex: 1,
                       background: 'transparent',
                       border: '1px solid var(--border-color)',

@@ -49,7 +49,22 @@ export default function HomePage() {
           .limit(8);
           
         if (data) {
-          setFeaturedItems(data);
+          const groupedFeatured: typeof data = [];
+          const seenPizzas = new Set();
+          
+          data.forEach(item => {
+            if (item.category === 'Pizza') {
+              const baseNameMatch = item.name.match(/^(.*?)(?: - |$)/);
+              const baseName = baseNameMatch ? baseNameMatch[1] : item.name;
+              if (!seenPizzas.has(baseName)) {
+                seenPizzas.add(baseName);
+                groupedFeatured.push(item);
+              }
+            } else {
+              groupedFeatured.push(item);
+            }
+          });
+          setFeaturedItems(groupedFeatured);
         }
 
         // Fetch deals (latest 4)
