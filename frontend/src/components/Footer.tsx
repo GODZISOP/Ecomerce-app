@@ -57,7 +57,7 @@ export default function Footer() {
           <div>
             <h5 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '20px', color: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('Locations', 'مقامات')}</h5>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem', color: '#c7bfae' }}>
-              <li>📍 {t('DHA Phase 5, Karachi', 'ڈی ایچ اے فیز 5، کراچی')}</li>
+              <li>📍 {t('Scheme 33, Karachi', 'اسکیم 33، کراچی')}</li>
               <li>📍 {t('Gulberg III, Lahore', 'گلبرگ III، لاہور')}</li>
               <li>📍 {t('F-7 Markaz, Islamabad', 'ایف 7 مرکز، اسلام آباد')}</li>
               <li>📍 {t('Centaurus Mall, Islamabad', 'سینٹورس مال، اسلام آباد')}</li>

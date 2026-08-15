@@ -377,8 +377,8 @@ export default function ProductDetailPage() {
         }}>
           <Truck size={24} color="var(--primary)" />
           <div>
-            <h4 style={{ fontSize: '0.9rem', fontWeight: 800 }}>{t('30-Minute Free Delivery Guarantee', '30 منٹ میں مفت ڈلیوری کی ضمانت')}</h4>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t("Hot & fresh to DHA, Gulberg, and F-7. If late, it's 100% free!", 'ڈی ایچ اے، گلبرگ، اور ایف 7 میں گرما گرم اور تازہ۔ اگر دیر ہوئی تو 100٪ مفت!')}</p>
+            <h4 style={{ fontSize: '0.9rem', fontWeight: 800 }}>{t('Express & Hot Delivery Guarantee', 'تیز ترین اور گرما گرم ڈلیوری کی ضمانت')}</h4>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('Hot & fresh delivery directly to your doorstep in DHA, Gulberg, and F-7.', 'ڈی ایچ اے، گلبرگ، اور ایف 7 میں گرما گرم اور تازہ کھانا براہ راست آپ کی دہلیز پر۔')}</p>
           </div>
         </div>
 

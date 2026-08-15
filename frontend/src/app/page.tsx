@@ -118,12 +118,7 @@ export default function HomePage() {
     { name: 'Beverages', emoji: '🥤' }
   ];
 
-  const chefs = [
-    { name: "Sarlout Rhinoa", role: "Master Pizzaiolo", img: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=150&q=80" },
-    { name: "Dumiri Incelo", role: "Sous Chef", img: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=150&q=80" },
-    { name: "Harih Kulguse", role: "Burger Specialist", img: "https://images.unsplash.com/photo-1595273670150-db0d3bf3cab2?w=150&q=80" },
-    { name: "Chualin Curupuso", role: "Pasta Master", img: "https://images.unsplash.com/photo-1622023459113-9b195477c9c4?w=150&q=80" }
-  ];
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '80px', paddingBottom: '60px' }}>
@@ -228,6 +223,8 @@ export default function HomePage() {
                   <img 
                     src={item.image_url} 
                     alt={item.name} 
+                    loading="lazy"
+                    decoding="async"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />
                   <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--primary)', color: 'white', fontSize: '0.8rem', fontWeight: 800, padding: '4px 10px', borderRadius: 'var(--radius-sm)' }}>
@@ -290,6 +287,8 @@ export default function HomePage() {
                   <img 
                     src={item.image_url} 
                     alt={item.name} 
+                    loading="lazy"
+                    decoding="async"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />
                   <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--primary)', color: 'white', fontSize: '0.8rem', fontWeight: 800, padding: '4px 10px', borderRadius: 'var(--radius-sm)' }}>
@@ -360,6 +359,8 @@ export default function HomePage() {
                   <img 
                     src={offer.image_url} 
                     alt={offer.title} 
+                    loading="lazy"
+                    decoding="async"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                   {offer.badge && (
@@ -405,7 +406,7 @@ export default function HomePage() {
           {/* Orange promo banner left */}
           <div style={{
             background: 'linear-gradient(135deg, #f35d25 0%, #ff8c42 100%)',
-            padding: '50px 30px', // slightly less padding for mobile
+            padding: '50px 30px',
             color: 'white',
             display: 'flex',
             flexDirection: 'column',
@@ -414,10 +415,10 @@ export default function HomePage() {
             position: 'relative'
           }}>
             <h2 style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 900, lineHeight: 1.1, marginBottom: '20px', fontFamily: 'var(--font-display)' }}>
-              {t('30 minutes, or pizza for free.', '30 منٹ میں ڈلیوری، ورنہ پیزا مفت۔')}
+              {t('Express & Fast Hot Delivery.', 'تیز ترین اور گرما گرم ڈلیوری۔')}
             </h2>
             <p style={{ fontSize: '1rem', color: '#fff0e6', marginBottom: '30px', maxWidth: '380px' }}>
-              {t('We guarantee hot, fresh pizzas delivered to your door within half an hour, or your order is completely free of charge!', 'ہم آدھے گھنٹے کے اندر آپ کے دروازے پر گرم اور تازہ پیزا پہنچانے کی ضمانت دیتے ہیں، ورنہ آپ کا آرڈر بالکل مفت ہوگا!')}
+              {t('We guarantee hot, fresh pizzas delivered quickly to your doorstep with ultimate care and premium quality!', 'ہم آپ کے دروازے پر تیز ترین، گرم اور تازہ پیزا بہترین معیار کے ساتھ پہنچانے کی ضمانت دیتے ہیں!')}
             </p>
             
             <div style={{ display: 'flex', gap: '20px', fontSize: '0.85rem' }}>
@@ -431,50 +432,31 @@ export default function HomePage() {
           </div>
 
           {/* Story / Ways to enjoy details right */}
-          <div style={{ padding: '50px', color: '#111111' }}>
-            <h3 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '16px', color: '#111111' }}>{t('This Is Our Story', 'یہ ہے ہماری کہانی')}</h3>
-            <p style={{ color: '#333333', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '24px' }}>
-              {t('Fatpizza started as a small brick oven kitchen in DHA. Our secret has always been simple: imported San Marzano tomato sauce, fresh hand-pulled local mozzarella, and a signature crust fermented for 48 hours. Today, we still bake every single pizza to order with love.', 'فیٹ پیزا کا آغاز ڈی ایچ اے میں ایک چھوٹے سے تندوری کچن سے ہوا تھا۔ ہمارا راز ہمیشہ سادہ رہا ہے: بہترین ٹماٹر کی چٹنی، تازہ مقامی پنیر، اور 48 گھنٹے تک خمیر کیا ہوا خاص خمیرہ۔ آج بھی ہم ہر پیزا کو محبت سے آرڈر پر ہی تیار کرتے ہیں۔')}
+          <div style={{ padding: '50px', color: 'var(--foreground)' }}>
+            <h3 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '16px', color: 'var(--foreground)' }}>{t('This Is Our Story', 'یہ ہے ہماری کہانی')}</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '24px' }}>
+              {t('Fat Pizza started in 2019 in Karachi Scheme 33. Our secret has always been simple: imported tomato and creamy sauces, fresh hand-pulled mozzarella cheese, and a signature crust dough fermented to perfection. Today, we still bake every single pizza for our customers with love and care.', 'فیٹ پیزا کا آغاز 2019 میں کراچی اسکیم 33 سے ہوا تھا۔ ہمارا راز ہمیشہ سادہ رہا ہے: بہترین ٹماٹر اور کریمی ساسز، تازہ ہاتھ سے تیار کردہ موزریلا پنیر، اور بہترین خمیر شدہ خاص کرسٹ ڈو۔ آج بھی ہم اپنے ہر کسٹمر کا ہر ایک پیزا محبت اور توجہ کے ساتھ تیار کرتے ہیں۔')}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: '16px', textAlign: 'center', marginTop: '20px' }}>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🛍️</span>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: '#111111' }}>{t('Pick up', 'خود لے جائیں')}</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: 'var(--foreground)' }}>{t('Pick up', 'خود لے جائیں')}</div>
               </div>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🍽️</span>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: '#111111' }}>{t('Dine-in', 'وہیں کھائیں')}</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: 'var(--foreground)' }}>{t('Dine-in', 'وہیں کھائیں')}</div>
               </div>
               <div style={{ padding: '12px', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
                 <span style={{ fontSize: '1.5rem' }}>🚚</span>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: '#111111' }}>{t('Catering', 'کیٹرنگ')}</div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, marginTop: '6px', color: 'var(--foreground)' }}>{t('Catering', 'کیٹرنگ')}</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. Chefs Section */}
-      <section className="container">
-        <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-          <h2 className="section-title" style={{ fontFamily: 'var(--font-display)' }}>{t('Meet Our Great Chefs', 'ہمارے ماہر شیف سے ملیں')}</h2>
-          <p className="section-subtitle">{t('The culinary artists crafting your experience', 'آپ کے ذائقے کو سجانے والے ہمارے فنکار')}</p>
-          <div style={{ width: '60px', height: '4px', background: 'var(--primary)', margin: '16px auto 0 auto', borderRadius: '2px' }} />
-        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '30px' }}>
-          {chefs.map((chef, idx) => (
-            <div key={idx} className="product-card tape-sticker" style={{ textAlign: 'center', padding: '30px 20px', background: 'var(--card-bg)' }}>
-              <div style={{ width: '110px', height: '110px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 16px auto', border: '4px solid var(--border-color)' }}>
-                <img src={chef.img} alt={chef.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 800 }}>{chef.name}</h4>
-              <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', marginTop: '4px' }}>{t(chef.role, chef.role === 'Master Pizzaiolo' ? 'ماہر پیزا میکر' : chef.role === 'Sous Chef' ? 'نائب شیف' : chef.role === 'Burger Specialist' ? 'برگر کے ماہر' : chef.role === 'Pasta Master' ? 'پاستا کے ماہر' : chef.role)}</p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Toast Notification */}
       {showNotification && (

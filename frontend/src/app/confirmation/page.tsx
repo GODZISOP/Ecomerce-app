@@ -120,7 +120,7 @@ function ConfirmationContent() {
           </h2>
 
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '540px', margin: '0 auto 30px auto', lineHeight: 1.6 }}>
-            {t("Our kitchen has started preparing your order! We guarantee fresh, hot pizza and burgers delivered in 30 minutes or it's free. We will contact you if we need any delivery directions.", "ہمارے کچن نے آپ کے آرڈر کی تیاری شروع کر دی ہے! ہم 30 منٹ کے اندر گرما گرم پیزا اور برگر کی ڈلیوری کی ضمانت دیتے ہیں، ورنہ بالکل مفت۔ اگر پتہ معلوم کرنے میں مدد کی ضرورت ہوئی تو ہم آپ سے رابطہ کریں گے۔")}
+            {t("Our kitchen has started preparing your order! We guarantee fresh, hot pizza and burgers delivered swiftly to your doorstep. We will contact you if we need any delivery directions.", "ہمارے کچن نے آپ کے آرڈر کی تیاری شروع کر دی ہے! ہم تیز ترین اور گرما گرم پیزا اور برگر کی ترسیل کی ضمانت دیتے ہیں۔ اگر پتہ معلوم کرنے میں مدد کی ضرورت ہوئی تو ہم آپ سے رابطہ کریں گے۔")}
           </p>
 
           {/* Tracking box */}
