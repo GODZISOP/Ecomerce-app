@@ -40,14 +40,23 @@ export default function HomePage() {
     async function fetchFeatured() {
       setIsLoading(true);
       try {
-        // Fetch pizzas, burgers, and pasta for home screen display
-        const { data } = await supabase
+        // Fetch featured items for "Discover Our Menu" (items with is_featured = true or latest pizzas)
+        let { data, error: featuredErr } = await supabase
           .from('medicines')
           .select('*')
-          .eq('category', 'Pizza')
+          .eq('is_featured', true)
           .order('id', { ascending: false })
           .limit(8);
           
+        if (featuredErr || !data || data.length === 0) {
+          const { data: fallbackData } = await supabase
+            .from('medicines')
+            .select('*')
+            .order('id', { ascending: false })
+            .limit(8);
+          data = fallbackData;
+        }
+
         if (data) {
           const groupedFeatured: typeof data = [];
           const seenPizzas = new Set();
@@ -67,20 +76,60 @@ export default function HomePage() {
           setFeaturedItems(groupedFeatured);
         }
 
-        // Fetch deals (latest 4)
-        const { data: dealsData } = await supabase
+        // Fetch deals for "Latest Deals" (items with is_deal = true or category = 'Deals')
+        let { data: dealsData } = await supabase
           .from('medicines')
           .select('*')
-          .eq('category', 'Deals')
+          .or('is_deal.eq.true,category.eq.Deals')
           .order('id', { ascending: false })
           .limit(4);
+
+        if (!dealsData || dealsData.length === 0) {
+          const { data: fallbackDeals } = await supabase
+            .from('medicines')
+            .select('*')
+            .eq('category', 'Deals')
+            .order('id', { ascending: false })
+            .limit(4);
+          dealsData = fallbackDeals;
+        }
         if (dealsData) setDealsItems(dealsData);
 
-        // Fetch offers (latest 4 active)
-        const res = await fetch('/api/offers');
-        const offersData = await res.json();
-        if (offersData?.success) {
-          setSpecialOffers(offersData.offers.filter((o: any) => o.is_active).slice(0, 4));
+        // Fetch offers (combining custom offers & products marked with is_special_offer)
+        const combinedOffers: Offer[] = [];
+        try {
+          const res = await fetch('/api/offers');
+          const offersData = await res.json();
+          if (offersData?.success && offersData.offers) {
+            combinedOffers.push(...offersData.offers.filter((o: any) => o.is_active));
+          }
+        } catch {}
+
+        const { data: specialMedData } = await supabase
+          .from('medicines')
+          .select('*')
+          .eq('is_special_offer', true)
+          .order('id', { ascending: false });
+
+        if (specialMedData && specialMedData.length > 0) {
+          specialMedData.forEach(item => {
+            combinedOffers.push({
+              id: 9000 + item.id,
+              title: item.name,
+              description: item.description || item.generic_name,
+              discount_text: item.generic_name || 'Special Discounted Price',
+              price_pkr: item.price_pkr,
+              badge: 'SPECIAL OFFER',
+              image_url: item.image_url,
+              valid_until: '',
+              is_active: true,
+              created_at: new Date().toISOString()
+            });
+          });
+        }
+
+        if (combinedOffers.length > 0) {
+          setSpecialOffers(combinedOffers.slice(0, 4));
         }
       } catch (e) {
         console.error('Error fetching featured menu:', e);

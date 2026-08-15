@@ -199,29 +199,12 @@ export default function LocationModal() {
         <div style={{
           width: '90px',
           height: '90px',
-          background: '#f13c0b',
-          borderRadius: '16px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          borderRadius: '50%',
+          overflow: 'hidden',
           marginBottom: '24px',
           boxShadow: '0 8px 16px rgba(241, 60, 11, 0.2)'
         }}>
-          <span style={{
-            color: '#ffffff',
-            fontSize: '1.4rem',
-            fontWeight: 900,
-            lineHeight: '1.1',
-            letterSpacing: '-0.5px'
-          }}>Fat</span>
-          <span style={{
-            color: '#ffffff',
-            fontSize: '1.4rem',
-            fontWeight: 900,
-            lineHeight: '1.1',
-            letterSpacing: '-0.5px'
-          }}>pizza</span>
+          <img src="/fat-pizza-logo.png" alt="Fat Pizza Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
 
         {/* Section 1: Order Type */}

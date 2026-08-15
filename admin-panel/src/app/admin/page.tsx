@@ -47,6 +47,9 @@ interface Medicine {
   manufacturer: string;
   requires_prescription: boolean;
   image_url: string;
+  is_featured?: boolean;
+  is_deal?: boolean;
+  is_special_offer?: boolean;
 }
 
 interface ShopSettings {
@@ -1839,6 +1842,7 @@ export default function PremiumAdminPanel() {
                     <th>Category</th>
                     <th>Price</th>
                     <th>Stock status</th>
+                    <th>Landing Page Toggles</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -1881,6 +1885,110 @@ export default function PremiumAdminPanel() {
                         {med.stock < 15 && (
                           <div style={{ fontSize: '0.7rem', color: 'var(--status-cancelled)', fontWeight: 700 }}>⚠️ Low Stock!</div>
                         )}
+                      </td>
+
+                      {/* Landing Page Toggles */}
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const token = localStorage.getItem('medimart_admin_session');
+                              const newFeatured = !med.is_featured;
+                              setMedicines(prev => prev.map(m => m.id === med.id ? { ...m, is_featured: newFeatured } : m));
+                              try {
+                                await fetch('/api/admin/medicines', {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                  body: JSON.stringify({ id: med.id, is_featured: newFeatured })
+                                });
+                              } catch (e) {
+                                console.error('Error toggling is_featured:', e);
+                              }
+                            }}
+                            style={{
+                              background: med.is_featured ? 'rgba(16, 185, 129, 0.15)' : 'var(--background)',
+                              border: `1px solid ${med.is_featured ? '#10b981' : 'var(--border-color)'}`,
+                              color: med.is_featured ? '#10b981' : 'var(--text-muted)',
+                              padding: '4px 10px',
+                              borderRadius: 'var(--radius-pill)',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            🌟 {med.is_featured ? 'Discover: ON' : 'Discover: OFF'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const token = localStorage.getItem('medimart_admin_session');
+                              const newDeal = !med.is_deal;
+                              setMedicines(prev => prev.map(m => m.id === med.id ? { ...m, is_deal: newDeal } : m));
+                              try {
+                                await fetch('/api/admin/medicines', {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                  body: JSON.stringify({ id: med.id, is_deal: newDeal })
+                                });
+                              } catch (e) {
+                                console.error('Error toggling is_deal:', e);
+                              }
+                            }}
+                            style={{
+                              background: med.is_deal ? 'rgba(249, 115, 22, 0.15)' : 'var(--background)',
+                              border: `1px solid ${med.is_deal ? 'var(--primary)' : 'var(--border-color)'}`,
+                              color: med.is_deal ? 'var(--primary)' : 'var(--text-muted)',
+                              padding: '4px 10px',
+                              borderRadius: 'var(--radius-pill)',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            🔥 {med.is_deal ? 'Deal: ON' : 'Deal: OFF'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const token = localStorage.getItem('medimart_admin_session');
+                              const newSpecial = !med.is_special_offer;
+                              setMedicines(prev => prev.map(m => m.id === med.id ? { ...m, is_special_offer: newSpecial } : m));
+                              try {
+                                await fetch('/api/admin/medicines', {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                  body: JSON.stringify({ id: med.id, is_special_offer: newSpecial })
+                                });
+                              } catch (e) {
+                                console.error('Error toggling is_special_offer:', e);
+                              }
+                            }}
+                            style={{
+                              background: med.is_special_offer ? 'rgba(236, 72, 153, 0.15)' : 'var(--background)',
+                              border: `1px solid ${med.is_special_offer ? '#ec4899' : 'var(--border-color)'}`,
+                              color: med.is_special_offer ? '#ec4899' : 'var(--text-muted)',
+                              padding: '4px 10px',
+                              borderRadius: 'var(--radius-pill)',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            🎁 {med.is_special_offer ? 'Offer: ON' : 'Offer: OFF'}
+                          </button>
+                        </div>
                       </td>
 
                       {/* Operation icons */}
@@ -2990,6 +3098,51 @@ export default function PremiumAdminPanel() {
                       />
                       {imageFile && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>Selected: {imageFile.name}</span>}
                     </div>
+                  </div>
+                </div>
+
+                {/* Landing Page Display Checkboxes */}
+                <div style={{
+                  background: 'var(--background)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px'
+                }}>
+                  <label className="form-label" style={{ margin: 0, fontWeight: 800 }}>🏠 Landing Page Display Options</label>
+                  
+                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={!!editingMedicine.is_featured} 
+                        onChange={(e) => setEditingMedicine({ ...editingMedicine, is_featured: e.target.checked })} 
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                      🌟 Show in &quot;Discover Our Menu&quot; section
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={!!editingMedicine.is_deal} 
+                        onChange={(e) => setEditingMedicine({ ...editingMedicine, is_deal: e.target.checked })} 
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                      🔥 Show in &quot;Latest Deals&quot; section
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={!!editingMedicine.is_special_offer} 
+                        onChange={(e) => setEditingMedicine({ ...editingMedicine, is_special_offer: e.target.checked })} 
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                      🎁 Show in &quot;Special Offers&quot; section
+                    </label>
                   </div>
                 </div>
 
