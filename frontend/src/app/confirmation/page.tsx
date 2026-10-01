@@ -264,7 +264,7 @@ function ConfirmationContent() {
         <button 
           onClick={() => router.push('/shop')} 
           style={{
-            background: 'white',
+            background: 'transparent',
             color: 'var(--foreground)',
             border: '1px solid var(--border-color)',
             padding: '14px 28px',
