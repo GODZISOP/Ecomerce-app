@@ -24,10 +24,10 @@ export default function Footer() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
               <Image
-                src="/fat-pizza-logo.png"
+                src="/fat-pizza-logo-new.png"
                 alt="Fat Pizza Logo"
-                width={80}
-                height={80}
+                width={60}
+                height={60}
                 style={{ borderRadius: '50%', objectFit: 'contain' }}
               />
             </div>

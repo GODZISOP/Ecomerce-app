@@ -48,10 +48,10 @@ export default function Header() {
           {/* Pizza Logo */}
           <Link href="/" className="logo" style={{ textDecoration: 'none' }}>
             <Image
-              src="/fat-pizza-logo.png"
+              src="/fat-pizza-logo-new.png"
               alt="Fat Pizza Logo"
-              width={100}
-              height={100}
+              width={75}
+              height={75}
               style={{ borderRadius: '50%', objectFit: 'contain' }}
               priority
             />
@@ -248,10 +248,10 @@ export default function Header() {
             <div className="mobile-drawer-header" style={{ borderBottom: '1px solid var(--border-color)' }}>
               <Link href="/" className="logo" onClick={() => setIsMobileMenuOpen(false)}>
                 <Image
-                  src="/fat-pizza-logo.png"
+                  src="/fat-pizza-logo-new.png"
                   alt="Fat Pizza Logo"
-                  width={80}
-                  height={80}
+                  width={60}
+                  height={60}
                   style={{ borderRadius: '50%', objectFit: 'contain' }}
                 />
               </Link>
