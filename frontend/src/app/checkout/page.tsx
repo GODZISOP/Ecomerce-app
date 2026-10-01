@@ -198,8 +198,8 @@ export default function CheckoutPage() {
       const distGulshan = getDistanceFromLatLonInKm(GULSHAN_BRANCH_COORDS.lat, GULSHAN_BRANCH_COORDS.lon, markerPos.lat, markerPos.lng);
       const nearestBranch = distGulshan < distMain ? GULSHAN_BRANCH_COORDS.name : MAIN_BRANCH_COORDS.name;
 
-      // Append nearest branch tag, coordinates, whatsapp, note, and change amount at the end of the address text
-      const finalAddress = `[📍 Nearest: ${nearestBranch}]\n${address.trim()} (Coords: ${markerPos.lat.toFixed(5)}, ${markerPos.lng.toFixed(5)})` +
+      // Append nearest branch tag, whatsapp, note, and change amount at the end of the address text
+      const finalAddress = `[📍 Nearest: ${nearestBranch}]\n${address.trim()}` +
         (whatsapp.trim() ? `\nWhatsApp: ${whatsapp.trim()}` : '') +
         (note.trim() ? `\nNote: ${note.trim()}` : '') +
         (changeFor.trim() ? `\nChange Required For: Rs. ${changeFor.trim()}` : '');
