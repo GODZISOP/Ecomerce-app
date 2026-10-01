@@ -49,7 +49,29 @@ const pizzaSizes = [
 
 specialFlavours.forEach(flavor => {
   pizzaSizes.forEach(s => {
-    addItem(`${flavor} Pizza - ${s.size}`, `Delicious ${flavor} Pizza`, "Pizza", s.price, s.size, `Our special ${flavor} pizza in ${s.size} size.`, "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80");
+    let imgPath = "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80";
+    
+    // Use our generated images if available
+    if (flavor === "Chicken Ranch") imgPath = "/images/menu/chicken_ranch_pizza.jpg";
+    else if (flavor === "Honey Siracha") imgPath = "/images/menu/honey_sriracha_pizza.jpg";
+    else if (flavor === "BBQ Tikka") imgPath = "/images/menu/bbq_tikka_pizza.jpg";
+    else if (flavor === "Chk Fajita") imgPath = "/images/menu/chk_fajita_pizza.jpg";
+    else if (flavor === "Fajita Sensation") imgPath = "/images/menu/fajita_sensation_pizza.jpg";
+    else if (flavor === "Spicy Italian") imgPath = "/images/menu/spicy_italian_pizza.jpg";
+    else if (flavor === "Chk Supreme") imgPath = "/images/menu/chk_supreme_pizza.jpg";
+    else if (flavor === "Creamy Tikka") imgPath = "/images/menu/creamy_tikka_pizza.jpg";
+    else if (flavor === "Creamy Fajita") imgPath = "/images/menu/creamy_fajita_pizza.jpg";
+    else if (flavor === "Afghani Feast") imgPath = "/images/menu/afghani_feast_pizza.jpg";
+    else if (flavor === "Malai Boti") imgPath = "/images/menu/malai_boti_pizza.jpg";
+    // Fallback for others (Peri Peri, Mughlai Delight, etc.) that hit quota
+    else if (flavor === "Peri Peri") imgPath = "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&auto=format&fit=crop&q=80"; // Generic chicken pizza
+    else if (flavor === "Mughlai Delight") imgPath = "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=600&auto=format&fit=crop&q=80";
+    else if (flavor === "Shawarma Lovers") imgPath = "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=600&auto=format&fit=crop&q=80";
+    else if (flavor === "Cheese Lovers") imgPath = "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80"; // Cheese pizza
+    else if (flavor === "Veggie Lovers") imgPath = "https://images.unsplash.com/photo-1604917877934-07d8d248d396?w=600&auto=format&fit=crop&q=80"; // Veggie pizza
+    else if (flavor === "Cheese n Peproni") imgPath = "/images/menu/spicy_italian_pizza.jpg"; // Pepperoni is fine here
+
+    addItem(`${flavor} Pizza - ${s.size}`, `Delicious ${flavor} Pizza`, "Pizza", s.price, s.size, `Our special ${flavor} pizza in ${s.size} size.`, imgPath);
   });
 });
 
