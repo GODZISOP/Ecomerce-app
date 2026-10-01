@@ -550,7 +550,7 @@ function ShopContent() {
               )}
 
               {/* Regular Menu Items Section */}
-              {menuItems.filter(item => (!selectedCategory || selectedCategory === 'All') ? item.category !== 'Deals' : true).length > 0 && (
+              {menuItems.filter(item => (!selectedCategory || selectedCategory === 'All') ? !['Deals', 'Sides', 'Beverages'].includes(item.category) : true).length > 0 && (
                 <div>
                   <h2 style={{ 
                     fontSize: '2rem', 
@@ -562,7 +562,7 @@ function ShopContent() {
                   </h2>
                   <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
               {/* Render Regular Menu Items */}
-              {menuItems.filter(item => (!selectedCategory || selectedCategory === 'All') ? item.category !== 'Deals' : true).map((item) => (
+              {menuItems.filter(item => (!selectedCategory || selectedCategory === 'All') ? !['Deals', 'Sides', 'Beverages'].includes(item.category) : true).map((item) => (
                 <div 
                   key={item.id} 
                   className="product-card tape-sticker" 

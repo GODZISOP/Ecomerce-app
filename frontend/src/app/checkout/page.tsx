@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { ShieldCheck, Truck, ArrowLeft, ClipboardList, MapPin, Navigation } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
-// Restaurant kitchen coordinates (DHA Phase 5/Gulshan-e-Iqbal hub center)
-const RESTAURANT_COORDS = { lat: 24.96388, lon: 67.12789 };
+// Branch Coordinates
+const MAIN_BRANCH_COORDS = { lat: 24.96388, lon: 67.12789, name: "Current Branch" };
+const GULSHAN_BRANCH_COORDS = { lat: 24.9126, lon: 67.0911, name: "Gulshan Branch" };
 
 // Haversine formula to compute distance in kilometers between two coords
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -111,9 +112,11 @@ export default function CheckoutPage() {
       setDistance(parseFloat(savedDist));
       setShippingFee(parseInt(savedFee));
     } else {
-      const dist = getDistanceFromLatLonInKm(RESTAURANT_COORDS.lat, RESTAURANT_COORDS.lon, initialLat, initialLng);
-      setDistance(dist);
-      updateShippingFeeByDistance(dist);
+      const distMain = getDistanceFromLatLonInKm(MAIN_BRANCH_COORDS.lat, MAIN_BRANCH_COORDS.lon, initialLat, initialLng);
+      const distGulshan = getDistanceFromLatLonInKm(GULSHAN_BRANCH_COORDS.lat, GULSHAN_BRANCH_COORDS.lon, initialLat, initialLng);
+      const minDistance = Math.min(distMain, distGulshan);
+      setDistance(minDistance);
+      updateShippingFeeByDistance(minDistance);
     }
   }, []);
 
@@ -190,8 +193,13 @@ export default function CheckoutPage() {
         requires_prescription: false
       }));
 
-      // Append coordinates, whatsapp, note, and change amount at the end of the address text
-      const finalAddress = `${address.trim()} (Coords: ${markerPos.lat.toFixed(5)}, ${markerPos.lng.toFixed(5)})` +
+      // Find nearest branch
+      const distMain = getDistanceFromLatLonInKm(MAIN_BRANCH_COORDS.lat, MAIN_BRANCH_COORDS.lon, markerPos.lat, markerPos.lng);
+      const distGulshan = getDistanceFromLatLonInKm(GULSHAN_BRANCH_COORDS.lat, GULSHAN_BRANCH_COORDS.lon, markerPos.lat, markerPos.lng);
+      const nearestBranch = distGulshan < distMain ? GULSHAN_BRANCH_COORDS.name : MAIN_BRANCH_COORDS.name;
+
+      // Append nearest branch tag, coordinates, whatsapp, note, and change amount at the end of the address text
+      const finalAddress = `[📍 Nearest: ${nearestBranch}]\n${address.trim()} (Coords: ${markerPos.lat.toFixed(5)}, ${markerPos.lng.toFixed(5)})` +
         (whatsapp.trim() ? `\nWhatsApp: ${whatsapp.trim()}` : '') +
         (note.trim() ? `\nNote: ${note.trim()}` : '') +
         (changeFor.trim() ? `\nChange Required For: Rs. ${changeFor.trim()}` : '');
